@@ -29,4 +29,5 @@ class MichelsonInverSpectrometer(InverSpectrometer):
     ) -> Spectrum:
         interferogram_compensated = interferogram.data - 1/2 * interferogram.data[0]
         spectrum = fft.idct(interferogram_compensated) / (2 * self.transmittance)
+        # TODO: Fix the value of the field of wavenumbers
         return Spectrum(data=spectrum, wavenumbers=np.arange(interferogram.opds.size))

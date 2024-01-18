@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import fft
 
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
@@ -22,6 +23,22 @@ class InversionProtocol(ABC):
 
 
 @dataclass(frozen=True)
+class IDCT(InversionProtocol):
+    """
+    Inverse Discrete Cosine Transform
+    """
+
+    def reconstruct_spectrum(
+            self,
+            interferogram: Interferogram,
+            transmittance_response: TransmittanceResponse,
+    ) -> Spectrum:
+        spectrum = fft.idct(interferogram.data)
+        # TODO: Fix the value of the field of wavenumbers
+        return Spectrum(data=spectrum, wavenumbers=transmittance_response.wavenumbers)
+
+
+@dataclass(frozen=True)
 class PseudoInverse(InversionProtocol):
 
     def reconstruct_spectrum(
@@ -37,3 +54,57 @@ class PseudoInverse(InversionProtocol):
             data=spectrum,
             wavenumbers=transmittance_response.wavenumbers,
         )
+
+
+@dataclass(frozen=True)
+class TruncatedSVD(InversionProtocol):
+    """
+    Truncated Singular Value Decomposition
+    """
+    penalization_ratio: float
+
+    def reconstruct_spectrum(
+            self,
+            interferogram: Interferogram,
+            transmittance_response: TransmittanceResponse,
+    ) -> Spectrum:
+        pass
+
+
+@dataclass(frozen=True)
+class RidgeRegression(InversionProtocol):
+    penalization: float
+
+    def reconstruct_spectrum(
+            self,
+            interferogram: Interferogram,
+            transmittance_response: TransmittanceResponse,
+    ) -> Spectrum:
+        pass
+
+
+@dataclass(frozen=True)
+class LorisVerhoeven(InversionProtocol):
+    penalization: float
+
+    def reconstruct_spectrum(
+            self,
+            interferogram: Interferogram,
+            transmittance_response: TransmittanceResponse,
+    ) -> Spectrum:
+        pass
+
+
+@dataclass(frozen=True)
+class ADMM(InversionProtocol):
+    """
+    Alternating Optimization Methods of Multipliers
+    """
+    penalization: float
+
+    def reconstruct_spectrum(
+            self,
+            interferogram: Interferogram,
+            transmittance_response: TransmittanceResponse,
+    ) -> Spectrum:
+        pass

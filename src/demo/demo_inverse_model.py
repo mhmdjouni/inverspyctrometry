@@ -32,24 +32,22 @@ def main():
         }
     )
 
+    # Michelson reconstruction with IDCT
+    inverspectrometer_michelson = MichelsonInverSpectrometer(transmittance=transmittance)
+    spectrum_mich = inverspectrometer_michelson.reconstruct_spectrum(interferogram=interferogram)
+    fig, axs = plt.subplots(nrows=1, ncols=2, squeeze=False)
+    interferogram.visualize(axs=axs[0, 0])
+    spectrum_mich.visualize(axs=axs[0, 1])
+
+    # Pseudo-inverse
     inverter_pinv = PseudoInverse()
     spectrum_pinv = inverter_pinv.reconstruct_spectrum(
         interferogram=interferogram,
         transmittance_response=transmittance_response,
     )
-
-    inverspectrometer_michelson = MichelsonInverSpectrometer(transmittance=transmittance)
-    spectrum_mich = inverspectrometer_michelson.reconstruct_spectrum(interferogram=interferogram)
-
-    fig, axs = plt.subplots(nrows=1, ncols=3, squeeze=False)
-    transmittance_response.visualize(axs=axs[0, 0])
-    interferogram.visualize(axs=axs[0, 1])
-    spectrum_pinv.visualize(axs=axs[0, 2])
-
-    fig, axs = plt.subplots(nrows=1, ncols=3, squeeze=False)
-    transmittance_response.visualize(axs=axs[0, 0])
-    interferogram.visualize(axs=axs[0, 1])
-    spectrum_mich.visualize(axs=axs[0, 2])
+    fig, axs = plt.subplots(nrows=1, ncols=2, squeeze=False)
+    interferogram.visualize(axs=axs[0, 0])
+    spectrum_pinv.visualize(axs=axs[0, 1])
 
     plt.show()
 
