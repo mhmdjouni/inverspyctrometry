@@ -13,8 +13,12 @@ def main():
     - OPD index in the plot of the transfer matrices: To observe the OPD responses and their DCT
     - OPD value in the cosines that constitute the spectral radiance: Taken from the list of OPDs for controlled observation of the interferograms
     """
-    opds = np.linspace(start=0, stop=56, num=320, endpoint=False)
-    wavenumbers = np.linspace(start=0, stop=1/(2*np.mean(np.diff(opds))), num=opds.size*6, endpoint=False)
+    nb_opd, del_opd = 320, 0.175
+    opds = del_opd * np.arange(nb_opd)
+    nb_wn = opds.size*6  # quasi-continuous
+    del_wn = 1 / (2 * nb_wn * del_opd)  # tends to zero as nb_wn tends to infinity (implies continuous)
+    wavenumbers = del_wn * (np.arange(nb_wn) + 1/2)
+
     reflectance = 0.13 * np.ones_like(a=wavenumbers, dtype=np.float_)
     transmittance = 1 - reflectance
 
@@ -51,13 +55,13 @@ def main():
     fig, axs = plt.subplots(nrows=2, ncols=2, squeeze=False)
     transfer_matrix_fp_2.visualize(axs=axs[0, 0])
     transfer_matrix_fp_2.visualize_opd_response(axs=axs[0, 1], opd_idx=plot_opd_idx)
-    transfer_matrix_fp_2.visualize_dct(axs=axs[1, 0], opd_idx=plot_opd_idx)
+    transfer_matrix_fp_2.visualize_dct(axs=axs[1, 0], opd_idx=-1)
     transfer_matrix_fp_2.visualize_singular_values(axs=axs[1, 1])
 
     fig, axs = plt.subplots(nrows=2, ncols=2, squeeze=False)
     transfer_matrix_fp.visualize(axs=axs[0, 0])
     transfer_matrix_fp.visualize_opd_response(axs=axs[0, 1], opd_idx=plot_opd_idx)
-    transfer_matrix_fp.visualize_dct(axs=axs[1, 0], opd_idx=plot_opd_idx)
+    transfer_matrix_fp.visualize_dct(axs=axs[1, 0], opd_idx=-1)
     transfer_matrix_fp.visualize_singular_values(axs=axs[1, 1])
 
     fig, axs = plt.subplots(nrows=2, ncols=2, squeeze=False)
