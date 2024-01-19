@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from src.common_utils.custom_vars import InterferometerType as IfmType
+from src.common_utils.utils import generate_sampled_opds, generate_wavenumbers_from_opds
 from src.direct_model.interferometer import interferometer_factory
 from src.common_utils.light_wave import Spectrum
 
@@ -14,18 +15,17 @@ def main():
     - OPD value in the cosines that constitute the spectral radiance: Taken from the list of OPDs for controlled observation of the interferograms
     """
     nb_opd, del_opd = 320, 0.175
-    opds = del_opd * np.arange(nb_opd)
-    nb_wn = opds.size*6  # quasi-continuous
-    del_wn = 1 / (2 * nb_wn * del_opd)  # tends to zero as nb_wn tends to infinity (implies continuous)
-    wavenumbers = del_wn * (np.arange(nb_wn) + 1/2)
+    opds = generate_sampled_opds(nb_opd=nb_opd, del_opd=del_opd)
+    nb_wn = opds.size*4  # quasi-continuous
+    wavenumbers = generate_wavenumbers_from_opds(nb_wn=nb_wn, del_opd=del_opd)
 
     reflectance = 0.13 * np.ones_like(a=wavenumbers, dtype=np.float_)
     transmittance = 1 - reflectance
 
-    plot_opd_idx = 300
+    plot_opd_idx = 4
     radiance_cosine_args = {
-        "amplitudes": np.array([1, 1]),
-        "opds": opds[[50, 300]],
+        "amplitudes": np.array([3, 2, 1]),
+        "opds": opds[[plot_opd_idx, 150, 300]],
     }
 
     michelson = interferometer_factory(option=IfmType.MICHELSON, transmittance=transmittance, opds=opds)

@@ -41,6 +41,7 @@ class MichelsonInterferometer(Interferometer):
             wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
     ) -> TransmittanceResponse:
         phase_difference = calculate_phase_difference(opds=self.opds, wavenumbers=wavenumbers)
+        # This is equivalent to: y = (1/2 * y[0]) + 1/2 * scipy.fft.dct(2*T*x, type=2, norm=None)
         transmittance_response = 2 * self.transmittance[None, :] * (1 + np.cos(2 * np.pi * phase_difference))
         return TransmittanceResponse(
             data=transmittance_response,
