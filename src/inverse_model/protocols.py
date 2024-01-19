@@ -5,9 +5,33 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import fft
 
+from src.common_utils.custom_vars import InversionProtocolType
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
 from src.common_utils.transmittance_response import TransmittanceResponse
+
+
+def inversion_protocol_factory(option: InversionProtocolType, kwargs: dict):
+    if option == InversionProtocolType.IDCT:
+        return IDCT()
+
+    elif option == InversionProtocolType.PSEUDO_INVERSE:
+        return PseudoInverse()
+
+    elif option == InversionProtocolType.TRUNCATED_SVD:
+        return TruncatedSVD(penalization_ratio=kwargs["penalization_ratio"])
+
+    elif option == InversionProtocolType.RIDGE_REGRESSION:
+        return RidgeRegression(penalization=kwargs["penalization"])
+
+    elif option == InversionProtocolType.LORIS_VERHOEVEN:
+        return LorisVerhoeven(penalization=kwargs["penalization"])
+
+    elif option == InversionProtocolType.ADMM:
+        return ADMM(penalization=kwargs["penalization"])
+
+    else:
+        raise ValueError(f"Inversion Protocol option {option} is not supported")
 
 
 @dataclass(frozen=True)
