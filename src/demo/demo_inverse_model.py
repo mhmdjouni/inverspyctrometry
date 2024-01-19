@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from src.common_utils.custom_vars import InterferometerType
-from src.common_utils.utils import generate_shifted_dirac
+from src.common_utils.utils import generate_shifted_dirac, generate_sampled_opds, generate_wavenumbers_from_opds
 from src.common_utils.interferogram import Interferogram
 from src.inverse_model.inverspectrometer import MichelsonInverSpectrometer
 from src.inverse_model.protocols import PseudoInverse
@@ -10,17 +10,22 @@ from src.loaders.transmittance_response import transmittance_response_factory
 
 
 def main():
+    nb_opd, del_opd = 320, 0.175
+    opds = generate_sampled_opds(nb_opd=nb_opd, del_opd=del_opd)
+
+    # For controlled experiment: Reference interferometer and spectrum assumptions
+    reflectance_cst = 0.13
+    transmittance_cst = 1 - reflectance_cst
+    nb_wn = nb_opd*1
+
     # Observation
-    opds = np.linspace(start=0, stop=56, num=320, endpoint=False)
-    observation = generate_shifted_dirac(array=opds, shift=0.175*4)  # shift can be a list of indices or a list of OPD values
+    observation = (transmittance_cst * nb_wn) * generate_shifted_dirac(array=opds, shift=del_opd*4)
     interferogram = Interferogram(data=observation, opds=opds)
 
-    # Given or loaded from some Characterization
-    wavenumbers = np.linspace(start=0, stop=1/(2*np.mean(np.diff(opds))), num=opds.size, endpoint=False)
-    reflectance = 0.13 * np.ones_like(a=wavenumbers, dtype=np.float_)
-    transmittance = 1 - reflectance
-
     # Generate or load a transmittance response (Generated using Interferometer || Loaded from disk)
+    wavenumbers = generate_wavenumbers_from_opds(nb_wn=nb_wn, del_opd=del_opd)
+    reflectance = reflectance_cst * np.ones_like(a=wavenumbers)
+    transmittance = 1 - reflectance
     transmittance_response = transmittance_response_factory(
         option="generate",
         kwargs={

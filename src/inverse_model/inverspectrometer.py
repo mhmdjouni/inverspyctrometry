@@ -7,6 +7,7 @@ from scipy import fft
 from src.common_utils.custom_vars import Wvn
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
+from src.common_utils.utils import generate_wavenumbers_in_idct, generate_wavenumbers_from_opds
 
 
 @dataclass(frozen=True)
@@ -28,6 +29,10 @@ class MichelsonInverSpectrometer(InverSpectrometer):
             interferogram: Interferogram,
     ) -> Spectrum:
         interferogram_compensated = interferogram.data - 1/2 * interferogram.data[0]
-        spectrum = fft.idct(interferogram_compensated) / (2 * self.transmittance)
-        # TODO: Fix the value of the field of wavenumbers
-        return Spectrum(data=spectrum, wavenumbers=np.arange(interferogram.opds.size))
+        # This is equivalent to: x = 2 * scipy.fft.idct(y - 1/2 * y[0], type=2. norm=None) / (2*T)
+        spectrum = fft.idct(interferogram_compensated) / self.transmittance
+        wavenumbers = generate_wavenumbers_from_opds(
+            nb_wn=interferogram.opds.size,
+            del_opd=np.mean(np.diff(interferogram.opds))
+        )
+        return Spectrum(data=spectrum, wavenumbers=wavenumbers)
