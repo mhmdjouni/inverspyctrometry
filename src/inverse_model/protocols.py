@@ -4,11 +4,13 @@ from dataclasses import dataclass
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import fft
+from sklearn.decomposition import TruncatedSVD
 
 from src.common_utils.custom_vars import InversionProtocolType
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
 from src.common_utils.transmittance_response import TransmittanceResponse
+from src.common_utils.utils import generate_wavenumbers_from_opds
 
 
 def inversion_protocol_factory(option: InversionProtocolType, kwargs: dict):
@@ -18,8 +20,8 @@ def inversion_protocol_factory(option: InversionProtocolType, kwargs: dict):
     elif option == InversionProtocolType.PSEUDO_INVERSE:
         return PseudoInverse()
 
-    elif option == InversionProtocolType.TRUNCATED_SVD:
-        return TruncatedSVD(penalization_ratio=kwargs["penalization_ratio"])
+    elif option == InversionProtocolType.TSVD:
+        return TSVD(penalization_ratio=kwargs["penalization_ratio"])
 
     elif option == InversionProtocolType.RIDGE_REGRESSION:
         return RidgeRegression(penalization=kwargs["penalization"])
@@ -58,8 +60,11 @@ class IDCT(InversionProtocol):
             transmittance_response: TransmittanceResponse,
     ) -> Spectrum:
         spectrum = fft.idct(interferogram.data)
-        # TODO: Fix the value of the field of wavenumbers
-        return Spectrum(data=spectrum, wavenumbers=transmittance_response.wavenumbers)
+        wavenumbers = generate_wavenumbers_from_opds(
+            nb_wn=interferogram.opds.size,
+            del_opd=np.mean(np.diff(interferogram.opds))
+        )
+        return Spectrum(data=spectrum, wavenumbers=wavenumbers)
 
 
 @dataclass(frozen=True)
@@ -70,9 +75,7 @@ class PseudoInverse(InversionProtocol):
             interferogram: Interferogram,
             transmittance_response: TransmittanceResponse,
     ) -> Spectrum:
-        compensation = 2 * (1 - 0.13)
-        transmittance_response_compensated = transmittance_response.data / compensation - 1
-        tr_pinv = np.linalg.pinv(transmittance_response_compensated)
+        tr_pinv = np.linalg.pinv(transmittance_response.data)
         spectrum = tr_pinv @ interferogram.data
         return Spectrum(
             data=spectrum,
@@ -81,7 +84,7 @@ class PseudoInverse(InversionProtocol):
 
 
 @dataclass(frozen=True)
-class TruncatedSVD(InversionProtocol):
+class TSVD(InversionProtocol):
     """
     Truncated Singular Value Decomposition
     """
@@ -92,7 +95,11 @@ class TruncatedSVD(InversionProtocol):
             interferogram: Interferogram,
             transmittance_response: TransmittanceResponse,
     ) -> Spectrum:
-        pass
+        u, s, v = np.linalg.svd(a=transmittance_response.data, full_matrices=False, compute_uv=True)
+        n_components = int(s.size * self.penalization_ratio)
+        s_penalized = 1 / s[:n_components]
+        spectrum = (v[:n_components].T * s_penalized) @ u[:, :n_components].T @ interferogram.data
+        return Spectrum(data=spectrum, wavenumbers=transmittance_response.wavenumbers)
 
 
 @dataclass(frozen=True)
@@ -104,7 +111,10 @@ class RidgeRegression(InversionProtocol):
             interferogram: Interferogram,
             transmittance_response: TransmittanceResponse,
     ) -> Spectrum:
-        pass
+        u, s, v = np.linalg.svd(a=transmittance_response.data, full_matrices=False, compute_uv=True)
+        s_penalized = s / (s ** 2 + self.penalization ** 2)
+        spectrum = (v.T * s_penalized) @ u.T @ interferogram.data
+        return Spectrum(data=spectrum, wavenumbers=transmittance_response.wavenumbers)
 
 
 @dataclass(frozen=True)
