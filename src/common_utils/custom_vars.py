@@ -18,3 +18,17 @@ class InversionProtocolType(str, Enum):
     RIDGE_REGRESSION = "ridge_regression"
     LORIS_VERHOEVEN = "loris_verhoeven"
     ADMM = "admm"  # Alternating Direction Method of Multipliers
+
+
+class LinearOperatorMethod(str, Enum):
+    IDENTITY = "identity"
+    DCT = "dct"  # Discrete Cosine Transform
+    TV = "tv"  # Total Variation
+
+
+class NormOperatorType(tuple, Enum):
+    L1O = ("l1o", ())
+    L2O = ("l2o", ())
+    L112 = ("l112", (2, 0, 1))
+    L121 = ("l121", (1, 0, 2))
+    L211 = ("l211", (0, 1, 2))

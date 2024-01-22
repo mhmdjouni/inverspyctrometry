@@ -11,6 +11,8 @@ from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
 from src.common_utils.transmittance_response import TransmittanceResponse
 from src.common_utils.utils import generate_wavenumbers_from_opds
+from src.inverse_model.operators import ProximalOperator, LinearOperator
+from src.inverse_model.loris_verhoeven_utils import LorisVerhoevenIteration
 
 
 def inversion_protocol_factory(option: InversionProtocolType, kwargs: dict):
@@ -95,10 +97,10 @@ class TSVD(InversionProtocol):
             interferogram: Interferogram,
             transmittance_response: TransmittanceResponse,
     ) -> Spectrum:
-        u, s, v = np.linalg.svd(a=transmittance_response.data, full_matrices=False, compute_uv=True)
-        n_components = int(s.size * self.penalization_ratio)
-        s_penalized = 1 / s[:n_components]
-        spectrum = (v[:n_components].T * s_penalized) @ u[:, :n_components].T @ interferogram.data
+        lsv, sv, rsv = np.linalg.svd(a=transmittance_response.data, full_matrices=False, compute_uv=True)
+        nb_sv = int(sv.size * self.penalization_ratio)
+        sv_penalized = 1 / sv[:nb_sv]
+        spectrum = (rsv[:nb_sv].T * sv_penalized) @ lsv[:, :nb_sv].T @ interferogram.data
         return Spectrum(data=spectrum, wavenumbers=transmittance_response.wavenumbers)
 
 
@@ -111,22 +113,40 @@ class RidgeRegression(InversionProtocol):
             interferogram: Interferogram,
             transmittance_response: TransmittanceResponse,
     ) -> Spectrum:
-        u, s, v = np.linalg.svd(a=transmittance_response.data, full_matrices=False, compute_uv=True)
-        s_penalized = s / (s ** 2 + self.penalization ** 2)
-        spectrum = (v.T * s_penalized) @ u.T @ interferogram.data
+        lsv, sv, rsv = np.linalg.svd(a=transmittance_response.data, full_matrices=False, compute_uv=True)
+        sv_penalized = sv / (sv ** 2 + self.penalization ** 2)
+        spectrum = (rsv.T * sv_penalized) @ lsv.T @ interferogram.data
         return Spectrum(data=spectrum, wavenumbers=transmittance_response.wavenumbers)
 
 
 @dataclass(frozen=True)
 class LorisVerhoeven(InversionProtocol):
-    penalization: float
+    regularization_parameter: float
+    prox_functional: ProximalOperator
+    domain_transform: LinearOperator
+    nb_iters: int
 
     def reconstruct_spectrum(
             self,
             interferogram: Interferogram,
             transmittance_response: TransmittanceResponse,
     ) -> Spectrum:
-        pass
+        transfer_matrix = LinearOperator.from_matrix(matrix=transmittance_response.data)
+
+        lv_iter = LorisVerhoevenIteration(
+            transfer_matrix=transfer_matrix,
+            domain_transform=self.domain_transform,
+            prox_functional=self.prox_functional,
+            regularization_parameter=self.regularization_parameter,
+            observation=interferogram.data,
+        )
+        prim = transfer_matrix.adjoint(interferogram.data)
+        dual = self.domain_transform.direct(prim)
+        error = transfer_matrix.direct(prim) - interferogram.data
+        for q in range(self.nb_iters):
+            prim, dual, error = lv_iter.update(prim, dual, error)
+
+        return prim
 
 
 @dataclass(frozen=True)
