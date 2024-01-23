@@ -28,7 +28,14 @@ class LorisVerhoevenIteration:
         object.__setattr__(self, "rho", 1.9)
         object.__setattr__(self, "rho_tau", self.rho * self.tau)
 
-    def update(self, prim, dual, error) -> tuple:
+    def __convergence_params(self, tau: float = 1.0) -> tuple[float, float]:
+        tau = tau / self.transfer_matrix.norm ** 2
+        eta = 0.99 / tau / self.domain_transform.norm ** 2
+        return tau, eta
+
+    def update(
+            self, prim: np.ndarray, dual: np.ndarray, error: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         error_prim = self.transfer_matrix.adjoint(error)
         prim_half = prim - self.tau * (error_prim + self.domain_transform.adjoint(dual))
         dual_half = self.prox_functional.proximal_conjugate(
@@ -40,8 +47,3 @@ class LorisVerhoevenIteration:
         dual = dual + self.rho * (dual_half - dual)
         error = self.transfer_matrix.direct(prim) - self.observation
         return prim, dual, error
-
-    def __convergence_params(self, tau: float = 1.0) -> tuple[float, float]:
-        tau = tau / self.transfer_matrix.norm ** 2
-        eta = 0.99 / tau / self.domain_transform.norm ** 2
-        return tau, eta

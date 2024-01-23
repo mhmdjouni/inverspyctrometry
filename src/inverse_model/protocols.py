@@ -29,10 +29,15 @@ def inversion_protocol_factory(option: InversionProtocolType, kwargs: dict):
         return RidgeRegression(penalization=kwargs["penalization"])
 
     elif option == InversionProtocolType.LORIS_VERHOEVEN:
-        return LorisVerhoeven(penalization=kwargs["penalization"])
+        return LorisVerhoeven(
+            regularization_parameter=kwargs["regularization_parameter"],
+            prox_functional=kwargs["prox_functional"],
+            domain_transform=kwargs["domain_transform"],
+            nb_iters=kwargs["nb_iters"],
+        )
 
     elif option == InversionProtocolType.ADMM:
-        return ADMM(penalization=kwargs["penalization"])
+        return ADMM()
 
     else:
         raise ValueError(f"Inversion Protocol option {option} is not supported")
@@ -146,7 +151,7 @@ class LorisVerhoeven(InversionProtocol):
         for q in range(self.nb_iters):
             prim, dual, error = lv_iter.update(prim, dual, error)
 
-        return prim
+        return Spectrum(data=prim, wavenumbers=transmittance_response.wavenumbers)
 
 
 @dataclass(frozen=True)
@@ -154,7 +159,6 @@ class ADMM(InversionProtocol):
     """
     Alternating Optimization Methods of Multipliers
     """
-    penalization: float
 
     def reconstruct_spectrum(
             self,

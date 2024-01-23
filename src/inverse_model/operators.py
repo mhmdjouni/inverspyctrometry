@@ -43,10 +43,10 @@ def tv_adjoint(u: np.ndarray) -> np.ndarray:
 # TODO: Find a better way than using Callables.. LinearOperator(ABC) => MatrixOperator & FunctionOperator
 @dataclass(frozen=True)
 class LinearOperator:
-    direct: Callable
-    adjoint: Callable
+    direct: Callable[[np.ndarray], np.ndarray]
+    adjoint: Callable[[np.ndarray], np.ndarray]
     norm: float
-    inverse: Optional[Callable] = None
+    inverse: Optional[Callable[[np.ndarray], np.ndarray]] = None
 
     @classmethod
     def from_matrix(cls, matrix: np.ndarray) -> LinearOperator:
@@ -110,27 +110,27 @@ class ProximalOperator(ABC):
 
 @dataclass(frozen=True)
 class CTVOperator(ProximalOperator):
-    pe: ProxElements
+    norm: NormOperator
 
     def direct(self, x: np.ndarray, lambdaa: float):
-        return lambdaa * self.pe.opnorm(x)
+        return lambdaa * self.norm.direct(x)
 
     def proximal(self, x: np.ndarray, gamma: float):
-        return self.pe.opprox(x, gamma)
+        return self.norm.proximal(x, gamma)
 
     def proximal_conjugate(self, x: np.ndarray, _, lambdaa: float):
-        if self.pe.oppconj:
-            return self.pe.oppconj(x, lambdaa)
+        if self.norm.proximal_conjugate:
+            return self.norm.proximal_conjugate(x, lambdaa)
         else:
-            return ValueError("Conjugate proximal operator is not implemented")
+            raise ValueError("The proximal operator of the conjugate function of the norm is not implemented.")
 
 
 @dataclass
-class ProxElements:
-    opprox: Callable
-    oppconj: Callable
-    opnorm: Callable
-    opnconj: Callable
+class NormOperator:
+    direct: Callable
+    conjugate: Callable
+    proximal: Callable
+    proximal_conjugate: Callable
 
     @classmethod
     def from_norm(cls, norm: NormOperatorType):
@@ -141,11 +141,12 @@ class ProxElements:
         elif norm == NormOperatorType.L2O:
             return prox_elements_l2o()
         else:
-            ValueError(f"Requested Norm {norm[0]} is not available yet.")
+            ValueError(f"Norm option {norm[0]} is not supported.")
 
 
 # Collaborative norm operators
-def prox_elements_l1o() -> ProxElements:
+# TODO: Turn NormOperator into an ABC and the functions below into its Implementations
+def prox_elements_l1o() -> NormOperator:
     def opprox(x, gamma):
         return prox_l1(x, gamma)
 
@@ -162,15 +163,15 @@ def prox_elements_l1o() -> ProxElements:
     def opnconj(x):
         return np.amax(np.absolute(x), axis=0)
 
-    return ProxElements(
-        opprox=opprox,
-        oppconj=oppconj,
-        opnorm=opnorm,
-        opnconj=opnconj,
+    return NormOperator(
+        proximal=opprox,
+        proximal_conjugate=oppconj,
+        direct=opnorm,
+        conjugate=opnconj,
     )
 
 
-def prox_elements_l2o() -> ProxElements:
+def prox_elements_l2o() -> NormOperator:
     def opprox(x, gamma):
         return prox_l21(x, gamma)
 
@@ -187,15 +188,15 @@ def prox_elements_l2o() -> ProxElements:
     def opnconj(x):
         return np.linalg.norm(x, ord=2, axis=0)
 
-    return ProxElements(
-        opprox=opprox,
-        oppconj=oppconj,
-        opnorm=opnorm,
-        opnconj=opnconj,
+    return NormOperator(
+        proximal=opprox,
+        proximal_conjugate=oppconj,
+        direct=opnorm,
+        conjugate=opnconj,
     )
 
 
-def prox_elements_l112(norm_label: str, perm: tuple) -> ProxElements:
+def prox_elements_l112(norm_label: str, perm: tuple) -> NormOperator:
     def opprox(x, gamma):
         return permute_wrapper(perm, prox_l21, x, gamma)
 
@@ -214,11 +215,11 @@ def prox_elements_l112(norm_label: str, perm: tuple) -> ProxElements:
             x = norm_dict[order](x, axis=0)
         return x
 
-    return ProxElements(
-        opprox=opprox,
-        oppconj=oppconj,
-        opnorm=opnorm,
-        opnconj=opnconj,
+    return NormOperator(
+        proximal=opprox,
+        proximal_conjugate=oppconj,
+        direct=opnorm,
+        conjugate=opnconj,
     )
 
 
