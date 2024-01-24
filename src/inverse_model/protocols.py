@@ -4,7 +4,6 @@ from dataclasses import dataclass
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import fft
-from sklearn.decomposition import TruncatedSVD
 
 from src.common_utils.custom_vars import InversionProtocolType
 from src.common_utils.interferogram import Interferogram
@@ -126,6 +125,22 @@ class RidgeRegression(InversionProtocol):
 
 @dataclass(frozen=True)
 class LorisVerhoeven(InversionProtocol):
+    """
+    Solve problems of the form:
+      x = argmin_{x} 1/2 ||Ax - y||^2 + g(Lx),
+      proposed in the following paper:
+    [1] Loris, Ignace, and Caroline Verhoeven. "On a generalization of the iterative soft-thresholding algorithm for the
+      case of non-separable penalty." Inverse Problems 27.12 (2011): 125007.
+
+    The current implementation includes an additional over-relaxation step, for which we refer to the following paper:
+    [2] Condat, Laurent, et al. "Proximal splitting algorithms for convex optimization: A tour of recent advances, with
+      new twists." SIAM Review 65.2 (2023): 375-435.
+
+    Note: In [2], the original Loris-Verhoeven algorithm in [1] is generalized to solve problems of the form:
+      x = argmin_{x} h(x) + g(Lx),
+      where h(x) is convex, differentiable, and beta-Lipschitz (beta>0).
+      The special case is when h(x) = 1/2 ||Ax - y||^2 (data fidelity least-squares), and so Del_h(x) = A^T(Ax - y).
+    """
     regularization_parameter: float
     prox_functional: ProximalOperator
     domain_transform: LinearOperator
@@ -147,9 +162,8 @@ class LorisVerhoeven(InversionProtocol):
         )
         prim = transfer_matrix.adjoint(interferogram.data)
         dual = self.domain_transform.direct(prim)
-        error = transfer_matrix.direct(prim) - interferogram.data
         for q in range(self.nb_iters):
-            prim, dual, error = lv_iter.update(prim, dual, error)
+            prim, dual, _ = lv_iter.update(prim=prim, dual=dual)
 
         return Spectrum(data=prim, wavenumbers=transmittance_response.wavenumbers)
 
@@ -157,7 +171,9 @@ class LorisVerhoeven(InversionProtocol):
 @dataclass(frozen=True)
 class ADMM(InversionProtocol):
     """
-    Alternating Optimization Methods of Multipliers
+    Alternating Direction Method of Multipliers
+    Solve problems of the form:
+      x = argmin_{x} f(x) + g(x)
     """
 
     def reconstruct_spectrum(
