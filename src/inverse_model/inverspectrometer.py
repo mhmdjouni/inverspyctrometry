@@ -7,7 +7,7 @@ from scipy import fft
 from src.common_utils.custom_vars import Wvn
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
-from src.common_utils.utils import generate_wavenumbers_in_idct, generate_wavenumbers_from_opds
+from src.common_utils.utils import generate_wavenumbers_from_opds
 
 
 @dataclass(frozen=True)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
@@ -7,6 +9,22 @@ from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
 from src.common_utils.transmittance_response import TransmittanceResponse
 from src.common_utils.custom_vars import Wvn, Opd, InterferometerType
+from src.common_utils.utils import calculate_phase_difference
+
+
+def interferometer_factory(
+        option: InterferometerType,
+        transmittance: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+        opds: np.ndarray[tuple[Opd], np.dtype[np.float_]],
+        order: int = 0,
+) -> Interferometer:
+    if option == InterferometerType.MICHELSON:
+        interferometer = MichelsonInterferometer(transmittance=transmittance, opds=opds)
+    elif option == InterferometerType.FABRY_PEROT:
+        interferometer = FabryPerotInterferometer(transmittance=transmittance, opds=opds, order=order)
+    else:
+        raise ValueError(f"Option '{option.value}' is not supported")
+    return interferometer
 
 
 @dataclass(frozen=True)
@@ -80,26 +98,3 @@ class FabryPerotInterferometer(Interferometer):
             wavenumbers=wavenumbers,
             opds=self.opds,
         )
-
-
-def calculate_phase_difference(
-        opds: np.ndarray[tuple[Opd], np.dtype[np.float_]],
-        wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
-) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
-    return opds[:, None] * wavenumbers[None, :]
-
-
-def interferometer_factory(
-        option: InterferometerType,
-        transmittance: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
-        opds: np.ndarray[tuple[Opd], np.dtype[np.float_]],
-        order: int = 0,
-) -> Interferometer:
-    # TODO: Parameters to be optimized?
-    if option == InterferometerType.MICHELSON:
-        interferometer = MichelsonInterferometer(transmittance=transmittance, opds=opds)
-    elif option == InterferometerType.FABRY_PEROT:
-        interferometer = FabryPerotInterferometer(transmittance=transmittance, opds=opds, order=order)
-    else:
-        raise ValueError(f"Option '{option.value}' is not supported")
-    return interferometer
