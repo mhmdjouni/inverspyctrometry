@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from src.common_utils.custom_vars import Opd
+from src.common_utils.custom_vars import Opd, Acq
 from src.inverse_model.operators import LinearOperator, ProximalOperator
 
 
@@ -15,7 +15,7 @@ class LorisVerhoevenIteration:
     domain_transform: LinearOperator
     prox_functional: ProximalOperator
     regularization_parameter: float
-    observation: np.ndarray[tuple[Opd], np.dtype[np.float_]]
+    interferogram: np.ndarray[tuple[Opd, Acq], np.dtype[np.float_]]
 
     tau: float = field(init=False)
     eta: float = field(init=False)
@@ -54,7 +54,7 @@ class LorisVerhoevenIteration:
         - In the generalized Loris-Verhoeven version [Condat et al. (2023)], the derivative of h(x) is computed, which
           is the data fidelity in this case, that is, h(x)=1/2||Ax-y||^2, leading to A^T(Ax-y).
         """
-        data_fidelity = self.transfer_matrix.direct(prim) - self.observation
+        data_fidelity = self.transfer_matrix.direct(prim) - self.interferogram
         data_fidelity_derivative = self.transfer_matrix.adjoint(data_fidelity)
         prim_half = prim - self.tau * (data_fidelity_derivative + self.domain_transform.adjoint(dual))
         dual_half = self.prox_functional.proximal_conjugate(

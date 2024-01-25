@@ -28,11 +28,11 @@ class MichelsonInverSpectrometer(InverSpectrometer):
             self,
             interferogram: Interferogram,
     ) -> Spectrum:
-        interferogram_compensated = interferogram.data - 1/2 * interferogram.data[0]
+        interferogram_compensated = interferogram.data - 1/2 * interferogram.data[0, :]
         # This is equivalent to: x = 2 * scipy.fft.idct(y - 1/2 * y[0], type=2. norm=None) / (2*T)
-        spectrum = fft.idct(interferogram_compensated) / self.transmittance
+        spectrum = fft.idct(interferogram_compensated, axis=-2) / self.transmittance[:, None]
         wavenumbers = generate_wavenumbers_from_opds(
             nb_wn=interferogram.opds.size,
-            del_opd=np.mean(np.diff(interferogram.opds))
+            del_opd=np.mean(np.diff(interferogram.opds)),
         )
         return Spectrum(data=spectrum, wavenumbers=wavenumbers)

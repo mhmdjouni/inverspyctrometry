@@ -25,14 +25,15 @@ class InversionProtocolDemo:
             self,
             interferogram: Interferogram,
             transmittance_response: TransmittanceResponse,
+            acq_ind: int,
     ):
         spectrum = self.inverter.reconstruct_spectrum(
             interferogram=interferogram,
             transmittance_response=transmittance_response,
         )
         fig, axs = plt.subplots(nrows=1, ncols=2, squeeze=False)
-        interferogram.visualize(axs=axs[0, 0])
-        spectrum.visualize(axs=axs[0, 1])
+        interferogram.visualize(axs=axs[0, 0], acq_ind=acq_ind)
+        spectrum.visualize(axs=axs[0, 1], acq_ind=acq_ind)
 
 
 def main():
@@ -45,20 +46,23 @@ def main():
     nb_wn = nb_opd
 
     # Observation
-    observation = (transmittance_cst * nb_wn) * generate_shifted_dirac(array=opds, shift=del_opd*4)
+    acq_ind = 4
+    observation = (transmittance_cst * nb_wn) * np.eye(N=opds.size, M=5)
     interferogram = Interferogram(data=observation, opds=opds)
 
-    # Generate or load a transmittance response (Generated using Interferometer || Loaded from disk)
+    # Transmittance response information
     wavenumbers = generate_wavenumbers_from_opds(nb_wn=nb_wn, del_opd=del_opd)
     reflectance = reflectance_cst * np.ones_like(a=wavenumbers)
     transmittance = 1 - reflectance
+
+    # Generate or load a transmittance response (Generated using Interferometer or Loaded from disk)
     transmittance_response = transmittance_response_factory(
         option="generate",
         kwargs={
             "type": InterferometerType.MICHELSON,
             "opds": opds,
             "transmittance": transmittance,
-            "reflectance": 1 - transmittance,
+            "reflectance": reflectance,
             "order": 0,
             "wavenumbers": wavenumbers,
         }
@@ -68,28 +72,30 @@ def main():
     inverspectrometer_michelson = MichelsonInverSpectrometer(transmittance=transmittance)
     spectrum_mich = inverspectrometer_michelson.reconstruct_spectrum(interferogram=interferogram)
     fig, axs = plt.subplots(nrows=1, ncols=2, squeeze=False)
-    interferogram.visualize(axs=axs[0, 0])
-    spectrum_mich.visualize(axs=axs[0, 1])
+    interferogram.visualize(axs=axs[0, 0], acq_ind=acq_ind)
+    spectrum_mich.visualize(axs=axs[0, 1], acq_ind=acq_ind)
 
     # Plain IDCT
     idct_inverter = inversion_protocol_factory(option=InversionProtocolType.IDCT, kwargs={})
     demo_idct = InversionProtocolDemo(inverter=idct_inverter)
-    demo_idct.test(interferogram=interferogram, transmittance_response=transmittance_response)
+    demo_idct.test(interferogram=interferogram, transmittance_response=transmittance_response, acq_ind=acq_ind)
 
     # Pseudo-inverse
     pinv_inverter = inversion_protocol_factory(option=InversionProtocolType.PSEUDO_INVERSE, kwargs={})
     demo_pinv = InversionProtocolDemo(inverter=pinv_inverter)
-    demo_pinv.test(interferogram=interferogram, transmittance_response=transmittance_response)
+    demo_pinv.test(interferogram=interferogram, transmittance_response=transmittance_response, acq_ind=acq_ind)
+
+    plt.show()
 
     # Truncated SVD
     tsvd_inverter = inversion_protocol_factory(option=InversionProtocolType.TSVD, kwargs={"penalization_ratio": 0.9})
     demo_tsvd = InversionProtocolDemo(inverter=tsvd_inverter)
-    demo_tsvd.test(interferogram=interferogram, transmittance_response=transmittance_response)
+    demo_tsvd.test(interferogram=interferogram, transmittance_response=transmittance_response, acq_ind=acq_ind)
 
     # Ridge Regression
     rr_inverter = inversion_protocol_factory(option=InversionProtocolType.RIDGE_REGRESSION, kwargs={"penalization": 10})
     demo_rr = InversionProtocolDemo(inverter=rr_inverter)
-    demo_rr.test(interferogram=interferogram, transmittance_response=transmittance_response)
+    demo_rr.test(interferogram=interferogram, transmittance_response=transmittance_response, acq_ind=acq_ind)
 
     # Loris-Verhoeven Primal-Dual
     lv_inverter = inversion_protocol_factory(
@@ -103,7 +109,7 @@ def main():
         }
     )
     demo_lv = InversionProtocolDemo(inverter=lv_inverter)
-    demo_lv.test(interferogram=interferogram, transmittance_response=transmittance_response)
+    demo_lv.test(interferogram=interferogram, transmittance_response=transmittance_response, acq_ind=acq_ind)
 
     plt.show()
 

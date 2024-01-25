@@ -4,17 +4,17 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from src.common_utils.custom_vars import Wvn
+from src.common_utils.custom_vars import Wvn, Acq
 
 
 @dataclass(frozen=True)
 class Spectrum:
-    data: np.ndarray[tuple[Wvn], np.dtype[np.float_]]
+    data: np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]
     wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]]
     wavenumbers_unit: str = r"cm$^{-1}$"
 
-    def visualize(self, axs):
-        axs.plot(self.wavenumbers, self.data)
+    def visualize(self, axs, acq_ind: int):
+        axs.plot(self.wavenumbers, self.data[:, acq_ind])
         axs.set_title(rf"Spectral Radiance")
         axs.set_ylabel("Intensity")
         axs.set_xlabel(rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]")
@@ -30,7 +30,7 @@ class Spectrum:
             amplitudes=amplitudes,
             opds=opds,
             wavenumbers=wavenumbers,
-        )
+        ).reshape((-1, 1))
         return Spectrum(data=radiance, wavenumbers=wavenumbers)
 
 

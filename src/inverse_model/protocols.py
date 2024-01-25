@@ -65,7 +65,7 @@ class IDCT(InversionProtocol):
             interferogram: Interferogram,
             transmittance_response: TransmittanceResponse,
     ) -> Spectrum:
-        spectrum = fft.idct(interferogram.data)
+        spectrum = fft.idct(interferogram.data, axis=-2)
         wavenumbers = generate_wavenumbers_from_opds(
             nb_wn=interferogram.opds.size,
             del_opd=np.mean(np.diff(interferogram.opds))
@@ -158,7 +158,7 @@ class LorisVerhoeven(InversionProtocol):
             domain_transform=self.domain_transform,
             prox_functional=self.prox_functional,
             regularization_parameter=self.regularization_parameter,
-            observation=interferogram.data,
+            interferogram=interferogram.data,
         )
         prim = transfer_matrix.adjoint(interferogram.data)
         dual = self.domain_transform.direct(prim)

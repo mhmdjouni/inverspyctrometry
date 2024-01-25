@@ -13,7 +13,9 @@ def main():
     - Reflectance: To increase N as the N-wave approximation in FP with order 0
     - OPD index in the plot of the transfer matrices: To observe the OPD responses and their DCT
     - OPD value in the cosines that constitute the spectral radiance: Taken from the list of OPDs for controlled observation of the interferograms
+    - Acquisition index for plot purposes
     """
+    acq_ind = 0
     nb_opd, del_opd = 320, 0.175
     opds = generate_sampled_opds(nb_opd=nb_opd, del_opd=del_opd)
     nb_wn = opds.size*4  # quasi-continuous
@@ -65,10 +67,10 @@ def main():
     transfer_matrix_fp.visualize_singular_values(axs=axs[1, 1])
 
     fig, axs = plt.subplots(nrows=2, ncols=2, squeeze=False)
-    spectrum.visualize(axs=axs[0, 0])
-    interferogram_mich.visualize(axs=axs[0, 1])
-    interferogram_fp.visualize(axs=axs[1, 0])
-    interferogram_fp_2.visualize(axs=axs[1, 1])
+    spectrum.visualize(axs=axs[0, 0], acq_ind=acq_ind)
+    interferogram_mich.visualize(axs=axs[0, 1], acq_ind=acq_ind)
+    interferogram_fp.visualize(axs=axs[1, 0], acq_ind=acq_ind)
+    interferogram_fp_2.visualize(axs=axs[1, 1], acq_ind=acq_ind)
 
     plt.show()
 
