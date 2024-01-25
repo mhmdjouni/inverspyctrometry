@@ -1,6 +1,7 @@
 import numpy as np
+from sklearn.preprocessing import minmax_scale
 
-from src.common_utils.custom_vars import Opd, Wvn
+from src.common_utils.custom_vars import Opd, Wvn, Acq
 
 
 def calculate_phase_difference(
@@ -8,6 +9,62 @@ def calculate_phase_difference(
         wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
 ) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
     return opds[:, None] * wavenumbers[None, :]
+
+
+def add_noise(
+        array: np.ndarray[tuple[Opd | Wvn, Acq], np.dtype[np.float_]],
+        snr_db: float,
+) -> np.ndarray[tuple[Opd | Wvn, Acq], np.dtype[np.float_]]:
+    snr_rms = 10 ** (snr_db / 20)
+    noise_normal = np.random.randn(*array.shape)
+    signal_std = np.std(array, axis=-2, keepdims=True)  # Compute the STD for each column
+    alpha = signal_std / snr_rms
+    noise = alpha * noise_normal
+    return array + noise
+
+
+def min_max_normalize(
+        array: np.ndarray[..., np.dtype[np.float_]],
+        new_min: float = 0.,
+        new_max: float = 1.,
+        axis: int = -2,
+) -> np.ndarray[..., np.dtype[np.float_]]:
+    """Normalize an array to be in the range [0, 1], e.g., array_normed = (array - min) / (max - min)"""
+    array_min = array.min(axis=axis, keepdims=True)
+    array_normalized = (array - array_min) / (array.max(axis=axis, keepdims=True) - array_min)
+    if new_min != 0. or new_max != 1.:
+        array_normalized = new_min + array_normalized * (new_max - new_min)
+    return array_normalized
+
+
+def standardize(
+        array: np.ndarray[..., np.dtype[np.float_]],
+        new_mean: np.ndarray = 0.,
+        new_std: np.ndarray = 1.,
+        axis: int = -2,
+) -> np.ndarray[..., np.dtype[np.float_]]:
+    """Standardize an array, e.g., array_std = (array - mean) / std."""
+    array_standardized = (array - array.mean(axis=axis, keepdims=True)) / array.std(axis=axis, keepdims=True)
+    if new_mean != 0. or new_std != 1.:
+        array_standardized = new_std * array_standardized + new_mean
+    return array_standardized
+
+
+def match_for_comparison(
+        array: np.ndarray[..., np.dtype[np.float_]],
+        reference: np.ndarray[..., np.dtype[np.float_]],
+        axis: int = -2,
+) -> tuple[np.ndarray[..., np.dtype[np.float_]], np.ndarray[..., np.dtype[np.float_]]]:
+    """
+    Used mostly for plot purposes, especially when comparing arrays.
+    1- Min-max normalization of reference
+    2- Standardize the array to the statistics of the normalized reference
+    """
+    reference_normalized = min_max_normalize(array=reference, axis=axis)
+    ref_mean = reference_normalized.mean(axis=axis, keepdims=True)
+    ref_std = reference_normalized.std(axis=axis, keepdims=True)
+    array_standardized = standardize(array=array, new_mean=ref_mean, new_std=ref_std, axis=axis)
+    return reference_normalized, array_standardized
 
 
 def generate_shifted_dirac(array: np.ndarray, shift: float) -> np.ndarray:
@@ -22,12 +79,12 @@ def index_from_value(array: np.ndarray, value: float) -> int:
     return index
 
 
-def generate_sampled_opds(nb_opd: int, del_opd: float):
+def generate_sampled_opds(nb_opd: int, del_opd: float) -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
     opds = del_opd * np.arange(nb_opd)
     return opds
 
 
-def generate_wavenumbers_from_opds(nb_wn: int, del_opd: float):
+def generate_wavenumbers_from_opds(nb_wn: int, del_opd: float) -> np.ndarray[tuple[Wvn], np.dtype[np.float_]]:
     del_wn = 1 / (2 * nb_wn * del_opd)  # del_wn tends to zero as nb_wn tends to infinity (implies continuous)
     wavenumbers = del_wn * (np.arange(nb_wn) + 1/2)
     return wavenumbers

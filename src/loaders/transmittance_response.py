@@ -20,9 +20,10 @@ def transmittance_response_factory(
             option=kwargs["type"],
             transmittance=kwargs["transmittance"],
             opds=kwargs["opds"],
+            reflectance=kwargs["reflectance"],
             order=kwargs["order"],
         )
-        transmittance_response = interferometer.generate_transmittance_response(wavenumbers=kwargs["wavenumbers"])
+        transmittance_response = interferometer.transmittance_response(wavenumbers=kwargs["wavenumbers"])
 
     elif option == "load":
         # TODO: Make a loader for this using path

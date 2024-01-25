@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 import numpy as np
 
 from src.common_utils.custom_vars import Opd
+from src.common_utils.utils import add_noise
 
 
 @dataclass(frozen=True)

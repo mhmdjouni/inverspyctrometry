@@ -4,6 +4,7 @@ from typing import NewType
 
 Wvn = NewType(name='Wvn', tp=int)
 Opd = NewType(name='Opd', tp=int)
+Acq = NewType(name='Acq', tp=int)
 
 
 class InterferometerType(str, Enum):

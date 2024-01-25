@@ -1,9 +1,17 @@
 [tool.poetry]
 name = "inverspyctrometry"
 version = "0.1.0"
-description = ""
+description = "Reconstruction of Spectra from Interferograms in Fourier Transform Spectroscopy"
 authors = ["Mohamad Jouni <33843331+mhmdjouni@users.noreply.github.com>"]
 readme = "README.md"
+license = "MIT"
+repository = "https://github.com/mhmdjouni/inverspyctrometry"
+keywords = [
+    "Fourier Transform Spectroscopy",
+    "Inverse problems",
+    "Interferometry",
+    "Spectrum reconstruction"
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"

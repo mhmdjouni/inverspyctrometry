@@ -58,6 +58,7 @@ def main():
             "type": InterferometerType.MICHELSON,
             "opds": opds,
             "transmittance": transmittance,
+            "reflectance": 1 - transmittance,
             "order": 0,
             "wavenumbers": wavenumbers,
         }
