@@ -1,5 +1,4 @@
 import numpy as np
-from sklearn.preprocessing import minmax_scale
 
 from src.common_utils.custom_vars import Opd, Wvn, Acq
 
@@ -67,6 +66,18 @@ def match_for_comparison(
     return reference_normalized, array_standardized
 
 
+def calculate_rmse():
+    pass
+
+
+def calculate_rmcw():
+    pass
+
+
+def calculate_mcw_rmse():
+    pass
+
+
 def generate_shifted_dirac(array: np.ndarray, shift: float) -> np.ndarray:
     dirac_signal = np.zeros_like(array)
     index = index_from_value(array=array, value=shift)
@@ -79,8 +90,8 @@ def index_from_value(array: np.ndarray, value: float) -> int:
     return index
 
 
-def generate_sampled_opds(nb_opd: int, del_opd: float) -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
-    opds = del_opd * np.arange(nb_opd)
+def generate_sampled_opds(nb_opd: int, del_opd: float, opd_min: float = 0) -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
+    opds = del_opd * np.arange(nb_opd) + opd_min
     return opds
 
 

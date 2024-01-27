@@ -1,0 +1,64 @@
+{
+  "inversion_protocols": [
+    {
+      "id": 0,
+      "title": "idct",
+      "type": "idct"
+    },
+    {
+      "id": 1,
+      "title": "pinv",
+      "type": "pseudo_inverse"
+    },
+    {
+      "id": 2,
+      "title": "tsvd",
+      "type": "truncated_svd",
+      "lambdaas": {
+        "min": 0.4,
+        "max": 1.0,
+        "nb": 100,
+        "space": "linspace"
+      }
+    },
+    {
+      "id": 3,
+      "title": "rr",
+      "type": "ridge_regression",
+      "lambdaas": {
+        "min": 1e-1,
+        "max": 1e2,
+        "nb": 100,
+        "space": "logspace"
+      }
+    },
+    {
+      "id": 4,
+      "title": "lv_l1",
+      "type": "loris_verhoeven",
+      "lambdaas": {
+        "min": 1e-2,
+        "max": 1e1,
+        "nb": 100,
+        "space": "logspace"
+      },
+      "norm_operator": "l1o",
+      "linear_operator": "dct",
+      "nb_iters": 500
+    },
+    {
+      "id": 5,
+      "title": "lv_l2",
+      "type": "loris_verhoeven",
+      "lambdaas": {
+        "min": 1e-2,
+        "max": 1e1,
+        "nb": 100,
+        "space": "logspace"
+      },
+      "norm_operator": "l2o",
+      "linear_operator": "dct",
+      "nb_iters": 500
+    }
+  ]
+}

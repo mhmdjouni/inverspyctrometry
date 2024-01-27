@@ -31,8 +31,19 @@ def main():
     }
 
     michelson = interferometer_factory(option=IfmType.MICHELSON, transmittance=transmittance, opds=opds)
-    fabry_perot = interferometer_factory(option=IfmType.FABRY_PEROT, transmittance=transmittance, opds=opds)
-    fabry_perot_2 = interferometer_factory(option=IfmType.FABRY_PEROT, transmittance=transmittance, opds=opds, order=2)
+    fabry_perot = interferometer_factory(
+        option=IfmType.FABRY_PEROT,
+        transmittance=transmittance,
+        reflectance=reflectance,
+        opds=opds,
+    )
+    fabry_perot_2 = interferometer_factory(
+        option=IfmType.FABRY_PEROT,
+        transmittance=transmittance,
+        reflectance=reflectance,
+        opds=opds,
+        order=2,
+    )
 
     transfer_matrix_mich = michelson.transmittance_response(wavenumbers=wavenumbers)
     transfer_matrix_fp = fabry_perot.transmittance_response(wavenumbers=wavenumbers)

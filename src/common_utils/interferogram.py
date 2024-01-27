@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 
@@ -19,3 +19,7 @@ class Interferogram:
         axs.set_title(rf"Interferogram")
         axs.set_ylabel("Intensity")
         axs.set_xlabel(rf"OPDs $\delta$ [{self.opds_unit}]")
+
+    def add_noise(self, snr_db):
+        noisy_data = add_noise(array=self.data, snr_db=snr_db)
+        return replace(self, data=noisy_data)

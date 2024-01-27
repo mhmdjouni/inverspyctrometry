@@ -1,0 +1,49 @@
+{
+  "datasets": [
+    {
+      "id": 0,
+      "title": "solar",
+      "category": "spectrum",
+      "device": "",
+      "path": "",
+      "wavenumbers_path": "",
+      "wavenumbers_unit": ""
+    },
+    {
+      "id": 1,
+      "title": "shine",
+      "category": "spectrum",
+      "device": "shine",
+      "path": "",
+      "wavenumbers_path": "",
+      "wavenumbers_unit": ""
+    },
+    {
+      "id": 2,
+      "title": "specim",
+      "category": "spectrum",
+      "device": "specim",
+      "path": "",
+      "wavenumbers_path": "",
+      "wavenumbers_unit": ""
+    },
+    {
+      "id": 3,
+      "title": "mc-451",
+      "category": "interferogram",
+      "device": "imspoc_uv_2",
+      "path": "",
+      "opds_path": "",
+      "opds_unit": ""
+    },
+    {
+      "id": 4,
+      "title": "mc-651",
+      "category": "interferogram",
+      "device": "imspoc_uv_2",
+      "path": "",
+      "opds_path": "",
+      "opds_unit": ""
+    }
+  ]
+}

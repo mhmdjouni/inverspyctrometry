@@ -7,6 +7,26 @@ Opd = NewType(name='Opd', tp=int)
 Acq = NewType(name='Acq', tp=int)
 
 
+class DatasetTitle(str, Enum):
+    SOLAR = "solar"
+    SHINE = "shine"
+    SPECIM = "specim"
+    MC_451 = "mc-451"
+    MC_651 = "mc-651"
+
+
+class DatasetCategory(str, Enum):
+    SPECTRUM = "spectrum"
+    INTERFEROGRAM = "interferogram"
+
+
+class DatasetDevice(str, Enum):
+    SOLAR = ""
+    SHINE = "shine"
+    SPECIM = "specim"
+    IMSPOC_UV_2 = "imspoc_uv_2"
+
+
 class InterferometerType(str, Enum):
     MICHELSON = "Michelson"
     FABRY_PEROT = "Fabry-Perot"
