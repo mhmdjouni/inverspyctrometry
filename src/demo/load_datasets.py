@@ -3,7 +3,7 @@ from src.interface.configuration import load_config
 
 def main():
     db = load_config().database()
-    spectrum_id = 1  # shine dataset
+    spectrum_id = 0
 
     dataset = db.datasets[spectrum_id]
     print(dataset)

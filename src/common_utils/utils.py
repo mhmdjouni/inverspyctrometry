@@ -1,8 +1,16 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 
 from src.common_utils.custom_vars import Opd, Wvn, Acq
+
+
+@dataclass
+class PlotOptions:
+    figsize: tuple = (8, 6)
+    fontsize: int = 25
 
 
 def calculate_phase_difference(

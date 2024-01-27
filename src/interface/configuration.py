@@ -7,9 +7,12 @@ from pydantic import BaseModel, DirectoryPath, FilePath
 from src.database.database import DatabaseSchema
 
 
-class PathSchema(BaseModel):
+class DirectoryPathSchema(BaseModel):
     data: DirectoryPath
     datasets: DirectoryPath
+    notebooks: DirectoryPath
+    reports: DirectoryPath
+    src: DirectoryPath
 
 
 class DatabasePathSchema(BaseModel):
@@ -39,7 +42,7 @@ class DatabasePathSchema(BaseModel):
 
 
 class ConfigSchema(BaseModel):
-    path: PathSchema
+    directory_paths: DirectoryPathSchema
     database_paths: DatabasePathSchema
 
     def database(self) -> DatabaseSchema:

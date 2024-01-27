@@ -1,7 +1,10 @@
 {
-  "path": {
+  "directory_paths": {
     "data": "/home/jounim/Work/codebase_projects/inverspyctrometry/data",
-    "datasets": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets"
+    "datasets": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets",
+    "notebooks": "/home/jounim/Work/codebase_projects/inverspyctrometry/notebooks",
+    "reports": "/home/jounim/Work/codebase_projects/inverspyctrometry/reports",
+    "src": "/home/jounim/Work/codebase_projects/inverspyctrometry/src"
   },
   "database_paths": {
     "datasets": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/datasets.json",

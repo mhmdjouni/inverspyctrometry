@@ -4,7 +4,7 @@ from src.interface.configuration import load_config
 def main():
     config = load_config()
 
-    path = config.path
+    path = config.directory_paths
     print(path)
     print()
 

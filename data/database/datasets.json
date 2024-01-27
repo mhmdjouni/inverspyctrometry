@@ -7,7 +7,7 @@
       "device": "",
       "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/solar.npy",
       "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/solar_wavenumbers.npy",
-      "wavenumbers_unit": "1/cm"
+      "wavenumbers_unit": "1/um"
     },
     {
       "id": 1,
@@ -25,7 +25,7 @@
       "device": "specim",
       "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/specim.npy",
       "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/specim_wavenumbers.npy",
-      "wavenumbers_unit": "1/cm"
+      "wavenumbers_unit": "1/um"
     },
     {
       "id": 3,
@@ -34,7 +34,7 @@
       "device": "imspoc_uv_2",
       "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/mc-451.npy",
       "opds_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/mc-451_opds.npy",
-      "opds_unit": "nm"
+      "opds_unit": "um"
     },
     {
       "id": 4,
@@ -43,7 +43,7 @@
       "device": "imspoc_uv_2",
       "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/mc-651.npy",
       "opds_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/mc-651_opds.npy",
-      "opds_unit": "nm"
+      "opds_unit": "um"
     }
   ]
 }
