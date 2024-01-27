@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 
 from src.common_utils.custom_vars import Opd, Wvn, Acq
@@ -99,3 +101,21 @@ def generate_wavenumbers_from_opds(nb_wn: int, del_opd: float) -> np.ndarray[tup
     del_wn = 1 / (2 * nb_wn * del_opd)  # del_wn tends to zero as nb_wn tends to infinity (implies continuous)
     wavenumbers = del_wn * (np.arange(nb_wn) + 1/2)
     return wavenumbers
+
+
+def convert_meter_units(values: float | np.ndarray, from_: str, to_: str):
+    unit_to_meters = {
+        "m": 1,
+        "cm": 1e-2,
+        "um": 1e-6,
+        "nm": 1e-9,
+    }
+
+    if from_ not in unit_to_meters:
+        raise ValueError(f"Unit {from_} is not supported")
+    if to_ not in unit_to_meters:
+        raise ValueError(f"Unit {to_} is not supported")
+
+    value_in_meters = values * unit_to_meters[from_]
+    converted_values = value_in_meters / unit_to_meters[to_]
+    return converted_values

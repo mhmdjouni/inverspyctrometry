@@ -493,6 +493,32 @@ typing = ["typing-extensions"]
 xmp = ["defusedxml"]
 
 [[package]]
+name = "pint"
+version = "0.23"
+description = "Physical quantities module"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "Pint-0.23-py3-none-any.whl", hash = "sha256:df79b6b5f1beb7ed0cd55d91a0766fc55f972f757a9364e844958c05e8eb66f9"},
+    {file = "Pint-0.23.tar.gz", hash = "sha256:e1509b91606dbc52527c600a4ef74ffac12fff70688aff20e9072409346ec9b4"},
+]
+
+[package.dependencies]
+typing-extensions = "*"
+
+[package.extras]
+babel = ["babel (<=2.8)"]
+bench = ["pytest", "pytest-codspeed"]
+dask = ["dask"]
+mip = ["mip (>=1.13)"]
+numpy = ["numpy (>=1.19.5)"]
+pandas = ["pint-pandas (>=0.3)"]
+test = ["pytest", "pytest-benchmark", "pytest-cov", "pytest-mpl", "pytest-subtests"]
+testbase = ["pytest", "pytest-benchmark", "pytest-cov", "pytest-subtests"]
+uncertainties = ["uncertainties (>=3.1.6)"]
+xarray = ["xarray"]
+
+[[package]]
 name = "pydantic"
 version = "2.5.3"
 description = "Data validation using Python type hints"
@@ -856,4 +882,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "26d850616e2220cabbbc44233e04928f56b161f7dc7a22ed25511248f03e7089"
+content-hash = "427d908f20ce26592e88f985f28755eff1d2ff10a09a6de8a8d6da459566a837"
