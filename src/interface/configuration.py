@@ -38,7 +38,8 @@ class DatabasePathSchema(BaseModel):
         with open(path) as json_opened:
             database_dict = json.load(json_opened)
         database_obj = OmegaConf.create(database_dict)
-        return OmegaConf.to_container(database_obj, resolve=True)
+        root_dict = OmegaConf.to_container(database_obj, resolve=True)
+        return root_dict
 
 
 class ConfigSchema(BaseModel):
