@@ -20,17 +20,20 @@ class DatabasePathSchema(BaseModel):
     interferometers: FilePath
     inversion_protocols: FilePath
     noise_levels: FilePath
+    experiments: FilePath
 
     def open(self) -> DatabaseSchema:
         datasets_dict = self._load_dict_from_json(path=self.datasets)
         interferometers_dict = self._load_dict_from_json(path=self.interferometers)
         inversion_protocols_dict = self._load_dict_from_json(path=self.inversion_protocols)
         noise_levels_dict = self._load_dict_from_json(path=self.noise_levels)
+        experiments = self._load_dict_from_json(path=self.experiments)
         return DatabaseSchema(
             **datasets_dict,
             **interferometers_dict,
             **inversion_protocols_dict,
             **noise_levels_dict,
+            **experiments,
         )
 
     @staticmethod

@@ -27,7 +27,7 @@ class LambdaasSchema(BaseModel):
         return lambdaas
 
 
-class InversionProtocolExperimentSchema(BaseModel):
+class InversionProtocolSchema(BaseModel):
     """
     Schema for inversion protocol inputs used to launch experiments, not to directly initialize an Inversion Protocol
     """
@@ -57,10 +57,10 @@ class InversionProtocolExperimentSchema(BaseModel):
         return ip_kwargs
 
 
-class InversionProtocolExperimentListSchema(Sequence, RootModel):
-    root: List[InversionProtocolExperimentSchema]
+class InversionProtocolListSchema(Sequence, RootModel):
+    root: List[InversionProtocolSchema]
 
-    def __getitem__(self, item) -> InversionProtocolExperimentSchema:
+    def __getitem__(self, item) -> InversionProtocolSchema:
         return self.root[item]
 
     def __len__(self) -> int:

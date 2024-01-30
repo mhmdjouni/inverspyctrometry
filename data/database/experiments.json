@@ -1,0 +1,30 @@
+{
+  "experiments": [
+    {
+      "id": 0,
+      "title": "invert_solar",
+      "type": "simulated",
+      "dataset_ids": [
+        0
+      ],
+      "interferometer_ids": [
+        2,
+        1
+      ],
+      "noise_level_indices": [
+        0,
+        1,
+        2
+      ],
+      "inversion_protocol_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "description": "Reconstruction of solar spectra, from simulated interferograms, corrupted by different noise levels."
+    }
+  ]
+}
