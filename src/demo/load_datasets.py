@@ -6,7 +6,7 @@ from src.interface.configuration import load_config
 def main():
     db = load_config().database()
 
-    for dataset_id in range(3):
+    for dataset_id in range(len(db.datasets)):
         dataset_schema = db.datasets[dataset_id]
         pprint(dataset_schema)
 

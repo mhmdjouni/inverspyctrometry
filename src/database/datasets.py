@@ -18,15 +18,15 @@ class DatasetSchema(BaseModel):
     title: str
     category: str
     device: str
-    path: Path
-    wavenumbers_path: Optional[Path] = None
+    path: FilePath
+    wavenumbers_path: Optional[FilePath] = None
     wavenumbers_unit: Optional[str] = None
-    opds_path: Optional[Path] = None
+    opds_path: Optional[FilePath] = None
     opds_unit: Optional[str] = None
 
     def spectrum(self) -> Spectrum:
         if self.category != DatasetCategory.SPECTRUM:
-            raise ValueError(f"The selected dataset id {self.id} does not refer to a spectral dataset.")
+            raise ValueError(f"The selected dataset id={self.id} does not refer to a spectral dataset.")
         data = np.load(file=self.path)
         wavenumbers = np.load(file=self.wavenumbers_path)
         wavenumbers_unit = self.wavenumbers_unit
@@ -38,7 +38,7 @@ class DatasetSchema(BaseModel):
 
     def interferogram(self) -> Interferogram:
         if self.category != DatasetCategory.INTERFEROGRAM:
-            raise ValueError(f"The selected dataset id {self.id} does not refer to an interferogram dataset.")
+            raise ValueError(f"The selected dataset id={self.id} does not refer to an interferogram dataset.")
         data = np.load(file=self.path)
         opds = np.load(file=self.opds_path)
         opds_unit = self.opds_unit
