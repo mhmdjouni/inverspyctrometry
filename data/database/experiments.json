@@ -21,8 +21,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "description": "Reconstruction of solar spectra, from simulated interferograms, corrupted by different noise levels."
     }

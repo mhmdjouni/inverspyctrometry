@@ -1,9 +1,12 @@
-from dataclasses import dataclass
+from __future__ import annotations
+
+from dataclasses import dataclass, replace
 
 import numpy as np
 from scipy import fft
 
 from src.common_utils.custom_vars import Opd, Wvn
+from src.common_utils.utils import rescale
 
 
 @dataclass(frozen=True)
@@ -13,6 +16,10 @@ class TransmittanceResponse:
     opds: np.ndarray[tuple[Opd], np.dtype[np.float_]] | np.ndarray
     wavenumbers_unit: str = r"cm$^{-1}$"
     opds_unit: str = "nm"
+
+    def rescale(self, new_max: float = 1., axis: int = None) -> TransmittanceResponse:
+        rescaled_data = rescale(array=self.data, new_max=new_max, axis=axis)
+        return replace(self, data=rescaled_data)
 
     def compute_singular_values(self):
         zero_mean_opd_responses = self.data - np.mean(self.data, axis=1, keepdims=True)

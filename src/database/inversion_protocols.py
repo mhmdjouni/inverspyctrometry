@@ -8,6 +8,9 @@ from src.common_utils.custom_vars import InversionProtocolType, NormOperatorType
 from src.inverse_model.operators import CTVOperator, NormOperator, LinearOperator
 
 
+# TODO: return a list of constructed inversion protocols (perfect when lambdaas.num=1)
+
+
 class LambdaasSchema(BaseModel):
     key: RegularizationParameterKey
     start: float

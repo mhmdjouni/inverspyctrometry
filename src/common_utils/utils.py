@@ -26,10 +26,22 @@ def add_noise(
 ) -> np.ndarray[tuple[Opd | Wvn, Acq], np.dtype[np.float_]]:
     snr_rms = 10 ** (snr_db / 20)
     noise_normal = np.random.randn(*array.shape)
-    signal_std = np.std(array, axis=-2, keepdims=True)  # Compute the STD for each column
+    signal_std = array.std(axis=-2, keepdims=True)  # Compute the STD for each column
     alpha = signal_std / snr_rms
     noise = alpha * noise_normal
     return array + noise
+
+
+def rescale(
+        array: np.ndarray[..., np.dtype[np.float_]],
+        new_max: float = 1.,
+        axis: int = -2,
+) -> np.ndarray[..., np.dtype[np.float_]]:
+    """Rescale an array to a new maximum, e.g., array_normed = array / max"""
+    array_normalized = array / array.max(axis=axis, keepdims=True)
+    if new_max != 1.:
+        array_normalized = array_normalized * new_max
+    return array_normalized
 
 
 def min_max_normalize(
@@ -48,8 +60,8 @@ def min_max_normalize(
 
 def standardize(
         array: np.ndarray[..., np.dtype[np.float_]],
-        new_mean: np.ndarray = 0.,
-        new_std: np.ndarray = 1.,
+        new_mean: float = 0.,
+        new_std: float = 1.,
         axis: int = -2,
 ) -> np.ndarray[..., np.dtype[np.float_]]:
     """Standardize an array, e.g., array_std = (array - mean) / std."""
@@ -66,10 +78,10 @@ def match_for_comparison(
 ) -> tuple[np.ndarray[..., np.dtype[np.float_]], np.ndarray[..., np.dtype[np.float_]]]:
     """
     Used mostly for plot purposes, especially when comparing arrays.
-    1- Min-max normalization of reference
-    2- Standardize the array to the statistics of the normalized reference
+    1- Rescale the reference to a maximum of 1
+    2- Standardize the array to the statistics of the rescaled reference
     """
-    reference_normalized = min_max_normalize(array=reference, axis=axis)
+    reference_normalized = rescale(array=reference, axis=axis)
     ref_mean = reference_normalized.mean(axis=axis, keepdims=True)
     ref_std = reference_normalized.std(axis=axis, keepdims=True)
     array_standardized = standardize(array=array, new_mean=ref_mean, new_std=ref_std, axis=axis)
