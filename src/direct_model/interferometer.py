@@ -52,7 +52,7 @@ class Interferometer(ABC):
             spectrum: Spectrum,
     ) -> Interferogram:
         transmittance_response = self.transmittance_response(wavenumbers=spectrum.wavenumbers)
-        return get_interferogram(transmittance_response=transmittance_response, spectrum=spectrum)
+        return simulate_interferogram(transmittance_response=transmittance_response, spectrum=spectrum)
 
     def phase_difference(
             self,
@@ -111,7 +111,7 @@ class FabryPerotInterferometer(Interferometer):
         )
 
 
-def get_interferogram(
+def simulate_interferogram(
         transmittance_response: TransmittanceResponse,
         spectrum: Spectrum,
 ) -> Interferogram:

@@ -3,38 +3,41 @@
     {
       "id": 0,
       "title": "mich",
+      "category": "simulated",
       "type": "Michelson",
       "opds": {
-        "nb": 320,
+        "num": 319,
         "step": 0.175,
-        "min": 0.0
+        "start": 0.0
       },
-      "transmittance": 1.0
+      "transmittance": [1.0]
     },
     {
       "id": 1,
       "title": "fp_0",
+      "category": "simulated",
       "type": "Fabry-Perot",
       "opds": {
-        "nb": 320,
+        "num": 319,
         "step": 0.175,
-        "min": 0.0
+        "start": 0.0
       },
-      "transmittance": 1.0,
-      "reflectance": 0.13,
+      "transmittance": [1.0],
+      "reflectance": [0.13],
       "order": 0
     },
     {
       "id": 2,
       "title": "fp_2",
+      "category": "simulated",
       "type": "Fabry-Perot",
       "opds": {
-        "nb": 320,
+        "num": 319,
         "step": 0.175,
-        "min": 0.0
+        "start": 0.0
       },
-      "transmittance": 1.0,
-      "reflectance": 0.13,
+      "transmittance": [1.0],
+      "reflectance": [0.13],
       "order": 2
     }
   ]

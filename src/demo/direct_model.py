@@ -17,7 +17,7 @@ def main():
     """
     acq_ind = 0
     nb_opd, del_opd = 320, 0.175
-    opds = generate_sampled_opds(nb_opd=nb_opd, del_opd=del_opd)
+    opds = generate_sampled_opds(nb_opd=nb_opd, opd_step=del_opd)
     nb_wn = opds.size*4  # quasi-continuous
     wavenumbers = generate_wavenumbers_from_opds(nb_wn=nb_wn, del_opd=del_opd)
 

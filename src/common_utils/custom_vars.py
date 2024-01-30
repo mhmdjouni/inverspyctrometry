@@ -21,10 +21,23 @@ class DatasetCategory(str, Enum):
 
 
 class DatasetDevice(str, Enum):
-    SOLAR = ""
+    SOLAR = "N/A"
     SHINE = "shine"
     SPECIM = "specim"
     IMSPOC_UV_2 = "imspoc_uv_2"
+
+
+class RegularizationParameterKey(str, Enum):
+    NOT_APPLICABLE = "N/A"
+    TSVD = "penalization_ratio"
+    RIDGE_REGRESSION = "penalization"
+    LORIS_VERHOEVEN = "regularization_parameter"
+
+
+class RegularizationParameterListSpace(str, Enum):
+    NOT_APPLICABLE = "N/A"
+    LINSPACE = "linspace"
+    LOGSPACE = "logspace"
 
 
 class InterferometerType(str, Enum):
@@ -42,14 +55,16 @@ class InversionProtocolType(str, Enum):
 
 
 class LinearOperatorMethod(str, Enum):
+    NOT_APPLICABLE = "N/A"
     IDENTITY = "identity"
     DCT = "dct"  # Discrete Cosine Transform
     TV = "tv"  # Total Variation
 
 
-class NormOperatorType(tuple, Enum):
-    L1O = ("l1o", ())
-    L2O = ("l2o", ())
-    L112 = ("l112", (2, 0, 1))
-    L121 = ("l121", (1, 0, 2))
-    L211 = ("l211", (0, 1, 2))
+class NormOperatorType(list, Enum):
+    NOT_APPLICABLE = ["N/A", []]
+    L1O = ["l1o", []]
+    L2O = ["l2o", []]
+    L112 = ["l112", [2, 0, 1]]
+    L121 = ["l121", [1, 0, 2]]
+    L211 = ["l211", [0, 1, 2]]

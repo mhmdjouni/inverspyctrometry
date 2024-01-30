@@ -100,8 +100,8 @@ def index_from_value(array: np.ndarray, value: float) -> int:
     return index
 
 
-def generate_sampled_opds(nb_opd: int, del_opd: float, opd_min: float = 0) -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
-    opds = del_opd * np.arange(nb_opd) + opd_min
+def generate_sampled_opds(nb_opd: int, opd_step: float, opd_min: float = 0) -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
+    opds = opd_step * np.arange(nb_opd) + opd_min
     return opds
 
 

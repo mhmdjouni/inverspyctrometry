@@ -3,46 +3,90 @@
     {
       "id": 0,
       "title": "idct",
-      "type": "idct"
+      "type": "idct",
+      "lambdaas_schema": {
+        "key": "N/A",
+        "start": 0.0,
+        "stop": 0.0,
+        "num": 1,
+        "space": "N/A"
+      },
+      "norm_operator": [
+        "N/A",
+        []
+      ],
+      "linear_operator": "N/A",
+      "nb_iters": 0
     },
     {
       "id": 1,
       "title": "pinv",
-      "type": "pseudo_inverse"
+      "type": "pseudo_inverse",
+      "lambdaas_schema": {
+        "key": "N/A",
+        "start": 0.0,
+        "stop": 0.0,
+        "num": 1,
+        "space": "N/A"
+      },
+      "norm_operator": [
+        "N/A",
+        []
+      ],
+      "linear_operator": "N/A",
+      "nb_iters": 0
     },
     {
       "id": 2,
       "title": "tsvd",
       "type": "truncated_svd",
-      "lambdaas": {
-        "min": 0.4,
-        "max": 1.0,
-        "nb": 100,
+      "lambdaas_schema": {
+        "key": "penalization_ratio",
+        "start": 0.4,
+        "stop": 1.0,
+        "num": 100,
         "space": "linspace"
-      }
+      },
+      "norm_operator": [
+        "N/A",
+        []
+      ],
+      "linear_operator": "N/A",
+      "nb_iters": 0
     },
     {
       "id": 3,
       "title": "rr",
       "type": "ridge_regression",
-      "lambdaas": {
-        "min": 1e-1,
-        "max": 1e2,
-        "nb": 100,
+      "lambdaas_schema": {
+        "key": "penalization",
+        "start": 1e-1,
+        "stop": 1e2,
+        "num": 100,
         "space": "logspace"
-      }
+      },
+      "norm_operator": [
+        "N/A",
+        []
+      ],
+      "linear_operator": "N/A",
+      "nb_iters": 0
     },
     {
       "id": 4,
       "title": "lv_l1",
       "type": "loris_verhoeven",
-      "lambdaas": {
-        "min": 1e-2,
-        "max": 1e1,
-        "nb": 100,
+      "lambdaas_schema": {
+        "key": "regularization_parameter",
+        "start": 1e-2,
+        "stop": 1e1,
+        "num": 100,
         "space": "logspace"
       },
-      "norm_operator": "l1o",
+      "norm_operator": [
+        "l1o",
+        []
+      ],
       "linear_operator": "dct",
       "nb_iters": 500
     },
@@ -50,13 +94,17 @@
       "id": 5,
       "title": "lv_l2",
       "type": "loris_verhoeven",
-      "lambdaas": {
-        "min": 1e-2,
-        "max": 1e1,
-        "nb": 100,
+      "lambdaas_schema": {
+        "key": "regularization_parameter",
+        "start": 1e-2,
+        "stop": 1e1,
+        "num": 100,
         "space": "logspace"
       },
-      "norm_operator": "l2o",
+      "norm_operator": [
+        "l2o",
+        []
+      ],
       "linear_operator": "dct",
       "nb_iters": 500
     }

@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import Optional
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,7 +17,7 @@ from src.inverse_model.operators import ProximalOperator, LinearOperator
 from src.inverse_model.loris_verhoeven_utils import LorisVerhoevenIteration
 
 
-def inversion_protocol_factory(option: InversionProtocolType, kwargs: dict):
+def inversion_protocol_factory(option: InversionProtocolType, ip_kwargs: dict):
     if option == InversionProtocolType.IDCT:
         return IDCT()
 
@@ -22,24 +25,24 @@ def inversion_protocol_factory(option: InversionProtocolType, kwargs: dict):
         return PseudoInverse()
 
     elif option == InversionProtocolType.TSVD:
-        return TSVD(penalization_ratio=kwargs["penalization_ratio"])
+        return TSVD(penalization_ratio=ip_kwargs["penalization_ratio"])
 
     elif option == InversionProtocolType.RIDGE_REGRESSION:
-        return RidgeRegression(penalization=kwargs["penalization"])
+        return RidgeRegression(penalization=ip_kwargs["penalization"])
 
     elif option == InversionProtocolType.LORIS_VERHOEVEN:
         return LorisVerhoeven(
-            regularization_parameter=kwargs["regularization_parameter"],
-            prox_functional=kwargs["prox_functional"],
-            domain_transform=kwargs["domain_transform"],
-            nb_iters=kwargs["nb_iters"],
+            regularization_parameter=ip_kwargs["regularization_parameter"],
+            prox_functional=ip_kwargs["prox_functional"],
+            domain_transform=ip_kwargs["domain_transform"],
+            nb_iters=ip_kwargs["nb_iters"],
         )
 
     elif option == InversionProtocolType.ADMM:
         return ADMM()
 
     else:
-        raise ValueError(f"Inversion Protocol option {option} is not supported")
+        raise ValueError(f"Inversion Protocol option '{option}' is not supported")
 
 
 @dataclass(frozen=True)

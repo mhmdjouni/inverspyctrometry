@@ -1,17 +1,19 @@
+from pprint import pprint
+
 from src.interface.configuration import load_config
 
 
 def main():
     db = load_config().database()
 
-    for spectrum_id in range(3):
-        dataset = db.datasets[spectrum_id]
-        print(dataset)
+    for dataset_id in range(3):
+        dataset_schema = db.datasets[dataset_id]
+        pprint(dataset_schema)
 
-        spectrum = db.dataset_spectrum(ds_id=spectrum_id)
-        print(spectrum.data.shape)
-        print(spectrum.wavenumbers)
-        print(spectrum.wavenumbers_unit)
+        spectrum = db.dataset_spectrum(ds_id=dataset_id)
+        pprint(spectrum.data.shape)
+        pprint(spectrum.wavenumbers)
+        pprint(spectrum.wavenumbers_unit)
 
         print()
 

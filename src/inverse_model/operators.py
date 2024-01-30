@@ -59,7 +59,14 @@ class LinearOperator:
 
     @classmethod
     def from_method(cls, method: LinearOperatorMethod) -> LinearOperator:
-        if method == LinearOperatorMethod.IDENTITY:
+        if method == LinearOperatorMethod.NOT_APPLICABLE:
+            return cls(
+                direct=lambda x: np.array(None),
+                adjoint=lambda u: np.array(None),
+                norm=0.,
+                inverse=lambda u: np.array(None),
+            )
+        elif method == LinearOperatorMethod.IDENTITY:
             return cls(
                 direct=lambda x: x,
                 adjoint=lambda u: u,
@@ -133,8 +140,15 @@ class NormOperator:
     proximal_conjugate: Callable
 
     @classmethod
-    def from_norm(cls, norm: NormOperatorType):
-        if norm == NormOperatorType.L112 or norm == NormOperatorType.L121 or norm == NormOperatorType.L211:
+    def from_norm(cls, norm: NormOperatorType) -> NormOperator:
+        if norm == NormOperatorType.NOT_APPLICABLE:
+            return cls(
+                direct=lambda x: None,
+                conjugate=lambda x: None,
+                proximal=lambda x: None,
+                proximal_conjugate=lambda x: None,
+            )
+        elif norm == NormOperatorType.L112 or norm == NormOperatorType.L121 or norm == NormOperatorType.L211:
             return prox_elements_l112(norm_label=norm[0], perm=norm[1])
         elif norm == NormOperatorType.L1O:
             return prox_elements_l1o()

@@ -10,6 +10,7 @@ from src.common_utils.light_wave import Spectrum
 
 
 # TODO: Replace the type hints with Enums
+# TODO: Switch Path to FilePath
 
 
 class DatasetSchema(BaseModel):
