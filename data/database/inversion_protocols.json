@@ -43,7 +43,7 @@
       "lambdaas_schema": {
         "key": "penalization_ratio",
         "start": 0.4,
-        "stop": 1.0,
+        "stop": 1,
         "num": 100,
         "space": "linspace"
       },
@@ -60,8 +60,8 @@
       "type": "ridge_regression",
       "lambdaas_schema": {
         "key": "penalization",
-        "start": 1e-1,
-        "stop": 1e2,
+        "start": -1,
+        "stop": 2,
         "num": 100,
         "space": "logspace"
       },
@@ -78,31 +78,13 @@
       "type": "loris_verhoeven",
       "lambdaas_schema": {
         "key": "regularization_parameter",
-        "start": 1e-2,
-        "stop": 1e1,
+        "start": -2,
+        "stop": 1,
         "num": 100,
         "space": "logspace"
       },
       "norm_operator": [
         "l1o",
-        []
-      ],
-      "linear_operator": "dct",
-      "nb_iters": 500
-    },
-    {
-      "id": 5,
-      "title": "lv_l2",
-      "type": "loris_verhoeven",
-      "lambdaas_schema": {
-        "key": "regularization_parameter",
-        "start": 1e-2,
-        "stop": 1e1,
-        "num": 100,
-        "space": "logspace"
-      },
-      "norm_operator": [
-        "l2o",
         []
       ],
       "linear_operator": "dct",

@@ -30,13 +30,13 @@ class LorisVerhoevenIteration:
           - If rho=1, the algorithm is equivalent to the original Loris-Verhoeven one (i.e., without over-relaxation).
           - tau_init=1. and rho=1.9 have been set by default.
         """
-        tau, eta = self.__convergence_params(tau_init=0.99)
+        tau, eta = self.__convergence_params(tau_init=1.)
         object.__setattr__(self, "tau", tau)
         object.__setattr__(self, "eta", eta)
         object.__setattr__(self, "rho", 1.9)
         object.__setattr__(self, "rho_tau", self.rho * self.tau)
 
-    def __convergence_params(self, tau_init: float = 1.99) -> tuple[float, float]:
+    def __convergence_params(self, tau_init: float = 1.) -> tuple[float, float]:
         """
         In case the conditions ||A||<sqrt(2) and/or ||L||<1 are not satisfied, it is possible to rescale the matrices.
           - tau < 2 / transfer_matrix.norm ** 2  =>  Transfer Matrix norm rescale parameter.
@@ -44,7 +44,7 @@ class LorisVerhoevenIteration:
           - eta < sigma / tau  =>  Caching the division sigma/tau.
         """
         tau = tau_init / self.transfer_matrix.norm ** 2
-        eta = 1. / tau / self.domain_transform.norm ** 2
+        eta = 0.99 / tau / self.domain_transform.norm ** 2
         return tau, eta
 
     def update(
