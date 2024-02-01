@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Optional
 
 import numpy as np
 from scipy import interpolate
 
 from src.common_utils.custom_vars import Wvn, Acq
-from src.common_utils.utils import convert_meter_units
+from src.common_utils.utils import convert_meter_units, standardize, min_max_normalize, rescale, add_noise
 
 
 @dataclass(frozen=True)
@@ -21,6 +21,7 @@ class Spectrum:
         axs.set_title(rf"Spectral Radiance")
         axs.set_ylabel("Intensity")
         axs.set_xlabel(rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]")
+        axs.grid()
 
     @classmethod
     def from_wavelength(
@@ -67,6 +68,32 @@ class Spectrum:
             wavenumbers=wavenumbers,
             wavenumbers_unit=self.wavenumbers_unit,
         )
+
+    def add_noise(self, snr_db) -> Spectrum:
+        noisy_data = add_noise(array=self.data, snr_db=snr_db)
+        return replace(self, data=noisy_data)
+
+    def rescale(self, new_max: float = 1., axis: int = -2) -> Spectrum:
+        rescaled_data = rescale(array=self.data, new_max=new_max, axis=axis)
+        return replace(self, data=rescaled_data)
+
+    def min_max_normalize(
+            self,
+            new_min: float = 0.,
+            new_max: float = 1.,
+            axis: int = -2
+    ) -> Spectrum:
+        normalized_data = min_max_normalize(array=self.data, new_min=new_min, new_max=new_max, axis=axis)
+        return replace(self, data=normalized_data)
+
+    def standardize(
+            self,
+            new_mean: float = 0.,
+            new_std: float = 1.,
+            axis: int = -2
+    ) -> Spectrum:
+        standardized_data = standardize(array=self.data, new_mean=new_mean, new_std=new_std, axis=axis)
+        return replace(self, data=standardized_data)
 
     @classmethod
     def from_oscillations(

@@ -19,6 +19,7 @@ class Interferogram:
         axs.set_title(rf"Interferogram")
         axs.set_ylabel("Intensity")
         axs.set_xlabel(rf"OPDs $\delta$ [{self.opds_unit}]")
+        axs.grid()
 
     def add_noise(self, snr_db) -> Interferogram:
         noisy_data = add_noise(array=self.data, snr_db=snr_db)
