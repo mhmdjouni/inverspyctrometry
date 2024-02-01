@@ -1,3 +1,7 @@
+"""
+Exhaustive working template for simulated inversion, with comments and extra functionality (saving arrays, etc.)
+"""
+
 from pprint import pprint
 
 import numpy as np
