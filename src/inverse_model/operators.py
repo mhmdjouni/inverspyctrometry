@@ -76,10 +76,10 @@ class LinearOperator:
 
         elif method == LinearOperatorMethod.DCT:
             return cls(
-                direct=lambda x: fft.dct(x, norm="ortho"),
-                adjoint=lambda u: fft.idct(u, norm="ortho"),
+                direct=lambda x: fft.dct(x, norm="ortho", axis=-2),
+                adjoint=lambda u: fft.idct(u, norm="ortho", axis=-2),
                 norm=1.,
-                inverse=lambda u: fft.idct(u, norm="ortho"),
+                inverse=lambda u: fft.idct(u, norm="ortho", axis=-2),
             )
 
         elif method == LinearOperatorMethod.TV:
