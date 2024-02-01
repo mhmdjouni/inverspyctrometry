@@ -26,7 +26,7 @@ def add_noise(
 ) -> np.ndarray[tuple[Opd | Wvn, Acq], np.dtype[np.float_]]:
     snr_rms = 10 ** (snr_db / 20)
     noise_normal = np.random.randn(*array.shape)
-    signal_std = array.std(axis=-2, keepdims=True)  # Compute the STD for each column
+    signal_std = array.std(axis=-2, keepdims=True)
     alpha = signal_std / snr_rms
     noise = alpha * noise_normal
     return array + noise
@@ -38,7 +38,8 @@ def rescale(
         axis: int = -2,
 ) -> np.ndarray[..., np.dtype[np.float_]]:
     """Rescale an array to a new maximum, e.g., array_normed = array / max"""
-    array_normalized = array / array.max(axis=axis, keepdims=True)
+    array_max = array.max(axis=axis, keepdims=True)
+    array_normalized = array / array_max
     if new_max != 1.:
         array_normalized = array_normalized * new_max
     return array_normalized
@@ -65,31 +66,56 @@ def standardize(
         axis: int = -2,
 ) -> np.ndarray[..., np.dtype[np.float_]]:
     """Standardize an array, e.g., array_std = (array - mean) / std."""
-    array_standardized = (array - array.mean(axis=axis, keepdims=True)) / array.std(axis=axis, keepdims=True)
-    if new_mean != 0. or new_std != 1.:
+    array_mean = array.mean(axis=axis, keepdims=True)
+    array_std = array.std(axis=axis, keepdims=True)
+    array_standardized = (array - array_mean) / array_std
+    if np.any(new_mean != 0) or np.any(new_std != 1.):
         array_standardized = new_std * array_standardized + new_mean
     return array_standardized
 
 
-def match_for_comparison(
+def match_stats(
         array: np.ndarray[..., np.dtype[np.float_]],
         reference: np.ndarray[..., np.dtype[np.float_]],
         axis: int = -2,
+        is_rescale_reference: bool = False,
 ) -> tuple[np.ndarray[..., np.dtype[np.float_]], np.ndarray[..., np.dtype[np.float_]]]:
     """
     Used mostly for plot purposes, especially when comparing arrays.
-    1- Rescale the reference to a maximum of 1
+    1- Rescale the reference if needed, to a maximum of 1
     2- Standardize the array to the statistics of the rescaled reference
     """
-    reference_normalized = rescale(array=reference, axis=axis)
-    ref_mean = reference_normalized.mean(axis=axis, keepdims=True)
-    ref_std = reference_normalized.std(axis=axis, keepdims=True)
+    if is_rescale_reference:
+        reference = rescale(array=reference, axis=axis)
+    ref_mean = reference.mean(axis=axis, keepdims=True)
+    ref_std = reference.std(axis=axis, keepdims=True)
     array_standardized = standardize(array=array, new_mean=ref_mean, new_std=ref_std, axis=axis)
-    return reference_normalized, array_standardized
+    return array_standardized, reference
 
 
-def calculate_rmse():
-    pass
+def calculate_rmse(
+        array: np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]],
+        reference: np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]],
+        axis: int = -2,
+        is_match_stats: bool = False,
+        is_rescale_reference: bool = False,
+) -> np.ndarray[tuple[int, Acq], np.dtype[np.float_]]:
+    """
+    Calculate Root Mean Squared Error
+    """
+    if is_match_stats:
+        array, reference = match_stats(
+            array=array,
+            reference=reference,
+            axis=axis,
+            is_rescale_reference=is_rescale_reference,
+        )
+    error = array - reference
+    error_vectorized = np.reshape(a=error, newshape=(error.shape[0], -1))
+    error_norm = np.linalg.norm(x=error_vectorized, ord=2, axis=-1)
+    reference_norm = np.linalg.norm(x=reference)
+    rmse = error_norm / reference_norm
+    return rmse
 
 
 def calculate_rmcw():
