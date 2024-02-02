@@ -18,6 +18,7 @@ class DatasetSchema(BaseModel):
     title: str
     category: str
     device: str
+    source: str
     path: FilePath
     wavenumbers_path: Optional[FilePath] = None
     wavenumbers_unit: Optional[str] = None

@@ -5,24 +5,27 @@
       "title": "solar",
       "category": "spectrum",
       "device": "",
+      "source": "sun",
       "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/solar.npy",
       "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/solar_wavenumbers.npy",
       "wavenumbers_unit": "1/um"
     },
     {
       "id": 1,
-      "title": "shine",
+      "title": "cc-shine",
       "category": "spectrum",
       "device": "shine",
+      "source": "colorchecker",
       "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/shine.npy",
       "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/shine_wavenumbers.npy",
       "wavenumbers_unit": "1/um"
     },
     {
       "id": 2,
-      "title": "specim",
+      "title": "cc-specim",
       "category": "spectrum",
       "device": "specim",
+      "source": "colorchecker",
       "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/specim.npy",
       "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/specim_wavenumbers.npy",
       "wavenumbers_unit": "1/um"
@@ -32,8 +35,9 @@
       "title": "mc-451",
       "category": "interferogram",
       "device": "imspoc_uv_2",
-      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/mc-451.npy",
-      "opds_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/mc-451_opds.npy",
+      "source": "monochromatic",
+      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/interferogram/mc451.npy",
+      "opds_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/interferogram/mc451_opds.npy",
       "opds_unit": "um"
     },
     {
@@ -41,8 +45,9 @@
       "title": "mc-651",
       "category": "interferogram",
       "device": "imspoc_uv_2",
-      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/mc-651.npy",
-      "opds_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/mc-651_opds.npy",
+      "source": "monochromatic",
+      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/interferogram/mc651.npy",
+      "opds_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/interferogram/mc651_opds.npy",
       "opds_unit": "um"
     }
   ]
