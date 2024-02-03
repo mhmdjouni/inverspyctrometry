@@ -8,26 +8,30 @@ import numpy as np
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
 from src.common_utils.transmittance_response import TransmittanceResponse
-from src.common_utils.custom_vars import Wvn, Opd, InterferometerType
-from src.common_utils.utils import calculate_phase_difference
+from src.common_utils.custom_vars import Wvn, Opd, InterferometerType, Deg
+from src.common_utils.utils import polyval_rows
 
 
 def interferometer_factory(
         option: InterferometerType,
-        transmittance: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+        transmittance_coefficients: np.ndarray[tuple[Opd, Deg], np.dtype[np.float_]],
         opds: np.ndarray[tuple[Opd], np.dtype[np.float_]],
-        reflectance: np.ndarray[tuple[Wvn], np.dtype[np.float_]] = None,
+        phase_shift: np.ndarray[tuple[Opd], np.dtype[np.float_]],
+        reflectance_coefficients: np.ndarray[tuple[Opd, Deg], np.dtype[np.float_]] = None,
         order: int = 0,
 ) -> Interferometer:
     if option == InterferometerType.MICHELSON:
-        interferometer = MichelsonInterferometer(transmittance=transmittance, opds=opds)
-    elif option == InterferometerType.FABRY_PEROT:
-        if reflectance is None:
-            reflectance = 1 - transmittance
-        interferometer = FabryPerotInterferometer(
-            transmittance=transmittance,
+        interferometer = MichelsonInterferometer(
+            transmittance_coefficients=transmittance_coefficients,
             opds=opds,
-            reflectance=reflectance,
+            phase_shift=phase_shift,
+        )
+    elif option == InterferometerType.FABRY_PEROT:
+        interferometer = FabryPerotInterferometer(
+            transmittance_coefficients=transmittance_coefficients,
+            opds=opds,
+            phase_shift=phase_shift,
+            reflectance_coefficients=reflectance_coefficients,
             order=order,
         )
     else:
@@ -37,13 +41,15 @@ def interferometer_factory(
 
 @dataclass(frozen=True)
 class Interferometer(ABC):
-    transmittance: np.ndarray[tuple[Wvn], np.dtype[np.float_]]
+    transmittance_coefficients: np.ndarray[tuple[Opd, Deg], np.dtype[np.float_]]
     opds: np.ndarray[tuple[Opd], np.dtype[np.float_]]
+    phase_shift: np.ndarray[tuple[Opd], np.dtype[np.float_]]
 
     @abstractmethod
     def transmittance_response(
             self,
             wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+            is_correct_transmittance: bool = False,
     ) -> TransmittanceResponse:
         pass
 
@@ -60,6 +66,16 @@ class Interferometer(ABC):
     ) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
         return calculate_phase_difference(opds=self.opds, wavenumbers=wavenumbers)
 
+    def coeffs_to_polynomials(
+            self,
+            coefficients: np.ndarray[tuple[Opd, Deg], np.dtype[np.float_]],
+            wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+    ) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
+        if coefficients.shape[0] == 1:
+            coefficients = np.tile(coefficients.reshape(1, -1), (self.opds.size, 1))
+            assert coefficients.ndim == 2
+        return polyval_rows(coefficients=coefficients, interval=wavenumbers)
+
 
 @dataclass(frozen=True)
 class MichelsonInterferometer(Interferometer):
@@ -67,10 +83,12 @@ class MichelsonInterferometer(Interferometer):
     def transmittance_response(
             self,
             wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+            is_correct_transmittance: bool = False,
     ) -> TransmittanceResponse:
+        transmittance = self.coeffs_to_polynomials(coefficients=self.transmittance_coefficients, wavenumbers=wavenumbers)
         phase_difference = self.phase_difference(wavenumbers=wavenumbers)
         # This is equivalent to: y = (1/2 * y[0]) + 1/2 * scipy.fft.dct(2*T*x, type=2, norm=None)
-        transmittance_response = 2 * self.transmittance[None, :] * (1 + np.cos(2 * np.pi * phase_difference))
+        transmittance_response = 2 * transmittance * (1 + np.cos(2 * np.pi * phase_difference - self.phase_shift[:, None]))
         return TransmittanceResponse(
             data=transmittance_response,
             wavenumbers=wavenumbers,
@@ -80,29 +98,35 @@ class MichelsonInterferometer(Interferometer):
 
 @dataclass(frozen=True)
 class FabryPerotInterferometer(Interferometer):
-    reflectance: np.ndarray[tuple[Wvn], np.dtype[np.float_]]
+    reflectance_coefficients: np.ndarray[tuple[Opd, Deg], np.dtype[np.float_]]
     order: int = 0
 
     def transmittance_response(
             self,
             wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+            is_correct_transmittance: bool = False,
     ) -> TransmittanceResponse:
+        reflectance = self.coeffs_to_polynomials(coefficients=self.reflectance_coefficients, wavenumbers=wavenumbers)
+        transmittance = self.coeffs_to_polynomials(coefficients=self.transmittance_coefficients, wavenumbers=wavenumbers)
+        if is_correct_transmittance:
+            transmittance = transmittance * (1 - reflectance) * (1 + reflectance)
+        else:
+            transmittance = transmittance ** 2
         phase_difference = self.phase_difference(wavenumbers=wavenumbers)
 
         if self.order == 0:
             # Using the infinity-wave model and geometric series formula
-            denominator = 1 + self.reflectance[None, :] ** 2 - 2 * self.reflectance[None, :] * np.cos(
-                2 * np.pi * phase_difference)
-            transmittance_response = self.transmittance[None, :] ** 2 * (1 / denominator)
+            denominator = 1 + reflectance ** 2 - 2 * reflectance * np.cos(2 * np.pi * phase_difference - self.phase_shift[:, None])
+            transmittance_response = transmittance / denominator
 
         else:
             # Using the N-wave model approximation and the Poisson kernel formula
-            q = 1 / (1 - self.reflectance ** 2)
+            q = 1 / (1 - reflectance ** 2)
             n_values = np.arange(1, self.order)
-            reflectance_factors = self.reflectance[None, None, :] ** n_values[:, None, None]
-            cosine_factors = np.cos(2 * np.pi * n_values[:, None, None] * phase_difference[None, :])
+            reflectance_factors = reflectance[None, :] ** n_values[:, None, None]
+            cosine_factors = np.cos(2 * np.pi * n_values[:, None, None] * phase_difference[None, :] - self.phase_shift[None, :, None])
             series_sum = 1 + 2 * np.sum(reflectance_factors * cosine_factors, axis=0)
-            transmittance_response = self.transmittance[None, :] ** 2 * (q[None, :] * series_sum)
+            transmittance_response = transmittance * (q * series_sum)
 
         return TransmittanceResponse(
             data=transmittance_response,
@@ -117,3 +141,10 @@ def simulate_interferogram(
 ) -> Interferogram:
     interferogram_data = transmittance_response.data @ spectrum.data
     return Interferogram(data=interferogram_data, opds=transmittance_response.opds)
+
+
+def calculate_phase_difference(
+        opds: np.ndarray[tuple[Opd], np.dtype[np.float_]],
+        wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
+    return opds[:, None] * wavenumbers[None, :]

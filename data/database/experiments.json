@@ -23,7 +23,7 @@
         3,
         4
       ],
-      "description": "Reconstruction of solar spectra, from simulated interferograms, corrupted by different noise levels."
+      "description": "Reproduces the RMSE table of simulated experiments in the paper."
     }
   ]
 }

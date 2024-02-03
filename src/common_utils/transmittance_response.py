@@ -35,8 +35,8 @@ class TransmittanceResponse:
         dct = fft.dct(x=array, type=2, norm='ortho')
         return dct
 
-    def visualize(self, axs):
-        axs.imshow(self.data, aspect='auto')
+    def visualize(self, axs, vmin: float = None, vmax: float = None):
+        axs.imshow(self.data, aspect='auto', vmin=vmin, vmax=vmax)
 
         opd_ticks = np.linspace(start=0, stop=self.opds.size-1, num=10, dtype=int)
         opd_labels = np.around(a=self.opds[opd_ticks], decimals=2)

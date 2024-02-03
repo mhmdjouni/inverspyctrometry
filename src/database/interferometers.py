@@ -8,39 +8,42 @@ from src.common_utils.utils import generate_sampled_opds
 from src.direct_model.interferometer import Interferometer, interferometer_factory
 
 
-# TODO: Separate OPD Schema and add OPD id instead
-
-
 class OPDSchema(BaseModel):
     num: int
     step: float
     start: float
 
-    def generate_opds(self) -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
+    def as_array(self) -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
         return generate_sampled_opds(nb_opd=self.num, opd_step=self.step, opd_min=self.start)
 
 
 class InterferometerSchema(BaseModel):
-    # TODO: Add category (experiment) and experiment id
     id: int
     title: str
     category: str
     type: InterferometerType
     opds: OPDSchema
-    transmittance: list[float]
-    reflectance: Optional[list[float]] = None
-    order: Optional[int] = None
+    transmittance_coefficients: list[list[float]]
+    reflectance_coefficients: list[list[float]]
+    phase_shift: list[float]
+    order: int
 
     def interferometer(self) -> Interferometer:
-        transmittance = np.array(self.transmittance)
-        reflectance = np.array(self.reflectance)
-        opds = self.opds.generate_opds()
+        transmittance_coefficients = np.array(self.transmittance_coefficients)
+        reflectance_coefficients = np.array(self.reflectance_coefficients)
+        opds = self.opds.as_array()
+        phase_shift = np.array(self.phase_shift)
+
+        if phase_shift.size == 1:
+            phase_shift = np.tile(phase_shift, self.opds.num)
+
         interferometer = interferometer_factory(
             option=self.type,
-            transmittance=transmittance,
+            transmittance_coefficients=transmittance_coefficients,
             opds=opds,
-            reflectance=reflectance,
+            reflectance_coefficients=reflectance_coefficients,
             order=self.order,
+            phase_shift=phase_shift,
         )
         return interferometer
 

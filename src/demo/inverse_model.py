@@ -8,10 +8,10 @@ from src.common_utils.custom_vars import InterferometerType, InversionProtocolTy
 from src.common_utils.transmittance_response import TransmittanceResponse
 from src.common_utils.utils import generate_shifted_dirac, generate_sampled_opds, generate_wavenumbers_from_opds
 from src.common_utils.interferogram import Interferogram
+from src.direct_model.interferometer import interferometer_factory
 from src.inverse_model.inverspectrometer import MichelsonInverSpectrometer
 from src.inverse_model.operators import CTVOperator, NormOperator, LinearOperator
 from src.inverse_model.protocols import inversion_protocol_factory, InversionProtocol
-from src.loaders.transmittance_response import transmittance_response_factory
 
 
 @dataclass(frozen=True)
@@ -36,6 +36,19 @@ class InversionProtocolDemo:
         spectrum.visualize(axs=axs[0, 1], acq_ind=acq_ind)
 
 
+def generate_transmittance_response(kwargs):
+    interferometer = interferometer_factory(
+        option=kwargs["type"],
+        transmittance_coefficients=kwargs["transmittance_coefficients"],
+        opds=kwargs["opds"],
+        reflectance_coefficients=kwargs["reflectance_coefficients"],
+        phase_shift=kwargs["phase_shift"],
+        order=kwargs["order"],
+    )
+    transmittance_response = interferometer.transmittance_response(wavenumbers=kwargs["wavenumbers"])
+    return transmittance_response
+
+
 def main():
     nb_opd, del_opd = 320, 0.175
     opds = generate_sampled_opds(nb_opd=nb_opd, opd_step=del_opd)
@@ -52,24 +65,25 @@ def main():
 
     # Transmittance response information
     wavenumbers = generate_wavenumbers_from_opds(nb_wn=nb_wn, del_opd=del_opd)
-    reflectance = reflectance_cst * np.ones_like(a=wavenumbers)
-    transmittance = 1 - reflectance
+    reflectance_coefficients = 0.13 * np.ones(shape=(opds.size, 1))
+    transmittance_coefficients = 1 - reflectance_coefficients
+    phase_shift = np.zeros_like(a=opds)
 
     # Generate or load a transmittance response (Generated using Interferometer or Loaded from disk)
-    transmittance_response = transmittance_response_factory(
-        option="generate",
+    transmittance_response = generate_transmittance_response(
         kwargs={
             "type": InterferometerType.MICHELSON,
             "opds": opds,
-            "transmittance": transmittance,
-            "reflectance": reflectance,
+            "transmittance_coefficients": transmittance_coefficients,
+            "reflectance_coefficients": reflectance_coefficients,
             "order": 0,
             "wavenumbers": wavenumbers,
+            "phase_shift": phase_shift,
         }
     )
 
     # Michelson reconstruction using IDCT
-    inverspectrometer_michelson = MichelsonInverSpectrometer(transmittance=transmittance)
+    inverspectrometer_michelson = MichelsonInverSpectrometer(transmittance=np.array([transmittance_cst]))
     spectrum_mich = inverspectrometer_michelson.reconstruct_spectrum(interferogram=interferogram)
     fig, axs = plt.subplots(nrows=1, ncols=2, squeeze=False)
     interferogram.visualize(axs=axs[0, 0], acq_ind=acq_ind)

@@ -1,23 +1,21 @@
+"""
+General purpose utilities
+"""
+
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 import numpy as np
 
-from src.common_utils.custom_vars import Opd, Wvn, Acq
+from src.common_utils.custom_vars import Opd, Wvn, Acq, Deg
 
 
 @dataclass
 class PlotOptions:
     figsize: tuple = (8, 6)
     fontsize: int = 25
-
-
-def calculate_phase_difference(
-        opds: np.ndarray[tuple[Opd], np.dtype[np.float_]],
-        wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
-) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
-    return opds[:, None] * wavenumbers[None, :]
 
 
 def add_noise(
@@ -165,3 +163,13 @@ def convert_meter_units(values: float | np.ndarray, from_: str, to_: str):
     value_in_meters = values * unit_to_meters[from_]
     converted_values = value_in_meters / unit_to_meters[to_]
     return converted_values
+
+
+def polyval_rows(
+        coefficients: np.ndarray[tuple[Opd, Deg], np.dtype[np.float_]],
+        interval: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
+    powers = np.arange(coefficients.shape[1])[:, None]
+    interval_powered = np.power(interval, powers)
+    polynomials = coefficients @ interval_powered
+    return polynomials

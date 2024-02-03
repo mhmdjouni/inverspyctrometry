@@ -14,10 +14,10 @@ def main():
         pprint(interferometer_schema)
 
         interferometer = db.interferometer(ifm_id=interferometer_id)
-        pprint(interferometer.transmittance)
+        pprint(interferometer.transmittance_coefficients)
         pprint(interferometer.opds)
 
-        transmat = interferometer.transmittance_response(wavenumbers=np.linspace(start=0, stop=2.85, num=320))
+        transmat = interferometer.transmittance_response(wavenumbers=np.linspace(start=0, stop=2.85, num=276))
         plt.imshow(transmat.data)
         plt.show()
 

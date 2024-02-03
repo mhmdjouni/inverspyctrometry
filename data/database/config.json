@@ -7,10 +7,11 @@
     "src": "/home/jounim/Work/codebase_projects/inverspyctrometry/src"
   },
   "database_paths": {
+    "characterizations": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/characterizations.json",
     "datasets": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/datasets.json",
+    "experiments": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/experiments.json",
     "interferometers": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/interferometers.json",
     "inversion_protocols": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/inversion_protocols.json",
-    "noise_levels": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/noise_levels.json",
-    "experiments": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/experiments.json"
+    "noise_levels": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/noise_levels.json"
   }
 }

@@ -5,6 +5,7 @@ from typing import NewType
 Wvn = NewType(name='Wvn', tp=int)
 Opd = NewType(name='Opd', tp=int)
 Acq = NewType(name='Acq', tp=int)
+Deg = NewType(name='PolyCoef', tp=int)
 
 
 class DatasetTitle(str, Enum):
@@ -20,7 +21,7 @@ class DatasetCategory(str, Enum):
     INTERFEROGRAM = "interferogram"
 
 
-class DatasetDevice(str, Enum):
+class DeviceType(str, Enum):
     SOLAR = "N/A"
     SHINE = "shine"
     SPECIM = "specim"

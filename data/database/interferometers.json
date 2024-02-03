@@ -5,40 +5,63 @@
       "title": "mich",
       "category": "simulated",
       "type": "Michelson",
+      "order": 2,
       "opds": {
         "num": 319,
         "step": 0.175,
         "start": 0.0
       },
-      "transmittance": [1.0]
+      "transmittance_coefficients": [
+        [0.5]
+      ],
+      "reflectance_coefficients": [
+        [0.5]
+      ],
+      "phase_shift": [
+        0.0
+      ]
     },
     {
       "id": 1,
       "title": "fp_0",
       "category": "simulated",
       "type": "Fabry-Perot",
+      "order": 0,
       "opds": {
         "num": 319,
         "step": 0.175,
         "start": 0.0
       },
-      "transmittance": [1.0],
-      "reflectance": [0.13],
-      "order": 0
+      "transmittance_coefficients": [
+        [1.0]
+      ],
+      "reflectance_coefficients": [
+        [0.13]
+      ],
+      "phase_shift": [
+        0.0
+      ]
     },
     {
       "id": 2,
       "title": "fp_2",
       "category": "simulated",
       "type": "Fabry-Perot",
+      "order": 2,
       "opds": {
         "num": 319,
         "step": 0.175,
         "start": 0.0
       },
-      "transmittance": [1.0],
-      "reflectance": [0.13],
-      "order": 2
+      "transmittance_coefficients": [
+        [1.0]
+      ],
+      "reflectance_coefficients": [
+        [0.13]
+      ],
+      "phase_shift": [
+        0.0
+      ]
     }
   ]
 }

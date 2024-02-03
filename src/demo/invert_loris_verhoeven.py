@@ -18,10 +18,16 @@ def main_other():
 
     spectrum.visualize(axs=axs[0, 0], acq_ind=0)
 
-    transmittance = np.array([1.])
     opds = 0.175 * np.arange(319)
-    reflectance = np.array([0.13])
-    interferometer = FabryPerotInterferometer(transmittance=transmittance, opds=opds, reflectance=reflectance)
+    transmittance_coefficients = np.array([[1.]])
+    reflectance_coefficients = np.array([[0.13]])
+    phase_shift = np.zeros_like(opds)
+    interferometer = FabryPerotInterferometer(
+        transmittance_coefficients=transmittance_coefficients,
+        opds=opds,
+        reflectance_coefficients=reflectance_coefficients,
+        phase_shift=phase_shift,
+    )
 
     transfer_matrix = interferometer.transmittance_response(wavenumbers=wavenumbers)
     interferogram = simulate_interferogram(transmittance_response=transfer_matrix, spectrum=spectrum)
@@ -49,9 +55,15 @@ def main():
     interferogram = Interferogram(data=np.cos(opds)[:, None], opds=opds)
     interferogram.visualize(axs=axs[0, 0], acq_ind=0)
 
-    transmittance = np.array([1.])
-    reflectance = np.array([0.13])
-    interferometer = FabryPerotInterferometer(transmittance=transmittance, opds=opds, reflectance=reflectance)
+    transmittance_coefficients = np.array([[1.]])
+    reflectance_coefficients = np.array([[0.13]])
+    phase_shift = np.zeros_like(opds)
+    interferometer = FabryPerotInterferometer(
+        transmittance_coefficients=transmittance_coefficients,
+        opds=opds,
+        reflectance_coefficients=reflectance_coefficients,
+        phase_shift=phase_shift,
+    )
 
     wavenumbers = np.linspace(start=0, stop=10*np.pi, num=276)
     transfer_matrix = interferometer.transmittance_response(wavenumbers=wavenumbers)
@@ -70,4 +82,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main_other()

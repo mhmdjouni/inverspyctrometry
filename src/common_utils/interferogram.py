@@ -21,6 +21,17 @@ class Interferogram:
         axs.set_xlabel(rf"OPDs $\delta$ [{self.opds_unit}]")
         axs.grid()
 
+    def visualize_matrix(self, axs, vmin: float, vmax: float):
+        axs.imshow(self.data, aspect='auto', vmin=vmin, vmax=vmax)
+
+        opd_ticks = np.linspace(start=0, stop=self.opds.size-1, num=10, dtype=int)
+        opd_labels = np.around(a=self.opds[opd_ticks], decimals=2)
+        axs.set_yticks(ticks=opd_ticks, labels=opd_labels)
+
+        axs.set_title("Interferogram Acquisitions")
+        axs.set_ylabel(rf"OPDs $\delta$ [{self.opds_unit}]")
+        axs.set_xlabel(r"Acquisitions index $n \in \{1, \dots, N\}$")
+
     def add_noise(self, snr_db) -> Interferogram:
         noisy_data = add_noise(array=self.data, snr_db=snr_db)
         return replace(self, data=noisy_data)

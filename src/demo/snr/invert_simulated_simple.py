@@ -61,7 +61,7 @@ def main():
                         )
 
                         fig, axs = plt.subplots(nrows=1, ncols=1, squeeze=False)
-                        spectra_rec.visualize(axs=axs, acq_ind=0)
+                        spectra_rec.visualize(axs=axs[0, 0], acq_ind=0)
                         plt.show()
 
 

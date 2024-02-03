@@ -21,8 +21,9 @@ def main():
     nb_wn = opds.size*4  # quasi-continuous
     wavenumbers = generate_wavenumbers_from_opds(nb_wn=nb_wn, del_opd=del_opd)
 
-    reflectance = 0.13 * np.ones_like(a=wavenumbers, dtype=np.float_)
-    transmittance = 1 - reflectance
+    reflectance_coefficients = 0.13 * np.ones(shape=(opds.size, 1))
+    transmittance_coefficients = 1 - reflectance_coefficients
+    phase_shift = np.zeros_like(a=opds)
 
     plot_opd_idx = 4
     radiance_cosine_args = {
@@ -30,18 +31,28 @@ def main():
         "opds": opds[[plot_opd_idx, 150, 300]],
     }
 
-    michelson = interferometer_factory(option=IfmType.MICHELSON, transmittance=transmittance, opds=opds)
+    michelson = interferometer_factory(
+        option=IfmType.MICHELSON,
+        transmittance_coefficients=transmittance_coefficients,
+        opds=opds,
+        phase_shift=phase_shift,
+        reflectance_coefficients=reflectance_coefficients,
+        order=0,
+    )
     fabry_perot = interferometer_factory(
         option=IfmType.FABRY_PEROT,
-        transmittance=transmittance,
-        reflectance=reflectance,
+        transmittance_coefficients=transmittance_coefficients,
         opds=opds,
+        phase_shift=phase_shift,
+        reflectance_coefficients=reflectance_coefficients,
+        order=0,
     )
     fabry_perot_2 = interferometer_factory(
         option=IfmType.FABRY_PEROT,
-        transmittance=transmittance,
-        reflectance=reflectance,
+        transmittance_coefficients=transmittance_coefficients,
         opds=opds,
+        phase_shift=phase_shift,
+        reflectance_coefficients=reflectance_coefficients,
         order=2,
     )
 

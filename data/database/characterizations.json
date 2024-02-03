@@ -1,0 +1,30 @@
+{
+  "characterizations": [
+    {
+      "id": 0,
+      "title": "imspoc_uv_2_mc451",
+      "device": "imspoc_uv_2",
+      "category": "characterized",
+      "source_dataset_id": 3,
+      "interferometer_type": "Fabry-Perot",
+      "order": 0,
+      "opds": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/characterization/imspoc_uv_2_mc451/opds.npy",
+      "transmittance_coefficients": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/characterization/imspoc_uv_2_mc451/transmittance_coefficients.npy",
+      "reflectance_coefficients": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/characterization/imspoc_uv_2_mc451/reflectance_coefficients.npy",
+      "phase_shift": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/characterization/imspoc_uv_2_mc451/phase_shift.npy"
+    },
+    {
+      "id": 1,
+      "title": "imspoc_uv_2_mc651",
+      "device": "imspoc_uv_2",
+      "category": "characterized",
+      "source_dataset_id": 4,
+      "interferometer_type": "Fabry-Perot",
+      "order": 0,
+      "opds": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/characterization/imspoc_uv_2_mc651/opds.npy",
+      "transmittance_coefficients": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/characterization/imspoc_uv_2_mc651/transmittance_coefficients.npy",
+      "reflectance_coefficients": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/characterization/imspoc_uv_2_mc651/reflectance_coefficients.npy",
+      "phase_shift": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/characterization/imspoc_uv_2_mc651/phase_shift.npy"
+    }
+  ]
+}
