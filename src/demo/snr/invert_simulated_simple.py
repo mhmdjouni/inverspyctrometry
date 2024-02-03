@@ -51,7 +51,7 @@ def main():
                 for ip_id in experiment_params.inversion_protocol_ids:
                     ip_schema = db.inversion_protocols[ip_id]
                     lambdaas = ip_schema.lambdaas_schema.as_array()
-                    print(f"\t\t\tSNR: {ip_schema.title.upper()}")
+                    print(f"\t\t\tInvProtocol: {ip_schema.title.upper()}")
 
                     for lambdaa in lambdaas:
                         ip_kwargs = ip_schema.ip_kwargs(lambdaa=lambdaa)

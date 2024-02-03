@@ -23,6 +23,22 @@ class Spectrum:
         axs.set_xlabel(rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]")
         axs.grid()
 
+    def visualize_matrix(self, axs, vmin: float, vmax: float):
+        axs.imshow(
+            self.data,
+            # aspect='auto',
+            vmin=vmin,
+            vmax=vmax,
+        )
+
+        wavenumber_ticks = np.linspace(start=0, stop=self.wavenumbers.size-1, num=10, dtype=int)
+        wavenumber_labels = np.around(a=self.wavenumbers[wavenumber_ticks], decimals=2)
+        axs.set_yticks(ticks=wavenumber_ticks, labels=wavenumber_labels)
+
+        axs.set_title("Spectrum Acquisitions")
+        axs.set_ylabel(rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]")
+        axs.set_xlabel(r"Acquisitions index $n \in \{1, \dots, N\}$")
+
     @classmethod
     def from_wavelength(
             cls,

@@ -24,6 +24,26 @@
         4
       ],
       "description": "Reproduces the RMSE table of simulated experiments in the paper."
+    },
+    {
+      "id": 1,
+      "title": "invert_real",
+      "type": "real",
+      "dataset_ids": [
+        3,
+        4
+      ],
+      "interferometer_ids": [
+        0
+      ],
+      "noise_level_indices": [
+      ],
+      "inversion_protocol_ids": [
+        2,
+        3,
+        4
+      ],
+      "description": "Reproduces the monochromatic experiments in the paper."
     }
   ]
 }
