@@ -23,7 +23,7 @@ class Spectrum:
         axs.set_xlabel(rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]")
         axs.grid()
 
-    def visualize_matrix(self, axs, vmin: float, vmax: float):
+    def visualize_matrix(self, axs, vmin: float = None, vmax: float = None):
         axs.imshow(
             self.data,
             # aspect='auto',

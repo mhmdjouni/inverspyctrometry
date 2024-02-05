@@ -36,6 +36,8 @@ class InversionProtocolSchema(BaseModel):
     """
     id: int
     title: str
+    experiment_id: int
+    experiment_description: str
     type: InversionProtocolType
     lambdaas_schema: LambdaasSchema
     norm_operator: NormOperatorType

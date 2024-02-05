@@ -7,6 +7,7 @@ from typing import Optional
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import fft
+from tqdm import tqdm
 
 from src.common_utils.custom_vars import InversionProtocolType
 from src.common_utils.interferogram import Interferogram
@@ -165,7 +166,7 @@ class LorisVerhoeven(InversionProtocol):
         )
         prim = transfer_matrix.adjoint(interferogram.data)
         dual = self.domain_transform.direct(prim)
-        for q in range(self.nb_iters):
+        for q in tqdm(range(self.nb_iters)):
             prim, dual, _ = lv_iter.update(prim=prim, dual=dual)
 
         return Spectrum(data=prim, wavenumbers=transmittance_response.wavenumbers)

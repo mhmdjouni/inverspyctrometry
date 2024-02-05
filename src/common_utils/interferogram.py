@@ -21,7 +21,7 @@ class Interferogram:
         axs.set_xlabel(rf"OPDs $\delta$ [{self.opds_unit}]")
         axs.grid()
 
-    def visualize_matrix(self, axs, vmin: float, vmax: float):
+    def visualize_matrix(self, axs, vmin: float = None, vmax: float = None):
         axs.imshow(self.data, aspect='auto', vmin=vmin, vmax=vmax)
 
         opd_ticks = np.linspace(start=0, stop=self.opds.size-1, num=10, dtype=int)

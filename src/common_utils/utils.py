@@ -92,36 +92,41 @@ def match_stats(
 
 
 def calculate_rmse(
-        array: np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]],
+        array: np.ndarray[tuple[..., Wvn, Acq], np.dtype[np.float_]],
         reference: np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]],
-        axis: int = -2,
         is_match_stats: bool = False,
         is_rescale_reference: bool = False,
+        is_match_axis: int = -2,
 ) -> np.ndarray[tuple[int, Acq], np.dtype[np.float_]]:
     """
-    Calculate Root Mean Squared Error
+    Calculate Normalized Root Mean Squared Error.
     """
     if is_match_stats:
         array, reference = match_stats(
             array=array,
             reference=reference,
-            axis=axis,
+            axis=is_match_axis,
             is_rescale_reference=is_rescale_reference,
         )
     error = array - reference
-    error_vectorized = np.reshape(a=error, newshape=(error.shape[0], -1))
+    error_vectorized = error.reshape(*error.shape[0:array.ndim-reference.ndim], -1)
     error_norm = np.linalg.norm(x=error_vectorized, ord=2, axis=-1)
     reference_norm = np.linalg.norm(x=reference)
     rmse = error_norm / reference_norm
     return rmse
 
 
-def calculate_rmcw():
-    pass
-
-
-def calculate_mcw_rmse():
-    pass
+def calculate_rmcw(
+        monochromatic_array: np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]],
+) -> float:
+    """
+    Ratio of Matching Central Wavenumbers:
+      The maximum of each acquisition (column) is expected to match with the index of said acquisition.
+    """
+    acquisition_indices = np.arange(monochromatic_array.shape[-1])
+    column_wise_argmax = np.argmax(monochromatic_array, axis=-2)
+    rmcw = np.sum(column_wise_argmax == acquisition_indices) / monochromatic_array.shape[-1]
+    return rmcw
 
 
 def generate_shifted_dirac(array: np.ndarray, shift: float) -> np.ndarray:

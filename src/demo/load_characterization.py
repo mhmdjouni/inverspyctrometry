@@ -10,19 +10,6 @@ def main():
     config = load_config()
     db = config.database()
 
-    vis_kwargs = [
-        {
-            "char_id": 0,
-            "vmin": 0,
-            "vmax": 2.3e10,
-        },
-        {
-            "char_id": 1,
-            "vmin": 0,
-            "vmax": 115,
-        },
-    ]
-
     characterization_id = 1
     characterization_schema = db.characterizations[characterization_id]
     print(characterization_schema)

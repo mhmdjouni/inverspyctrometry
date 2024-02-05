@@ -88,7 +88,7 @@ def main():
                     rmse_lambdaas = calculate_rmse(
                         array=spectra_rec_lambdaas,
                         reference=spectra_ref.data[np.newaxis],
-                        axis=-2,
+                        is_match_axis=-2,
                         is_match_stats=True,
                         is_rescale_reference=True,
                     )
