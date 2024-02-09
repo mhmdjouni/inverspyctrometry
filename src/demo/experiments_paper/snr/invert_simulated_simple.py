@@ -54,8 +54,8 @@ def main():
                     print(f"\t\t\tInvProtocol: {ip_schema.title.upper()}")
 
                     for lambdaa in lambdaas:
-                        ip_kwargs = ip_schema.ip_kwargs(lambdaa=lambdaa)
-                        inverter = inversion_protocol_factory(option=ip_schema.type, ip_kwargs=ip_kwargs)
+                        ip_kwargs = ip_schema.parameters(lambdaa=lambdaa)
+                        inverter = inversion_protocol_factory(option=ip_schema.type, parameters=ip_kwargs)
                         spectra_rec = inverter.reconstruct_spectrum(
                             interferogram=interferograms_noisy, transmittance_response=transfer_matrix
                         )

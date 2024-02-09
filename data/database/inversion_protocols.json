@@ -104,13 +104,13 @@
       "id": 5,
       "title": "tsvd",
       "experiment_id": 1,
-      "experiment_description": "invert_mc451",
+      "experiment_description": "invert_mc",
       "type": "truncated_svd",
       "lambdaas_schema": {
         "key": "penalization_ratio",
-        "start": 0.4,
+        "start": 0.2,
         "stop": 0.8,
-        "num": 100,
+        "num": 31,
         "space": "linspace"
       },
       "norm_operator": [
@@ -124,13 +124,13 @@
       "id": 6,
       "title": "rr",
       "experiment_id": 1,
-      "experiment_description": "invert_mc451",
+      "experiment_description": "invert_mc",
       "type": "ridge_regression",
       "lambdaas_schema": {
         "key": "penalization",
-        "start": -1.5,
+        "start": -2,
         "stop": 1,
-        "num": 100,
+        "num": 31,
         "space": "logspace"
       },
       "norm_operator": [
@@ -142,15 +142,115 @@
     },
     {
       "id": 7,
-      "title": "lv_l1",
+      "title": "lv_00100",
       "experiment_id": 1,
       "experiment_description": "invert_mc451",
       "type": "loris_verhoeven",
       "lambdaas_schema": {
         "key": "regularization_parameter",
-        "start": -2.5,
-        "stop": -1.5,
-        "num": 10,
+        "start": -2,
+        "stop": 0,
+        "num": 31,
+        "space": "logspace"
+      },
+      "norm_operator": [
+        "l1o",
+        []
+      ],
+      "linear_operator": "identity",
+      "nb_iters": 100
+    },
+    {
+      "id": 8,
+      "title": "lv_00500",
+      "experiment_id": 1,
+      "experiment_description": "invert_mc451",
+      "type": "loris_verhoeven",
+      "lambdaas_schema": {
+        "key": "regularization_parameter",
+        "start": -2,
+        "stop": 0,
+        "num": 31,
+        "space": "logspace"
+      },
+      "norm_operator": [
+        "l1o",
+        []
+      ],
+      "linear_operator": "identity",
+      "nb_iters": 500
+    },
+    {
+      "id": 9,
+      "title": "lv_01000",
+      "experiment_id": 1,
+      "experiment_description": "invert_mc451",
+      "type": "loris_verhoeven",
+      "lambdaas_schema": {
+        "key": "regularization_parameter",
+        "start": -2,
+        "stop": 0,
+        "num": 31,
+        "space": "logspace"
+      },
+      "norm_operator": [
+        "l1o",
+        []
+      ],
+      "linear_operator": "identity",
+      "nb_iters": 1000
+    },
+    {
+      "id": 10,
+      "title": "lv_05000",
+      "experiment_id": 1,
+      "experiment_description": "invert_mc451",
+      "type": "loris_verhoeven",
+      "lambdaas_schema": {
+        "key": "regularization_parameter",
+        "start": -2,
+        "stop": 0,
+        "num": 31,
+        "space": "logspace"
+      },
+      "norm_operator": [
+        "l1o",
+        []
+      ],
+      "linear_operator": "identity",
+      "nb_iters": 5000
+    },
+    {
+      "id": 11,
+      "title": "lv_10000",
+      "experiment_id": 1,
+      "experiment_description": "invert_mc451",
+      "type": "loris_verhoeven",
+      "lambdaas_schema": {
+        "key": "regularization_parameter",
+        "start": -2,
+        "stop": 0,
+        "num": 31,
+        "space": "logspace"
+      },
+      "norm_operator": [
+        "l1o",
+        []
+      ],
+      "linear_operator": "identity",
+      "nb_iters": 10000
+    },
+    {
+      "id": 12,
+      "title": "lv_50000",
+      "experiment_id": 1,
+      "experiment_description": "invert_mc451",
+      "type": "loris_verhoeven",
+      "lambdaas_schema": {
+        "key": "regularization_parameter",
+        "start": -2,
+        "stop": 0,
+        "num": 31,
         "space": "logspace"
       },
       "norm_operator": [
@@ -161,56 +261,16 @@
       "nb_iters": 50000
     },
     {
-      "id": 8,
-      "title": "tsvd",
-      "experiment_id": 2,
-      "experiment_description": "invert_mc651",
-      "type": "truncated_svd",
-      "lambdaas_schema": {
-        "key": "penalization_ratio",
-        "start": 0.4,
-        "stop": 0.5,
-        "num": 20,
-        "space": "linspace"
-      },
-      "norm_operator": [
-        "N/A",
-        []
-      ],
-      "linear_operator": "N/A",
-      "nb_iters": 0
-    },
-    {
-      "id": 9,
-      "title": "rr",
-      "experiment_id": 2,
-      "experiment_description": "invert_mc651",
-      "type": "ridge_regression",
-      "lambdaas_schema": {
-        "key": "penalization",
-        "start": -4,
-        "stop": -2,
-        "num": 20,
-        "space": "logspace"
-      },
-      "norm_operator": [
-        "N/A",
-        []
-      ],
-      "linear_operator": "N/A",
-      "nb_iters": 0
-    },
-    {
-      "id": 10,
-      "title": "lv_l1",
+      "id": 13,
+      "title": "lv_00100",
       "experiment_id": 2,
       "experiment_description": "invert_mc651",
       "type": "loris_verhoeven",
       "lambdaas_schema": {
         "key": "regularization_parameter",
-        "start": -5,
-        "stop": -3,
-        "num": 20,
+        "start": -1,
+        "stop": 1,
+        "num": 31,
         "space": "logspace"
       },
       "norm_operator": [
@@ -219,6 +279,106 @@
       ],
       "linear_operator": "identity",
       "nb_iters": 100
+    },
+    {
+      "id": 14,
+      "title": "lv_00316",
+      "experiment_id": 2,
+      "experiment_description": "invert_mc651",
+      "type": "loris_verhoeven",
+      "lambdaas_schema": {
+        "key": "regularization_parameter",
+        "start": -1,
+        "stop": 1,
+        "num": 31,
+        "space": "logspace"
+      },
+      "norm_operator": [
+        "l1o",
+        []
+      ],
+      "linear_operator": "identity",
+      "nb_iters": 316
+    },
+    {
+      "id": 15,
+      "title": "lv_01000",
+      "experiment_id": 2,
+      "experiment_description": "invert_mc651",
+      "type": "loris_verhoeven",
+      "lambdaas_schema": {
+        "key": "regularization_parameter",
+        "start": -1,
+        "stop": 1,
+        "num": 31,
+        "space": "logspace"
+      },
+      "norm_operator": [
+        "l1o",
+        []
+      ],
+      "linear_operator": "identity",
+      "nb_iters": 1000
+    },
+    {
+      "id": 16,
+      "title": "lv_03162",
+      "experiment_id": 2,
+      "experiment_description": "invert_mc651",
+      "type": "loris_verhoeven",
+      "lambdaas_schema": {
+        "key": "regularization_parameter",
+        "start": -1,
+        "stop": 1,
+        "num": 31,
+        "space": "logspace"
+      },
+      "norm_operator": [
+        "l1o",
+        []
+      ],
+      "linear_operator": "identity",
+      "nb_iters": 3162
+    },
+    {
+      "id": 17,
+      "title": "lv_10000",
+      "experiment_id": 2,
+      "experiment_description": "invert_mc651",
+      "type": "loris_verhoeven",
+      "lambdaas_schema": {
+        "key": "regularization_parameter",
+        "start": -1,
+        "stop": 1,
+        "num": 31,
+        "space": "logspace"
+      },
+      "norm_operator": [
+        "l1o",
+        []
+      ],
+      "linear_operator": "identity",
+      "nb_iters": 10000
+    },
+    {
+      "id": 18,
+      "title": "lv_31622",
+      "experiment_id": 2,
+      "experiment_description": "invert_mc651",
+      "type": "loris_verhoeven",
+      "lambdaas_schema": {
+        "key": "regularization_parameter",
+        "start": -1,
+        "stop": 1,
+        "num": 31,
+        "space": "logspace"
+      },
+      "norm_operator": [
+        "l1o",
+        []
+      ],
+      "linear_operator": "identity",
+      "nb_iters": 31622
     }
   ]
 }

@@ -90,31 +90,31 @@ def main():
     spectrum_mich.visualize(axs=axs[0, 1], acq_ind=acq_ind)
 
     # Plain IDCT
-    idct_inverter = inversion_protocol_factory(option=InversionProtocolType.IDCT, ip_kwargs={})
+    idct_inverter = inversion_protocol_factory(option=InversionProtocolType.IDCT, parameters={})
     demo_idct = InversionProtocolDemo(inverter=idct_inverter)
     demo_idct.test(interferogram=interferogram, transmittance_response=transmittance_response, acq_ind=acq_ind)
 
     # Pseudo-inverse
-    pinv_inverter = inversion_protocol_factory(option=InversionProtocolType.PSEUDO_INVERSE, ip_kwargs={})
+    pinv_inverter = inversion_protocol_factory(option=InversionProtocolType.PSEUDO_INVERSE, parameters={})
     demo_pinv = InversionProtocolDemo(inverter=pinv_inverter)
     demo_pinv.test(interferogram=interferogram, transmittance_response=transmittance_response, acq_ind=acq_ind)
 
     plt.show()
 
     # Truncated SVD
-    tsvd_inverter = inversion_protocol_factory(option=InversionProtocolType.TSVD, ip_kwargs={"penalization_ratio": 0.9})
+    tsvd_inverter = inversion_protocol_factory(option=InversionProtocolType.TSVD, parameters={"penalization_ratio": 0.9})
     demo_tsvd = InversionProtocolDemo(inverter=tsvd_inverter)
     demo_tsvd.test(interferogram=interferogram, transmittance_response=transmittance_response, acq_ind=acq_ind)
 
     # Ridge Regression
-    rr_inverter = inversion_protocol_factory(option=InversionProtocolType.RIDGE_REGRESSION, ip_kwargs={"penalization": 10})
+    rr_inverter = inversion_protocol_factory(option=InversionProtocolType.RIDGE_REGRESSION, parameters={"penalization": 10})
     demo_rr = InversionProtocolDemo(inverter=rr_inverter)
     demo_rr.test(interferogram=interferogram, transmittance_response=transmittance_response, acq_ind=acq_ind)
 
     # Loris-Verhoeven Primal-Dual
     lv_inverter = inversion_protocol_factory(
         option=InversionProtocolType.LORIS_VERHOEVEN,
-        ip_kwargs={
+        parameters={
             # Sparsity on the spectrum = L1 norm + Identity
             "regularization_parameter": 3e2,
             "prox_functional": CTVOperator(norm=NormOperator.from_norm(norm=NormOperatorType.L1O)),  # TODO: Load directly from a given norm, e.g., CTVOperator.from_norm(etc, etc), or from an Enum, or from a factory function using an Enum

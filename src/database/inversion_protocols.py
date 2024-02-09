@@ -6,9 +6,7 @@ from pydantic import BaseModel, RootModel
 from src.common_utils.custom_vars import InversionProtocolType, NormOperatorType, LinearOperatorMethod, \
     RegularizationParameterKey, RegularizationParameterListSpace
 from src.inverse_model.operators import CTVOperator, NormOperator, LinearOperator
-
-
-# TODO: return a list of constructed inversion protocols (perfect when lambdaas.num=1)
+from src.inverse_model.protocols import InversionProtocol, inversion_protocol_factory
 
 
 class LambdaasSchema(BaseModel):
@@ -52,14 +50,42 @@ class InversionProtocolSchema(BaseModel):
     def domain_transform(self) -> LinearOperator:
         return LinearOperator.from_method(method=self.linear_operator)
 
-    def ip_kwargs(self, lambdaa: float) -> dict:
-        ip_kwargs = {
+    def parameters(
+            self,
+            lambdaa: float,
+            is_compute_and_save_cost: bool = False,
+            experiment_id: int = -1,
+    ) -> dict:
+        parameters = {
             self.lambdaas_schema.key.value: lambdaa,
             "prox_functional": self.prox_functional,
             "domain_transform": self.domain_transform,
             "nb_iters": self.nb_iters,
+            "is_compute_and_save_cost": is_compute_and_save_cost,
+            "experiment_id": experiment_id,
         }
-        return ip_kwargs
+        return parameters
+
+    def inversion_protocol(
+            self,
+            lambdaa: float,
+            is_compute_and_save_cost: bool = False,
+            experiment_id: int = -1,
+    ) -> InversionProtocol:
+        inversion_protocol = inversion_protocol_factory(
+            option=self.type,
+            parameters=self.parameters(
+                lambdaa=lambdaa,
+                is_compute_and_save_cost=is_compute_and_save_cost,
+                experiment_id=experiment_id,
+            )
+        )
+        return inversion_protocol
+
+    def inversion_protocol_list(self) -> list[InversionProtocol]:
+        lambdaas = self.lambdaas_schema.as_array()
+        inversion_protocol_list = [self.inversion_protocol(lambdaa=lambdaa) for lambdaa in lambdaas]
+        return inversion_protocol_list
 
 
 class InversionProtocolListSchema(Sequence, RootModel):

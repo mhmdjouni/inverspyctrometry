@@ -1,7 +1,8 @@
+from pprint import pprint
+
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.common_utils.transmittance_response import TransmittanceResponse
 from src.common_utils.utils import PlotOptions
 from src.interface.configuration import load_config
 
@@ -10,9 +11,9 @@ def main():
     config = load_config()
     db = config.database()
 
-    characterization_id = 1
+    characterization_id = 0
     characterization_schema = db.characterizations[characterization_id]
-    print(characterization_schema)
+    pprint(dict(characterization_schema))
 
     characterization = db.characterization(char_id=characterization_id)
 
@@ -26,18 +27,10 @@ def main():
     plt.rcParams['font.size'] = str(plot_options.fontsize)
 
     fig, axs = plt.subplots(nrows=1, ncols=1, squeeze=False, figsize=plot_options.figsize, tight_layout=True)
-    interferograms.visualize_matrix(
-        axs=axs[0, 0],
-        vmin=vis_kwargs[characterization_id]["vmin"],
-        vmax=vis_kwargs[characterization_id]["vmax"],
-    )
+    interferograms.visualize_matrix(axs=axs[0, 0])
 
     fig, axs = plt.subplots(nrows=1, ncols=1, squeeze=False, figsize=plot_options.figsize, tight_layout=True)
-    transmittance_response.visualize(
-        axs=axs[0, 0],
-        vmin=vis_kwargs[characterization_id]["vmin"],
-        vmax=vis_kwargs[characterization_id]["vmax"],
-    )
+    transmittance_response.visualize(axs=axs[0, 0])
 
     plt.show()
 

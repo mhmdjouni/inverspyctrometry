@@ -2,7 +2,7 @@
   "interferometers": [
     {
       "id": 0,
-      "title": "mich",
+      "title": "mich_opd_zero",
       "category": "simulated",
       "type": "Michelson",
       "order": 2,
@@ -12,10 +12,14 @@
         "start": 0.0
       },
       "transmittance_coefficients": [
-        [0.5]
+        [
+          0.5
+        ]
       ],
       "reflectance_coefficients": [
-        [0.5]
+        [
+          0.5
+        ]
       ],
       "phase_shift": [
         0.0
@@ -23,20 +27,24 @@
     },
     {
       "id": 1,
-      "title": "fp_0",
+      "title": "mich_opd_nonzero",
       "category": "simulated",
-      "type": "Fabry-Perot",
-      "order": 0,
+      "type": "Michelson",
+      "order": 2,
       "opds": {
         "num": 319,
         "step": 0.175,
-        "start": 0.0
+        "start": 1.75
       },
       "transmittance_coefficients": [
-        [1.0]
+        [
+          0.5
+        ]
       ],
       "reflectance_coefficients": [
-        [0.13]
+        [
+          0.5
+        ]
       ],
       "phase_shift": [
         0.0
@@ -44,7 +52,7 @@
     },
     {
       "id": 2,
-      "title": "fp_2",
+      "title": "fp_2_cst_r",
       "category": "simulated",
       "type": "Fabry-Perot",
       "order": 2,
@@ -54,10 +62,159 @@
         "start": 0.0
       },
       "transmittance_coefficients": [
-        [1.0]
+        [
+          1.0
+        ]
       ],
       "reflectance_coefficients": [
-        [0.13]
+        [
+          0.13
+        ]
+      ],
+      "phase_shift": [
+        0.0
+      ]
+    },
+    {
+      "id": 3,
+      "title": "fp_2_var_r",
+      "category": "simulated",
+      "type": "Fabry-Perot",
+      "order": 2,
+      "opds": {
+        "num": 319,
+        "step": 0.175,
+        "start": 0.0
+      },
+      "transmittance_coefficients": [
+        [
+          8.97737562,
+          -24.93081316,
+          29.0960339,
+          -16.8486351,
+          4.7632512,
+          -0.51882892
+        ]
+      ],
+      "reflectance_coefficients": [
+        [
+          -7.97737562,
+          24.93081316,
+          -29.0960339,
+          16.8486351,
+          -4.7632512,
+          0.51882892
+        ]
+      ],
+      "phase_shift": [
+        0.0
+      ]
+    },
+    {
+      "id": 4,
+      "title": "fp_0_low_r",
+      "category": "simulated",
+      "type": "Fabry-Perot",
+      "order": 0,
+      "opds": {
+        "num": 319,
+        "step": 0.175,
+        "start": 0.0
+      },
+      "transmittance_coefficients": [
+        [
+          1.0
+        ]
+      ],
+      "reflectance_coefficients": [
+        [
+          0.13
+        ]
+      ],
+      "phase_shift": [
+        0.0
+      ]
+    },
+    {
+      "id": 5,
+      "title": "fp_0_med_r",
+      "category": "simulated",
+      "type": "Fabry-Perot",
+      "order": 0,
+      "opds": {
+        "num": 319,
+        "step": 0.175,
+        "start": 0.0
+      },
+      "transmittance_coefficients": [
+        [
+          1.0
+        ]
+      ],
+      "reflectance_coefficients": [
+        [
+          0.5
+        ]
+      ],
+      "phase_shift": [
+        0.0
+      ]
+    },
+    {
+      "id": 6,
+      "title": "fp_0_hig_r",
+      "category": "simulated",
+      "type": "Fabry-Perot",
+      "order": 0,
+      "opds": {
+        "num": 319,
+        "step": 0.175,
+        "start": 0.0
+      },
+      "transmittance_coefficients": [
+        [
+          1.0
+        ]
+      ],
+      "reflectance_coefficients": [
+        [
+          0.9
+        ]
+      ],
+      "phase_shift": [
+        0.0
+      ]
+    },
+    {
+      "id": 7,
+      "title": "fp_0_var_r",
+      "category": "simulated",
+      "type": "Fabry-Perot",
+      "order": 0,
+      "opds": {
+        "num": 319,
+        "step": 0.175,
+        "start": 0.0
+      },
+      "transmittance_coefficients": [
+        [
+          12.16832587,
+          -34.90313842,
+          40.73444746,
+          -23.58808914,
+          6.66855168,
+          -0.72636049
+        ]
+      ],
+      "reflectance_coefficients": [
+        [
+          -11.16832587,
+          34.90313842,
+          -40.73444746,
+          23.58808914,
+          -6.66855168,
+          0.72636049
+        ]
       ],
       "phase_shift": [
         0.0

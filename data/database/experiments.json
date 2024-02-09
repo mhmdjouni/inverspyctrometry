@@ -6,24 +6,26 @@
       "type": "simulated",
       "dataset_ids": [
         0,
-        1,
-        2
+        2,
+        4
       ],
       "interferometer_ids": [
         2,
         1
       ],
       "noise_level_indices": [
-        0,
         1,
-        2
+        2,
+        3
       ],
       "inversion_protocol_ids": [
+        0,
+        1,
         2,
         3,
         4
       ],
-      "description": "Reproduces the RMSE table of simulated experiments in the paper."
+      "description": "Reproduces the RMSE table of simulated experiments in v3 of the paper."
     },
     {
       "id": 1,
@@ -38,11 +40,13 @@
       "noise_level_indices": [
       ],
       "inversion_protocol_ids": [
+        0,
+        1,
         5,
         6,
-        7
+        7, 8, 9, 10
       ],
-      "description": "Reproduces the monochromatic experiments of the dataset MC-451 in the paper."
+      "description": "Inverts dataset MC-451 using its own characterization."
     },
     {
       "id": 2,
@@ -52,66 +56,91 @@
         4
       ],
       "interferometer_ids": [
-        1
+        0
       ],
       "noise_level_indices": [
       ],
       "inversion_protocol_ids": [
-        8,
-        9,
-        10
+        0,
+        1,
+        5,
+        6,
+        14, 16
       ],
-      "description": "Reproduces the monochromatic experiments of the dataset MC-651 in the paper."
+      "description": "Inverts dataset MC-651 using the characterization of dataset MC-451."
     },
     {
       "id": 3,
-      "title": "invert_simulated_idct",
+      "title": "idct_opd_min_comparison_michelson",
       "type": "simulated",
       "dataset_ids": [
         0,
-        1,
-        2
+        1
       ],
       "interferometer_ids": [
         0,
-        1,
-        2
+        1
       ],
       "noise_level_indices": [
-        0,
-        1,
-        2
+        0
       ],
       "inversion_protocol_ids": [
         0
       ],
-      "description": "Inverts simulated spectra using IDCT."
+      "description": "Compares between opd_0=0 and opd_0=opd_min, using Michelson interferometer."
     },
     {
       "id": 4,
-      "title": "invert_mc451_idct",
-      "type": "real",
+      "title": "idct_reflectance_invariance_comparison_fp_2",
+      "type": "simulated",
       "dataset_ids": [
-        3
+        0,
+        1
       ],
       "interferometer_ids": [
-        0
+        2,
+        3
       ],
       "noise_level_indices": [
+        0
       ],
       "inversion_protocol_ids": [
         0
       ],
-      "description": "Inverts the monochromatic dataset MC-451 using IDCT."
+      "description": "Compares between constant and variant reflectance, using FP 2-wave interferometer."
     },
     {
       "id": 5,
-      "title": "invert_mc651_idct",
+      "title": "idct_reflectance_levels_comparison_fp_0",
+      "type": "simulated",
+      "dataset_ids": [
+        0,
+        1
+      ],
+      "interferometer_ids": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "noise_level_indices": [
+        0
+      ],
+      "inversion_protocol_ids": [
+        0
+      ],
+      "description": "Compares between low, medium, high, and variable reflectance, using FP infty-wave interferometer."
+    },
+    {
+      "id": 6,
+      "title": "idct_mc451",
       "type": "real",
       "dataset_ids": [
+        3,
         4
       ],
       "interferometer_ids": [
+        0,
         1
       ],
       "noise_level_indices": [
@@ -119,7 +148,7 @@
       "inversion_protocol_ids": [
         0
       ],
-      "description": "Inverts the monochromatic dataset MC-651 using IDCT."
+      "description": "Applies IDCT to the real monochromatic dataset MC-451, using its characterization."
     }
   ]
 }

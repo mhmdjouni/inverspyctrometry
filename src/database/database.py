@@ -3,6 +3,7 @@ from typing import List
 import numpy as np
 from pydantic import BaseModel
 
+from src.common_utils.custom_vars import Wvn
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
 from src.database.characterizations import CharacterizationSchema
@@ -12,6 +13,7 @@ from src.database.interferometers import InterferometerListSchema, Interferomete
 from src.database.inversion_protocols import InversionProtocolListSchema, InversionProtocolSchema
 from src.direct_model.characterization import Characterization
 from src.direct_model.interferometer import Interferometer
+from src.inverse_model.protocols import InversionProtocol, inversion_protocol_factory
 
 
 class DatabaseSchema(BaseModel):
@@ -25,11 +27,50 @@ class DatabaseSchema(BaseModel):
     def characterization(self, char_id: int) -> Characterization:
         return self.characterizations[char_id].characterization()
 
+    def characterization_wavenumbers(self, char_id: int) -> np.ndarray[tuple[Wvn], np.dtype[np.float_]]:
+        char_ds_id = self.characterizations[char_id].source_dataset_id
+        wavenumbers = np.load(self.datasets[char_ds_id].wavenumbers_path)
+        return wavenumbers
+
+    def characterization_dataset(self, char_id: int) -> Interferogram:
+        dataset_id = self.characterizations[char_id].source_dataset_id
+        interferograms = self.dataset_interferogram(ds_id=dataset_id)
+        return interferograms
+
     def dataset_spectrum(self, ds_id: int) -> Spectrum:
-        return self.datasets[ds_id].spectrum()
+        spectrum = self.datasets[ds_id].spectrum()
+        return spectrum
 
     def dataset_interferogram(self, ds_id: int) -> Interferogram:
-        return self.datasets[ds_id].interferogram()
+        interferogram = self.datasets[ds_id].interferogram()
+        return interferogram
+
+    def dataset_central_wavenumbers(self, dataset_id: int) -> np.ndarray[tuple[Wvn], np.dtype[np.float_]]:
+        central_wavenumbers = np.load(self.datasets[dataset_id].wavenumbers_path)
+        return central_wavenumbers
 
     def interferometer(self, ifm_id: int) -> Interferometer:
-        return self.interferometers[ifm_id].interferometer()
+        interferometer = self.interferometers[ifm_id].interferometer()
+        return interferometer
+
+    def inversion_protocol_list(self, inv_protocol_id: int) -> list[InversionProtocol]:
+        inversion_protocol_list = self.inversion_protocols[inv_protocol_id].inversion_protocol_list()
+        return inversion_protocol_list
+
+    def inversion_protocol(
+            self,
+            inv_protocol_id: int,
+            lambdaa: float,
+            is_compute_and_save_cost: bool = False,
+            experiment_id: int = -1,
+    ) -> InversionProtocol:
+        inversion_protocol = self.inversion_protocols[inv_protocol_id].inversion_protocol(
+            lambdaa=lambdaa,
+            is_compute_and_save_cost=is_compute_and_save_cost,
+            experiment_id=experiment_id,
+        )
+        return inversion_protocol
+
+    def inversion_protocol_lambdaas(self, inv_protocol_id: int) -> np.ndarray[tuple[int], np.dtype[np.float_]]:
+        lambdaas = self.inversion_protocols[inv_protocol_id].lambdaas_schema.as_array()
+        return lambdaas

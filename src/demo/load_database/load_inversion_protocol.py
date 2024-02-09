@@ -12,9 +12,9 @@ def main():
         pprint(dict(ip_schema))
 
         for lambdaa in ip_schema.lambdaas_schema.as_array():
-            ip_kwargs = ip_schema.ip_kwargs(lambdaa=lambdaa)
+            ip_kwargs = ip_schema.parameters(lambdaa=lambdaa)
             pprint(ip_kwargs)
-            inverter = inversion_protocol_factory(option=ip_schema.type, ip_kwargs=ip_kwargs)
+            inverter = inversion_protocol_factory(option=ip_schema.type, parameters=ip_kwargs)
             pprint(inverter)
             print("Inverting the interferograms...")
 
