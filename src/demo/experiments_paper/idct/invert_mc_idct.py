@@ -2,6 +2,7 @@ from pprint import pprint
 
 import numpy as np
 from matplotlib import pyplot as plt
+from tqdm import tqdm
 
 from src.common_utils.light_wave import Spectrum
 from src.common_utils.utils import PlotOptions, calculate_rmse, match_stats, calculate_rmcw
@@ -14,7 +15,7 @@ def main():
     db = config.database()
     plot_options = PlotOptions()
 
-    experiment_id = 1
+    experiment_id = 6
     experiment_params = db.experiments[experiment_id]
     pprint(dict(experiment_params))
 
@@ -24,6 +25,7 @@ def main():
         print(f"Dataset: {db.datasets[ds_id].title.upper()}")
 
         interferograms_ref = interferograms_ref.rescale(new_max=1, axis=-2)
+        interferograms_ref = interferograms_ref.center(new_mean=0, axis=-2)
         spectra_ref = Spectrum(data=np.eye(wavenumbers_ifgm.size), wavenumbers=wavenumbers_ifgm)
 
         fig, axs = plt.subplots(nrows=1, ncols=1, squeeze=False, figsize=plot_options.figsize, tight_layout=True)
@@ -32,9 +34,11 @@ def main():
         for char_id in experiment_params.interferometer_ids:
             characterization = db.characterization(char_id=char_id)
             char_ds_id = db.characterizations[char_id].source_dataset_id
-            wavenumbers_char = np.load(db.datasets[char_ds_id].wavenumbers_path)  # Will be used to take a common interval of wavenumbers and return the associated indices
+            wavenumbers_char = np.load(db.datasets[char_ds_id].wavenumbers_path)
             print(f"\tCharacterization: {db.characterizations[char_id].title.upper()}")
 
+            reflectance = characterization.reflectance(wavenumbers=wavenumbers_ifgm)
+            transmittance = characterization.transmittance(wavenumbers=wavenumbers_ifgm)
             transfer_matrix = characterization.transmittance_response(wavenumbers=wavenumbers_ifgm)
             transfer_matrix = transfer_matrix.rescale(new_max=1, axis=None)
 
@@ -43,9 +47,9 @@ def main():
                 lambdaas = ip_schema.lambdaas_schema.as_array()
                 print(f"\t\t\tInvProtocol: {ip_schema.title.upper()}")
 
-                for il, lambdaa in enumerate(lambdaas):
-                    ip_kwargs = ip_schema.ip_kwargs(lambdaa=lambdaa)
-                    inverter = inversion_protocol_factory(option=ip_schema.type, ip_kwargs=ip_kwargs)
+                for lambdaa in lambdaas:
+                    ip_kwargs = ip_schema.parameters(lambdaa=lambdaa)
+                    inverter = inversion_protocol_factory(option=ip_schema.type, parameters=ip_kwargs)
                     spectra_rec = inverter.reconstruct_spectrum(
                         interferogram=interferograms_ref, transmittance_response=transfer_matrix
                     )
@@ -72,7 +76,6 @@ def main():
 
                     print(
                         f"\t\t\t\t"
-                        f"idx: {il:3},\t"
                         f"Lambda: {lambdaa:.4f},\t"
                         f"RMSE: {rmse:.4f},\t"
                         f"RMSE_DIAG: {rmse_diagonal:.4f},\t"
@@ -80,13 +83,10 @@ def main():
                         f"RMCW: {rmcw:.4f}"
                     )
 
-                    # if rmse < 0.9061 and rmse_diagonal < 0.4535:
-                    #     break
-                    # spectra_rec = Spectrum(data=reconstruction, wavenumbers=wavenumbers_ifgm)
-                    # fig, axs = plt.subplots(nrows=1, ncols=1, squeeze=False, figsize=plot_options.figsize, tight_layout=True)
-                    # spectra_rec.visualize_matrix(axs=axs[0, 0])
-
-                # plt.show()
+                    spectra_rec = Spectrum(data=reconstruction, wavenumbers=spectra_rec.wavenumbers)
+                    fig, axs = plt.subplots(nrows=1, ncols=1, squeeze=False, figsize=plot_options.figsize, tight_layout=True)
+                    spectra_rec.visualize_matrix(axs=axs[0, 0])
+                plt.show()
 
 
 if __name__ == "__main__":
