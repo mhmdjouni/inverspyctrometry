@@ -30,6 +30,19 @@ def add_noise(
     return array + noise
 
 
+def center(
+        array: np.ndarray[..., np.dtype[np.float_]],
+        new_mean: float = 0.,
+        axis: int = -2,
+) -> np.ndarray[..., np.dtype[np.float_]]:
+    """Subtract the mean of an array, e.g., array_centered = array - mean"""
+    array_mean = array.mean(axis=axis, keepdims=True)
+    array_centered = array - array_mean
+    if new_mean != 0.:
+        array_centered = array_centered + new_mean
+    return array_centered
+
+
 def rescale(
         array: np.ndarray[..., np.dtype[np.float_]],
         new_max: float = 1.,
@@ -118,14 +131,14 @@ def calculate_rmse(
 
 def calculate_rmcw(
         monochromatic_array: np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]],
-) -> float:
+) -> np.ndarray[..., np.dtype[np.int_]]:
     """
-    Ratio of Matching Central Wavenumbers:
+    Number of Matching Central Wavenumbers:
       The maximum of each acquisition (column) is expected to match with the index of said acquisition.
     """
     acquisition_indices = np.arange(monochromatic_array.shape[-1])
     column_wise_argmax = np.argmax(monochromatic_array, axis=-2)
-    rmcw = np.sum(column_wise_argmax == acquisition_indices) / monochromatic_array.shape[-1]
+    rmcw = np.sum(column_wise_argmax == acquisition_indices, axis=-1, dtype=int)
     return rmcw
 
 

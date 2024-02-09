@@ -5,7 +5,7 @@ from dataclasses import dataclass, replace
 import numpy as np
 
 from src.common_utils.custom_vars import Opd, Acq
-from src.common_utils.utils import add_noise, rescale, min_max_normalize, standardize
+from src.common_utils.utils import add_noise, rescale, min_max_normalize, standardize, center
 
 
 @dataclass(frozen=True)
@@ -35,6 +35,10 @@ class Interferogram:
     def add_noise(self, snr_db) -> Interferogram:
         noisy_data = add_noise(array=self.data, snr_db=snr_db)
         return replace(self, data=noisy_data)
+
+    def center(self, new_mean: float = 0., axis: int = -2) -> Interferogram:
+        centered_data = center(array=self.data, new_mean=new_mean, axis=axis)
+        return replace(self, data=centered_data)
 
     def rescale(self, new_max: float = 1., axis: int = -2) -> Interferogram:
         rescaled_data = rescale(array=self.data, new_max=new_max, axis=axis)

@@ -16,6 +16,7 @@ class LorisVerhoevenIteration:
     prox_functional: ProximalOperator
     regularization_parameter: float
     interferogram: np.ndarray[tuple[Opd, Acq], np.dtype[np.float_]]
+    is_compute_cost: bool = False
 
     tau: float = field(init=False)
     eta: float = field(init=False)
@@ -49,7 +50,7 @@ class LorisVerhoevenIteration:
 
     def update(
             self, prim: np.ndarray, dual: np.ndarray
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray, float]:
         """
         - In the generalized Loris-Verhoeven version [Condat et al. (2023)], the derivative of h(x) is computed, which
           is the data fidelity in this case, that is, h(x)=1/2||Ax-y||^2, leading to A^T(Ax-y).
@@ -64,4 +65,12 @@ class LorisVerhoevenIteration:
         )
         prim = prim - self.rho_tau * (data_fidelity_derivative + self.domain_transform.adjoint(dual_half))
         dual = dual + self.rho * (dual_half - dual)
-        return prim, dual, data_fidelity
+
+        if self.is_compute_cost:
+            fidelity_term = np.linalg.norm(x=data_fidelity.flatten(), ord=2)
+            scalar_functional = self.prox_functional.direct(x=self.domain_transform.direct(prim.flatten()), lambdaa=1.)
+            cost = 0.5 * fidelity_term + self.regularization_parameter * scalar_functional
+        else:
+            cost = 0
+
+        return prim, dual, cost

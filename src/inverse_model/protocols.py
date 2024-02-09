@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 import numpy as np
@@ -18,7 +19,7 @@ from src.inverse_model.operators import ProximalOperator, LinearOperator
 from src.inverse_model.loris_verhoeven_utils import LorisVerhoevenIteration
 
 
-def inversion_protocol_factory(option: InversionProtocolType, ip_kwargs: dict):
+def inversion_protocol_factory(option: InversionProtocolType, parameters: dict):
     if option == InversionProtocolType.IDCT:
         return IDCT()
 
@@ -26,17 +27,23 @@ def inversion_protocol_factory(option: InversionProtocolType, ip_kwargs: dict):
         return PseudoInverse()
 
     elif option == InversionProtocolType.TSVD:
-        return TSVD(penalization_ratio=ip_kwargs["penalization_ratio"])
+        return TSVD(penalization_ratio=parameters["penalization_ratio"])
 
     elif option == InversionProtocolType.RIDGE_REGRESSION:
-        return RidgeRegression(penalization=ip_kwargs["penalization"])
+        return RidgeRegression(penalization=parameters["penalization"])
 
     elif option == InversionProtocolType.LORIS_VERHOEVEN:
+        if "is_compute_and_save_cost" not in parameters:
+            parameters["is_compute_and_save_cost"] = False
+        if "experiment_id" not in parameters:
+            parameters["experiment_id"] = -1
         return LorisVerhoeven(
-            regularization_parameter=ip_kwargs["regularization_parameter"],
-            prox_functional=ip_kwargs["prox_functional"],
-            domain_transform=ip_kwargs["domain_transform"],
-            nb_iters=ip_kwargs["nb_iters"],
+            regularization_parameter=parameters["regularization_parameter"],
+            prox_functional=parameters["prox_functional"],
+            domain_transform=parameters["domain_transform"],
+            nb_iters=parameters["nb_iters"],
+            is_compute_and_save_cost=parameters["is_compute_and_save_cost"],
+            experiment_id=parameters["experiment_id"],
         )
 
     elif option == InversionProtocolType.ADMM:
@@ -74,7 +81,9 @@ class IDCT(InversionProtocol):
             nb_wn=interferogram.opds.size,
             del_opd=np.mean(np.diff(interferogram.opds))
         )
-        return Spectrum(data=spectrum, wavenumbers=wavenumbers)
+        spectrum_obj = Spectrum(data=spectrum, wavenumbers=wavenumbers)
+        spectrum_cropped = spectrum_obj.interpolate(wavenumbers=transmittance_response.wavenumbers)
+        return spectrum_cropped
 
 
 @dataclass(frozen=True)
@@ -149,6 +158,8 @@ class LorisVerhoeven(InversionProtocol):
     prox_functional: ProximalOperator
     domain_transform: LinearOperator
     nb_iters: int
+    is_compute_and_save_cost: bool = False
+    experiment_id: int = -1
 
     def reconstruct_spectrum(
             self,
@@ -163,11 +174,21 @@ class LorisVerhoeven(InversionProtocol):
             prox_functional=self.prox_functional,
             regularization_parameter=self.regularization_parameter,
             interferogram=interferogram.data,
+            is_compute_cost=self.is_compute_and_save_cost,
         )
         prim = transfer_matrix.adjoint(interferogram.data)
         dual = self.domain_transform.direct(prim)
+        cost_progress = np.zeros(shape=self.nb_iters)
         for q in tqdm(range(self.nb_iters)):
-            prim, dual, _ = lv_iter.update(prim=prim, dual=dual)
+            prim, dual, cost_progress[q] = lv_iter.update(prim=prim, dual=dual)
+
+        if self.is_compute_and_save_cost:
+            project_dir = Path(__file__).resolve().parents[2]
+            folder_subdir = f"reports/experiment_{self.experiment_id}/loris_verhoeven_cost/lambdaa_{self.regularization_parameter:07.4f}"
+            folder_dir = project_dir / folder_subdir
+            if not folder_dir.exists():
+                folder_dir.mkdir(parents=True, exist_ok=True)
+            np.save(file=folder_dir / "cost_progress", arr=cost_progress)
 
         return Spectrum(data=prim, wavenumbers=transmittance_response.wavenumbers)
 
