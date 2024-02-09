@@ -4,6 +4,7 @@ import numpy as np
 
 from src.common_utils.custom_vars import Opd, Deg, InterferometerType, Wvn
 from src.common_utils.transmittance_response import TransmittanceResponse
+from src.common_utils.utils import polyval_rows
 from src.direct_model.interferometer import Interferometer, interferometer_factory
 
 
@@ -33,3 +34,25 @@ class Characterization:
     ) -> TransmittanceResponse:
         interferometer = self.interferometer()
         return interferometer.transmittance_response(wavenumbers=wavenumbers, is_correct_transmittance=True)
+
+    def coeffs_to_polynomials(
+            self,
+            coefficients: np.ndarray[tuple[Opd, Deg], np.dtype[np.float_]],
+            wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+    ) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
+        if coefficients.shape[0] == 1:
+            coefficients = np.tile(coefficients.reshape(1, -1), (self.opds.size, 1))
+            assert coefficients.ndim == 2
+        return polyval_rows(coefficients=coefficients, interval=wavenumbers)
+
+    def transmittance(
+            self,
+            wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+    ) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
+        return self.coeffs_to_polynomials(coefficients=self.transmittance_coefficients, wavenumbers=wavenumbers)
+
+    def reflectance(
+            self,
+            wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+    ) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
+        return self.coeffs_to_polynomials(coefficients=self.reflectance_coefficients, wavenumbers=wavenumbers)
