@@ -282,7 +282,7 @@
     },
     {
       "id": 14,
-      "title": "lv_00316",
+      "title": "lv_00500",
       "experiment_id": 2,
       "experiment_description": "invert_mc651",
       "type": "loris_verhoeven",
@@ -298,7 +298,7 @@
         []
       ],
       "linear_operator": "identity",
-      "nb_iters": 316
+      "nb_iters": 500
     },
     {
       "id": 15,
@@ -322,7 +322,7 @@
     },
     {
       "id": 16,
-      "title": "lv_03162",
+      "title": "lv_05000",
       "experiment_id": 2,
       "experiment_description": "invert_mc651",
       "type": "loris_verhoeven",
@@ -338,7 +338,7 @@
         []
       ],
       "linear_operator": "identity",
-      "nb_iters": 3162
+      "nb_iters": 5000
     },
     {
       "id": 17,
@@ -362,7 +362,7 @@
     },
     {
       "id": 18,
-      "title": "lv_31622",
+      "title": "lv_50000",
       "experiment_id": 2,
       "experiment_description": "invert_mc651",
       "type": "loris_verhoeven",
@@ -378,7 +378,7 @@
         []
       ],
       "linear_operator": "identity",
-      "nb_iters": 31622
+      "nb_iters": 50000
     }
   ]
 }

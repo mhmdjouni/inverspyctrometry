@@ -2,10 +2,10 @@ from pprint import pprint
 
 import numpy as np
 from matplotlib import pyplot as plt
-from tqdm import tqdm
 
 from src.common_utils.light_wave import Spectrum
-from src.common_utils.utils import PlotOptions, calculate_rmse, match_stats, calculate_rmcw
+from src.common_utils.utils import calculate_rmse, match_stats
+from src.demo.experiments_paper.monochromatic.utils import calculate_rmcw
 from src.interface.configuration import load_config
 from src.inverse_model.protocols import inversion_protocol_factory
 
@@ -13,7 +13,10 @@ from src.inverse_model.protocols import inversion_protocol_factory
 def main():
     config = load_config()
     db = config.database()
-    plot_options = PlotOptions()
+    plot_options = {
+        "figsize": (8, 6),
+        "fontsize": 25,
+    }
 
     experiment_id = 6
     experiment_params = db.experiments[experiment_id]
@@ -28,8 +31,8 @@ def main():
         interferograms_ref = interferograms_ref.center(new_mean=0, axis=-2)
         spectra_ref = Spectrum(data=np.eye(wavenumbers_ifgm.size), wavenumbers=wavenumbers_ifgm)
 
-        fig, axs = plt.subplots(nrows=1, ncols=1, squeeze=False, figsize=plot_options.figsize, tight_layout=True)
-        spectra_ref.visualize_matrix(axs=axs[0, 0])
+        fig, axs = plt.subplots(nrows=1, ncols=1, squeeze=False, figsize=plot_options["figsize"], tight_layout=True)
+        spectra_ref.visualize_matrix(fig=fig, axs=axs[0, 0])
 
         for char_id in experiment_params.interferometer_ids:
             characterization = db.characterization(char_id=char_id)
@@ -84,8 +87,8 @@ def main():
                     )
 
                     spectra_rec = Spectrum(data=reconstruction, wavenumbers=spectra_rec.wavenumbers)
-                    fig, axs = plt.subplots(nrows=1, ncols=1, squeeze=False, figsize=plot_options.figsize, tight_layout=True)
-                    spectra_rec.visualize_matrix(axs=axs[0, 0])
+                    fig, axs = plt.subplots(nrows=1, ncols=1, squeeze=False, figsize=plot_options["figsize"], tight_layout=True)
+                    spectra_rec.visualize_matrix(fig=fig, axs=axs[0, 0])
                 plt.show()
 
 

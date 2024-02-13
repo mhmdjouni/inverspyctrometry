@@ -3,8 +3,8 @@ from pprint import pprint
 import numpy as np
 
 from src.common_utils.light_wave import Spectrum
-from src.common_utils.utils import calculate_rmse, match_stats, calculate_rmcw
-from src.demo.experiments_paper.monochromatic.utils import print_metrics
+from src.common_utils.utils import calculate_rmse, match_stats
+from src.demo.experiments_paper.monochromatic.utils import print_metrics, calculate_rmcw
 from src.interface.configuration import load_config
 
 
@@ -66,6 +66,7 @@ def main():
                     nb_tabs = int(3)
                     print_metrics(
                         nb_tabs,
+                        "i_lambda",
                         il,
                         lambdaas[il],
                         rmse[il],
@@ -79,6 +80,7 @@ def main():
                 best_idx = np.argmin(rmse_diagonal)
                 print_metrics(
                     nb_tabs,
+                    "RMSE_MIN",
                     best_idx,
                     lambdaas[best_idx],
                     rmse[best_idx],
@@ -89,6 +91,7 @@ def main():
                 best_idx = np.argmin(-rmcw)
                 print_metrics(
                     nb_tabs,
+                    "RMCW_MAX",
                     best_idx,
                     lambdaas[best_idx],
                     rmse[best_idx],

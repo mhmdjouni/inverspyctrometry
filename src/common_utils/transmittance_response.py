@@ -35,48 +35,71 @@ class TransmittanceResponse:
         dct = fft.dct(x=array, type=2, norm='ortho')
         return dct
 
-    def visualize(self, axs, vmin: float = None, vmax: float = None):
+    def visualize(self, axs, title: str = None, vmin: float = None, vmax: float = None):
         axs.imshow(self.data, aspect='auto', vmin=vmin, vmax=vmax)
 
-        opd_ticks = np.linspace(start=0, stop=self.opds.size-1, num=10, dtype=int)
+        opd_ticks = np.linspace(start=0, stop=self.opds.size-1, num=7, dtype=int)
         opd_labels = np.around(a=self.opds[opd_ticks], decimals=2)
         axs.set_yticks(ticks=opd_ticks, labels=opd_labels)
 
-        wavenumbers_ticks = np.linspace(start=0, stop=self.wavenumbers.size-1, num=10, dtype=int)
+        wavenumbers_ticks = np.linspace(start=0, stop=self.wavenumbers.size-1, num=6, dtype=int)
         wavenumbers_labels = np.around(a=self.wavenumbers[wavenumbers_ticks], decimals=2)
         axs.set_xticks(ticks=wavenumbers_ticks, labels=wavenumbers_labels)
 
-        axs.set_title("Transmittance Response")
+        if title is None:
+            title = "Transmittance Response"
+        axs.set_title(title)
         axs.set_ylabel(rf"OPDs $\delta$ [{self.opds_unit}]")
         axs.set_xlabel(rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]")
 
-    def visualize_opd_response(self, axs, opd_idx):
+    def visualize_opd_response(self, axs, opd_idx: int, title: str = None, show_full_title: bool = True):
+        """Visualize a selected row of the transmittance response"""
         axs.plot(self.wavenumbers, self.data[opd_idx])
-        axs.set_title(rf"OPD Response at $\delta$={self.opds[opd_idx]} {self.opds_unit}")
+        if title is None:
+            if show_full_title:
+                title = rf"OPD Response for $\delta$={self.opds[opd_idx]:.2f} {self.opds_unit}"
+            else:
+                title = rf"$\delta$={self.opds[opd_idx]:.2f} {self.opds_unit}"
+        axs.set_title(title)
         axs.set_ylabel("Intensity")
         axs.set_xlabel(rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]")
+        axs.grid(True)
 
     def visualize_wavenumber_response(self, axs, wavenumber_idx):
         axs.plot(self.opds, self.data[:, wavenumber_idx])
-        axs.set_title(rf"Wavenumber Response at $\sigma$={self.wavenumbers[wavenumber_idx]} {self.wavenumbers_unit}")
+        axs.set_title(rf"Wavenumber Response for $\sigma$={self.wavenumbers[wavenumber_idx]} {self.wavenumbers_unit}")
         axs.set_ylabel("Intensity")
         axs.set_xlabel(rf"OPDs $\delta$ [{self.opds_unit}]")
+        axs.grid(True)
 
-    def visualize_singular_values(self, axs):
+    def visualize_singular_values(self, axs, title: str = None):
         singular_values = self.compute_singular_values()
         axs.plot(singular_values)
-        axs.set_title("Singular Values")
+        if title is None:
+            title = "Singular Values"
+        axs.set_title(title)
         axs.set_ylabel("Amplitude")
         axs.set_xlabel(r"Singular Value index [$R_{A}$]")
+        axs.grid(True)
 
-    def visualize_dct(self, axs, opd_idx: int = -1):
+    def visualize_dct(self, axs, opd_idx: int = -1, title: str = None, show_full_title: bool = True):
         dct = self.compute_dct(opd_idx)
         x_axis = np.mean(np.diff(a=self.opds)) * np.arange(dct.shape[0])
         axs.plot(x_axis, dct)
-        if opd_idx == -1:
-            opd_idx_str = 'all oscillations'
-        else:
-            opd_idx_str = rf'OPD Response at $\delta$={self.opds[opd_idx]} {self.opds_unit}'
-        axs.set_title(f"DCT of {opd_idx_str}")
+        if title is None:
+            if show_full_title:
+                if opd_idx == -1:
+                    opd_idx_str = 'all oscillations'
+                else:
+                    opd_idx_str = rf'OPD Response for $\delta$={self.opds[opd_idx]:.2f} {self.opds_unit}'
+                title = f"DCT of {opd_idx_str}"
+            else:
+                if opd_idx == -1:
+                    opd_idx_str = 'All oscillations'
+                else:
+                    opd_idx_str = rf'$\delta$={self.opds[opd_idx]:.2f} {self.opds_unit}'
+                title = f"{opd_idx_str}"
+        axs.set_title(title)
         axs.set_ylabel("Amplitude")
         axs.set_xlabel(rf"Fourier Oscillations $\delta$ [{self.opds_unit}]")
+        axs.grid(True)

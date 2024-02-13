@@ -1,5 +1,3 @@
-from typing import List
-
 import numpy as np
 from pydantic import BaseModel
 
@@ -7,13 +5,13 @@ from src.common_utils.custom_vars import Wvn
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
 from src.database.characterizations import CharacterizationSchema
-from src.database.datasets import DatasetListSchema, DatasetSchema
+from src.database.datasets import DatasetSchema
 from src.database.experiments import ExperimentSchema
-from src.database.interferometers import InterferometerListSchema, InterferometerSchema
-from src.database.inversion_protocols import InversionProtocolListSchema, InversionProtocolSchema
+from src.database.interferometers import InterferometerSchema
+from src.database.inversion_protocols import InversionProtocolSchema
 from src.direct_model.characterization import Characterization
 from src.direct_model.interferometer import Interferometer
-from src.inverse_model.protocols import InversionProtocol, inversion_protocol_factory
+from src.inverse_model.protocols import InversionProtocol
 
 
 class DatabaseSchema(BaseModel):

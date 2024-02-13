@@ -5,17 +5,9 @@ General purpose utilities
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 import numpy as np
 
 from src.common_utils.custom_vars import Opd, Wvn, Acq, Deg
-
-
-@dataclass
-class PlotOptions:
-    figsize: tuple = (8, 6)
-    fontsize: int = 25
 
 
 def add_noise(
@@ -127,19 +119,6 @@ def calculate_rmse(
     reference_norm = np.linalg.norm(x=reference)
     rmse = error_norm / reference_norm
     return rmse
-
-
-def calculate_rmcw(
-        monochromatic_array: np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]],
-) -> np.ndarray[..., np.dtype[np.int_]]:
-    """
-    Number of Matching Central Wavenumbers:
-      The maximum of each acquisition (column) is expected to match with the index of said acquisition.
-    """
-    acquisition_indices = np.arange(monochromatic_array.shape[-1])
-    column_wise_argmax = np.argmax(monochromatic_array, axis=-2)
-    rmcw = np.sum(column_wise_argmax == acquisition_indices, axis=-1, dtype=int)
-    return rmcw
 
 
 def generate_shifted_dirac(array: np.ndarray, shift: float) -> np.ndarray:

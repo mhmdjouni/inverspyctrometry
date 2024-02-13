@@ -12,7 +12,7 @@
     },
     {
       "id": 1,
-      "title": "cc-shine",
+      "title": "cc_shine",
       "category": "spectrum",
       "device": "shine",
       "source": "colorchecker",
@@ -22,7 +22,7 @@
     },
     {
       "id": 2,
-      "title": "cc-specim",
+      "title": "cc_specim",
       "category": "spectrum",
       "device": "specim",
       "source": "colorchecker",
@@ -32,7 +32,7 @@
     },
     {
       "id": 3,
-      "title": "mc-451",
+      "title": "mc451",
       "category": "interferogram",
       "device": "imspoc_uv_2",
       "source": "monochromatic",
@@ -44,7 +44,7 @@
     },
     {
       "id": 4,
-      "title": "mc-651",
+      "title": "mc651",
       "category": "interferogram",
       "device": "imspoc_uv_2",
       "source": "monochromatic",

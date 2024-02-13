@@ -3,9 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 
 import numpy as np
+from matplotlib.figure import Figure
 
 from src.common_utils.custom_vars import Opd, Acq
-from src.common_utils.utils import add_noise, rescale, min_max_normalize, standardize, center
+from src.common_utils.utils import add_noise, rescale, min_max_normalize, standardize, center, match_stats
 
 
 @dataclass(frozen=True)
@@ -14,21 +15,67 @@ class Interferogram:
     opds: np.ndarray[tuple[Opd], np.dtype[np.float_]]
     opds_unit: str = "nm"
 
-    def visualize(self, axs, acq_ind: int):
-        axs.plot(self.opds, self.data[:, acq_ind])
-        axs.set_title(rf"Interferogram")
-        axs.set_ylabel("Intensity")
+    def visualize(
+            self,
+            axs,
+            acq_ind: int,
+            is_sort_opds: bool = True,
+            linestyle: str = "-",
+            label: str = None,
+            color: str = "C0",
+            linewidth: float = 1.5,
+            title: str = None,
+            ylabel: str = None,
+            ylim: list = None,
+    ):
+        if is_sort_opds:
+            new_indices = np.argsort(self.opds)
+        else:
+            new_indices = np.arange(self.opds.size, dtype=int)
+        axs.plot(
+            self.opds[new_indices],
+            self.data[new_indices, acq_ind],
+            linestyle=linestyle,
+            label=label,
+            color=color,
+            linewidth=linewidth,
+        )
+        if title is None:
+            title = "Interferogram"
+        if ylabel is None:
+            ylabel = "Intensity"
+        if ylim is not None:
+            axs.set_ylim(ylim)
+
+        axs.set_title(title)
+        axs.set_ylabel(ylabel)
         axs.set_xlabel(rf"OPDs $\delta$ [{self.opds_unit}]")
-        axs.grid()
+        axs.legend()
+        axs.grid(visible=True)
 
-    def visualize_matrix(self, axs, vmin: float = None, vmax: float = None):
-        axs.imshow(self.data, aspect='auto', vmin=vmin, vmax=vmax)
+    def visualize_matrix(
+            self,
+            fig: Figure,
+            axs,
+            title: str = None,
+            vmin: float = None,
+            vmax: float = None
+    ):
+        pos = axs.imshow(
+            self.data,
+            # aspect='auto',
+            vmin=vmin,
+            vmax=vmax,
+        )
+        fig.colorbar(pos, ax=axs)
 
-        opd_ticks = np.linspace(start=0, stop=self.opds.size-1, num=10, dtype=int)
+        opd_ticks = np.linspace(start=0, stop=self.opds.size - 1, num=6, dtype=int)
         opd_labels = np.around(a=self.opds[opd_ticks], decimals=2)
         axs.set_yticks(ticks=opd_ticks, labels=opd_labels)
 
-        axs.set_title("Interferogram Acquisitions")
+        if title is None:
+            title = "Interferogram Acquisitions"
+        axs.set_title(title)
         axs.set_ylabel(rf"OPDs $\delta$ [{self.opds_unit}]")
         axs.set_xlabel(r"Acquisitions index $n \in \{1, \dots, N\}$")
 
@@ -61,3 +108,17 @@ class Interferogram:
     ) -> Interferogram:
         standardized_data = standardize(array=self.data, new_mean=new_mean, new_std=new_std, axis=axis)
         return replace(self, data=standardized_data)
+
+    def match_stats(
+            self,
+            reference: Interferogram,
+            axis: int = -2,
+            is_rescale_reference: bool = False,
+    ) -> tuple[Interferogram, Interferogram]:
+        matched_data, scaled_reference = match_stats(
+            array=self.data,
+            reference=reference.data,
+            axis=axis,
+            is_rescale_reference=is_rescale_reference,
+        )
+        return replace(self, data=matched_data), replace(reference, data=scaled_reference)

@@ -4,10 +4,11 @@ from dataclasses import dataclass, replace
 from typing import Optional
 
 import numpy as np
+from matplotlib.figure import Figure
 from scipy import interpolate
 
 from src.common_utils.custom_vars import Wvn, Acq
-from src.common_utils.utils import convert_meter_units, standardize, min_max_normalize, rescale, add_noise
+from src.common_utils.utils import convert_meter_units, standardize, min_max_normalize, rescale, add_noise, match_stats
 
 
 @dataclass(frozen=True)
@@ -16,26 +17,62 @@ class Spectrum:
     wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]]
     wavenumbers_unit: str = "1/cm"
 
-    def visualize(self, axs, acq_ind: int):
-        axs.plot(self.wavenumbers, self.data[:, acq_ind])
-        axs.set_title(rf"Spectral Radiance")
-        axs.set_ylabel("Intensity")
-        axs.set_xlabel(rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]")
-        axs.grid()
+    def visualize(
+            self,
+            axs,
+            acq_ind: int,
+            linestyle: str = "-",
+            label: str = None,
+            color: str = "C0",
+            linewidth: float = 1.5,
+            title: str = None,
+            ylabel: str = None,
+            ylim: list = None,
+    ):
+        axs.plot(
+            self.wavenumbers,
+            self.data[:, acq_ind],
+            linestyle=linestyle,
+            label=label,
+            color=color,
+            linewidth=linewidth,
+        )
+        if title is None:
+            title = "Spectral Radiance"
+        if ylabel is None:
+            ylabel = "Intensity"
+        if ylim is not None:
+            axs.set_ylim(ylim)
 
-    def visualize_matrix(self, axs, vmin: float = None, vmax: float = None):
-        axs.imshow(
+        axs.set_title(title)
+        axs.set_ylabel(ylabel)
+        axs.set_xlabel(rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]")
+        axs.legend()
+        axs.grid(visible=True)
+
+    def visualize_matrix(
+            self,
+            fig: Figure,
+            axs,
+            title: str = None,
+            vmin: float = None,
+            vmax: float = None
+    ):
+        pos = axs.imshow(
             self.data,
             # aspect='auto',
             vmin=vmin,
             vmax=vmax,
         )
+        fig.colorbar(pos, ax=axs)
 
-        wavenumber_ticks = np.linspace(start=0, stop=self.wavenumbers.size-1, num=10, dtype=int)
+        wavenumber_ticks = np.linspace(start=0, stop=self.wavenumbers.size-1, num=6, dtype=int)
         wavenumber_labels = np.around(a=self.wavenumbers[wavenumber_ticks], decimals=2)
         axs.set_yticks(ticks=wavenumber_ticks, labels=wavenumber_labels)
 
-        axs.set_title("Spectrum Acquisitions")
+        if title is None:
+            title = "Spectrum Acquisitions"
+        axs.set_title(title)
         axs.set_ylabel(rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]")
         axs.set_xlabel(r"Acquisitions index $n \in \{1, \dots, N\}$")
 
@@ -110,6 +147,29 @@ class Spectrum:
     ) -> Spectrum:
         standardized_data = standardize(array=self.data, new_mean=new_mean, new_std=new_std, axis=axis)
         return replace(self, data=standardized_data)
+
+    def match_stats(
+            self,
+            reference: Spectrum,
+            axis: int = -2,
+            is_rescale_reference: bool = False,
+    ) -> tuple[Spectrum, Spectrum]:
+        matched_data, scaled_reference = match_stats(
+            array=self.data,
+            reference=reference.data,
+            axis=axis,
+            is_rescale_reference=is_rescale_reference,
+        )
+        return replace(self, data=matched_data), replace(reference, data=scaled_reference)
+
+    def crop_wavenumbers(
+            self,
+            new_range: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+    ) -> Spectrum:
+        mask = (new_range[0] <= self.wavenumbers) & (self.wavenumbers <= new_range[-1])
+        new_wavenumbers = self.wavenumbers[mask]
+        new_data = self.data[mask]
+        return replace(self, data=new_data, wavenumbers=new_wavenumbers)
 
     @classmethod
     def from_oscillations(
