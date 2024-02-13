@@ -1,5 +1,6 @@
 {
   "directory_paths": {
+    "project": "/home/jounim/Work/codebase_projects/inverspyctrometry",
     "data": "/home/jounim/Work/codebase_projects/inverspyctrometry/data",
     "datasets": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets",
     "notebooks": "/home/jounim/Work/codebase_projects/inverspyctrometry/notebooks",

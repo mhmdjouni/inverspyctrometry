@@ -8,6 +8,7 @@ from src.database.database import DatabaseSchema
 
 
 class DirectoryPathSchema(BaseModel):
+    project: DirectoryPath
     data: DirectoryPath
     datasets: DirectoryPath
     notebooks: DirectoryPath
