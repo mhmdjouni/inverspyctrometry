@@ -15,17 +15,12 @@ def main():
 
     experiment_id = 1
     experiment_params = db.experiments[experiment_id]
-    pprint(dict(experiment_params))
-    print()
 
     for ds_id in experiment_params.dataset_ids:
         interferograms_ref = db.dataset_interferogram(ds_id=ds_id)
+        interferograms_ref = interferograms_ref.rescale(new_max=1, axis=-2)
         wavenumbers_ifgm = db.dataset_central_wavenumbers(dataset_id=ds_id)
         print(f"Dataset: {db.datasets[ds_id].title.upper()}")
-
-        interferograms_ref = interferograms_ref.rescale(new_max=1, axis=-2)
-
-        spectra_ref = Spectrum(data=np.eye(wavenumbers_ifgm.size), wavenumbers=wavenumbers_ifgm)
 
         for char_id in experiment_params.interferometer_ids:
             characterization = db.characterization(char_id=char_id)
@@ -44,16 +39,9 @@ def main():
                         interferogram=interferograms_ref, transmittance_response=transfer_matrix
                     )
 
-                    # Visualize results
-                    reconstruction_matched, _ = match_stats(
-                        array=spectra_rec.data,
-                        reference=spectra_ref.data,
-                        axis=-2,
-                    )
-                    fig, axs = plt.subplots(1, 2, squeeze=True)
-                    spectra_ref.visualize_matrix(axs=axs[0])
-                    replace(spectra_rec, data=reconstruction_matched).visualize_matrix(axs=axs[1])
-                plt.show()
+                    fig, axs = plt.subplots(nrows=1, ncols=1, squeeze=False)
+                    spectra_rec.visualize(axs=axs[0, 0], acq_ind=0)
+                    plt.show()
 
 
 if __name__ == "__main__":
