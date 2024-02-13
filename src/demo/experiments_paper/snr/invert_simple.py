@@ -37,25 +37,24 @@ def main():
             print(f"\tInterferometer: {db.interferometers[ifm_id].title.upper()}")
 
             transfer_matrix = interferometer.transmittance_response(wavenumbers=spectra_ref.wavenumbers)
-            interferograms = simulate_interferogram(transmittance_response=transfer_matrix, spectrum=spectra_ref)
+            interferograms_ref = simulate_interferogram(transmittance_response=transfer_matrix, spectrum=spectra_ref)
+
+            interferograms_ref = interferograms_ref.rescale(new_max=1, axis=-2)
             transfer_matrix = transfer_matrix.rescale(new_max=1, axis=None)
-            interferograms = interferograms.rescale(new_max=1, axis=-2)
 
             for nl_idx in experiment_params.noise_level_indices:
                 snr_db = db.noise_levels[nl_idx]
                 print(f"\t\tSNR: {snr_db} dB")
 
                 np.random.seed(0)
-                interferograms_noisy = interferograms.add_noise(snr_db=snr_db)
+                interferograms_noisy = interferograms_ref.add_noise(snr_db=snr_db)
 
                 for ip_id in experiment_params.inversion_protocol_ids:
-                    ip_schema = db.inversion_protocols[ip_id]
-                    lambdaas = ip_schema.lambdaas_schema.as_array()
-                    print(f"\t\t\tInvProtocol: {ip_schema.title.upper()}")
+                    lambdaas = db.inversion_protocol_lambdaas(inv_protocol_id=ip_id)
+                    print(f"\t\tInversion Protocol: {db.inversion_protocols[ip_id].title.upper()}")
 
                     for lambdaa in lambdaas:
-                        ip_kwargs = ip_schema.parameters(lambdaa=lambdaa)
-                        inverter = inversion_protocol_factory(option=ip_schema.type, parameters=ip_kwargs)
+                        inverter = db.inversion_protocol(inv_protocol_id=ip_id, lambdaa=lambdaa)
                         spectra_rec = inverter.reconstruct_spectrum(
                             interferogram=interferograms_noisy, transmittance_response=transfer_matrix
                         )

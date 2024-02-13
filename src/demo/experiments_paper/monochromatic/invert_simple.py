@@ -9,6 +9,9 @@ from src.common_utils.utils import match_stats
 from src.interface.configuration import load_config
 
 
+# TODO: Crop the acquisitions and wavenumbers within an interval of interest
+
+
 def main():
     config = load_config()
     db = config.database()
@@ -19,14 +22,14 @@ def main():
     for ds_id in experiment_params.dataset_ids:
         interferograms_ref = db.dataset_interferogram(ds_id=ds_id)
         interferograms_ref = interferograms_ref.rescale(new_max=1, axis=-2)
-        wavenumbers_ifgm = db.dataset_central_wavenumbers(dataset_id=ds_id)
+        wavenumbers_ref = db.dataset_central_wavenumbers(dataset_id=ds_id)
         print(f"Dataset: {db.datasets[ds_id].title.upper()}")
 
         for char_id in experiment_params.interferometer_ids:
             characterization = db.characterization(char_id=char_id)
             print(f"\tCharacterization: {db.characterizations[char_id].title.upper()}")
 
-            transfer_matrix = characterization.transmittance_response(wavenumbers=wavenumbers_ifgm)
+            transfer_matrix = characterization.transmittance_response(wavenumbers=wavenumbers_ref)
             transfer_matrix = transfer_matrix.rescale(new_max=1, axis=None)
 
             for ip_id in experiment_params.inversion_protocol_ids:

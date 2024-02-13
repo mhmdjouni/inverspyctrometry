@@ -6,8 +6,8 @@
       "category": "spectrum",
       "device": "N/A",
       "source": "sun",
-      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/solar.npy",
-      "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/solar_wavenumbers.npy",
+      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/solar/data.npy",
+      "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/solar/wavenumbers.npy",
       "wavenumbers_unit": "1/um"
     },
     {
@@ -16,8 +16,8 @@
       "category": "spectrum",
       "device": "shine",
       "source": "colorchecker",
-      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/shine.npy",
-      "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/shine_wavenumbers.npy",
+      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/cc_shine/data.npy",
+      "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/cc_shine/wavenumbers.npy",
       "wavenumbers_unit": "1/um"
     },
     {
@@ -26,8 +26,8 @@
       "category": "spectrum",
       "device": "specim",
       "source": "colorchecker",
-      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/specim.npy",
-      "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/specim_wavenumbers.npy",
+      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/cc_specim/data.npy",
+      "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/cc_specim/wavenumbers.npy",
       "wavenumbers_unit": "1/um"
     },
     {
