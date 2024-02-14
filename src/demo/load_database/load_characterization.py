@@ -3,7 +3,6 @@ from pprint import pprint
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.outputs.visualization import PlotOptions
 from src.interface.configuration import load_config
 
 

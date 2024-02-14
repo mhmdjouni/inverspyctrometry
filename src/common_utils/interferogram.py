@@ -4,6 +4,7 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 from matplotlib.figure import Figure
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from src.common_utils.custom_vars import Opd, Acq
 from src.common_utils.utils import add_noise, rescale, min_max_normalize, standardize, center, match_stats
@@ -59,15 +60,17 @@ class Interferogram:
             axs,
             title: str = None,
             vmin: float = None,
-            vmax: float = None
+            vmax: float = None,
+            is_colorbar: bool = True,
     ):
-        pos = axs.imshow(
+        imshow = axs.imshow(
             self.data,
-            # aspect='auto',
+            aspect='auto',
             vmin=vmin,
             vmax=vmax,
         )
-        fig.colorbar(pos, ax=axs)
+        if is_colorbar:
+            fig.colorbar(imshow, ax=axs)
 
         opd_ticks = np.linspace(start=0, stop=self.opds.size - 1, num=6, dtype=int)
         opd_labels = np.around(a=self.opds[opd_ticks], decimals=2)

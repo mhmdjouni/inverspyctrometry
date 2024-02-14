@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 
 import numpy as np
+from matplotlib.figure import Figure
 from scipy import fft
 
 from src.common_utils.custom_vars import Opd, Wvn
@@ -35,10 +36,25 @@ class TransmittanceResponse:
         dct = fft.dct(x=array, type=2, norm='ortho')
         return dct
 
-    def visualize(self, axs, title: str = None, vmin: float = None, vmax: float = None):
-        axs.imshow(self.data, aspect='auto', vmin=vmin, vmax=vmax)
+    def visualize(
+            self,
+            fig: Figure,
+            axs,
+            title: str = None,
+            vmin: float = None,
+            vmax: float = None,
+            is_colorbar: bool = True,
+    ):
+        imshow = axs.imshow(
+            self.data,
+            aspect='auto',
+            vmin=vmin,
+            vmax=vmax,
+        )
+        if is_colorbar:
+            fig.colorbar(imshow, ax=axs)
 
-        opd_ticks = np.linspace(start=0, stop=self.opds.size-1, num=7, dtype=int)
+        opd_ticks = np.linspace(start=0, stop=self.opds.size - 1, num=6, dtype=int)
         opd_labels = np.around(a=self.opds[opd_ticks], decimals=2)
         axs.set_yticks(ticks=opd_ticks, labels=opd_labels)
 
