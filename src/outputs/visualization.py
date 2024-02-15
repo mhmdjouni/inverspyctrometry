@@ -4,6 +4,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Callable
 
+import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -26,6 +27,20 @@ class SubplotsOptions:
     squeeze: bool = False
     figsize: tuple = (6.4, 4.8)
     tight_layout: bool = False
+
+
+def numpy_save_list(
+        filenames: list[str],
+        arrays: list[np.ndarray],
+        directories_list: list[Path],
+        subdirectory: str = "",
+):
+    for directory in directories_list:
+        save_dir = directory / subdirectory
+        if not save_dir.exists():
+            save_dir.mkdir(parents=True, exist_ok=True)
+        for filename, array in zip(filenames, arrays):
+            np.save(file=save_dir / filename, arr=array)
 
 
 def savefig_dir_list(
