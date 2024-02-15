@@ -1,6 +1,5 @@
 from enum import Enum
-from typing import NewType
-
+from typing import NewType, Type
 
 Wvn = NewType(name='Wvn', tp=int)
 Opd = NewType(name='Opd', tp=int)
@@ -69,3 +68,32 @@ class NormOperatorType(list, Enum):
     L112 = ["l112", [2, 0, 1]]
     L121 = ["l121", [1, 0, 2]]
     L211 = ["l211", [0, 1, 2]]
+
+
+class EnumInvalidOptionError(Exception):
+    """
+    Enhanced ValueError for entering an invalid option among an Enum's options,
+        that takes the Enum and the option as inputs,
+        and displays the available options of the Enum.
+    """
+    def __init__(self, option: str, enum_class: Type[Enum]):
+        self.option = option
+        self.enum_class = enum_class
+        message = self.compose_error_message()
+        super().__init__(message)
+
+    def compose_error_message(self):
+        invalid_option_str = self.invalid_option_message()
+        enum_options_str = self.enum_options_message()
+        message = invalid_option_str + enum_options_str
+        return message
+
+    def invalid_option_message(self):
+        message = f"\nOption '{self.option}' is not supported for {self.enum_class.__name__}.\n"
+        return message
+
+    def enum_options_message(self):
+        message = f"The supported options for {self.enum_class.__name__} are:\n"
+        for member in self.enum_class:
+            message += f"- {member.value}\n"
+        return message
