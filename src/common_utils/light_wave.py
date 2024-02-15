@@ -8,7 +8,8 @@ from matplotlib.figure import Figure
 from scipy import interpolate
 
 from src.common_utils.custom_vars import Wvn, Acq
-from src.common_utils.utils import convert_meter_units, standardize, min_max_normalize, rescale, add_noise, match_stats
+from src.common_utils.utils import convert_meter_units, standardize, min_max_normalize, rescale, add_noise, match_stats, \
+    calculate_rmse
 
 
 @dataclass(frozen=True)
@@ -161,6 +162,22 @@ class Spectrum:
             is_rescale_reference=is_rescale_reference,
         )
         return replace(self, data=matched_data), replace(reference, data=scaled_reference)
+
+    def calculate_rmse(
+            self,
+            reference: Spectrum,
+            is_match_stats: bool = False,
+            is_rescale_reference: bool = False,
+            is_match_axis: int = -2,
+    ) -> np.ndarray[..., np.dtype[np.float_]]:
+        rmse = calculate_rmse(
+            array=self.data,
+            reference=reference.data,
+            is_match_stats=is_match_stats,
+            is_rescale_reference=is_rescale_reference,
+            is_match_axis=is_match_axis,
+        )
+        return rmse
 
     def crop_wavenumbers(
             self,

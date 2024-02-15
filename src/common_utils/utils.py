@@ -97,12 +97,12 @@ def match_stats(
 
 
 def calculate_rmse(
-        array: np.ndarray[tuple[..., Wvn, Acq], np.dtype[np.float_]],
-        reference: np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]],
+        array: np.ndarray[..., np.dtype[np.float_]],
+        reference: np.ndarray[..., np.dtype[np.float_]],
         is_match_stats: bool = False,
         is_rescale_reference: bool = False,
         is_match_axis: int = -2,
-) -> np.ndarray[tuple[int, Acq], np.dtype[np.float_]]:
+) -> np.ndarray[..., np.dtype[np.float_]]:
     """
     Calculate Normalized Root Mean Squared Error.
     """
