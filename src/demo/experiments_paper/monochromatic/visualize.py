@@ -13,6 +13,43 @@ from src.interface.configuration import load_config
 from src.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_dir_list
 
 
+def visualize_datasets(
+        experiment_id: int,
+        subplots_options: SubplotsOptions,
+        rc_params: RcParamsOptions,
+        imshow_options: dict,
+):
+    config = load_config()
+    reports_dir = config.directory_paths.reports
+    paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
+
+    db = config.database()
+    experiment_config = db.experiments[experiment_id]
+    figures_dir_list = [
+        reports_dir / f"experiment_{experiment_id}" / "figures",
+        paper_dir / "figures" / f"{experiment_config.type}",
+    ]
+
+    for ds_id in experiment_config.dataset_ids:
+        dataset = db.dataset_interferogram(ds_id=ds_id)
+        dataset_subdir = f"invert_{db.datasets[ds_id].title}"
+        for char_id in experiment_config.interferometer_ids:
+            characterization_subdir = f"{dataset_subdir}/{db.characterizations[char_id].title}"
+            save_subdir = f"{characterization_subdir}/dataset"
+
+            plt.rcParams['font.size'] = str(rc_params.fontsize)
+
+            fig, axes = plt.subplots(**asdict(subplots_options))
+            dataset.visualize_matrix(fig=fig, axs=axes[0, 0], vmax=0.4*np.max(dataset.data), **imshow_options)
+            filename = "dataset.pdf"
+            savefig_dir_list(
+                fig=fig,
+                filename=filename,
+                directories_list=figures_dir_list,
+                subdirectory=save_subdir,
+            )
+
+
 def visualize_transfer_matrices(
         experiment_id: int,
         subplots_options: SubplotsOptions,
@@ -83,43 +120,6 @@ def visualize_transfer_matrices(
                 filename=filename,
                 directories_list=figures_dir_list,
                 subdirectory=transfer_matrix_subdir,
-            )
-
-
-def visualize_datasets(
-        experiment_id: int,
-        subplots_options: SubplotsOptions,
-        rc_params: RcParamsOptions,
-        imshow_options: dict,
-):
-    config = load_config()
-    reports_dir = config.directory_paths.reports
-    paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
-
-    db = config.database()
-    experiment_config = db.experiments[experiment_id]
-    figures_dir_list = [
-        reports_dir / f"experiment_{experiment_id}" / "figures",
-        paper_dir / "figures" / f"{experiment_config.type}",
-    ]
-
-    for ds_id in experiment_config.dataset_ids:
-        dataset = db.dataset_interferogram(ds_id=ds_id)
-        dataset_subdir = f"invert_{db.datasets[ds_id].title}"
-        for char_id in experiment_config.interferometer_ids:
-            characterization_subdir = f"{dataset_subdir}/{db.characterizations[char_id].title}"
-            save_subdir = f"{characterization_subdir}/dataset"
-
-            plt.rcParams['font.size'] = str(rc_params.fontsize)
-
-            fig, axes = plt.subplots(**asdict(subplots_options))
-            dataset.visualize_matrix(fig=fig, axs=axes[0, 0], vmax=0.4*np.max(dataset.data), **imshow_options)
-            filename = "dataset.pdf"
-            savefig_dir_list(
-                fig=fig,
-                filename=filename,
-                directories_list=figures_dir_list,
-                subdirectory=save_subdir,
             )
 
 
