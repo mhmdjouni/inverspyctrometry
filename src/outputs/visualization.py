@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
-import numpy as np
 from matplotlib import pyplot as plt
-from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 
@@ -29,20 +27,6 @@ class SubplotsOptions:
     tight_layout: bool = False
 
 
-def numpy_save_list(
-        filenames: list[str],
-        arrays: list[np.ndarray],
-        directories_list: list[Path],
-        subdirectory: str = "",
-):
-    for directory in directories_list:
-        save_dir = directory / subdirectory
-        if not save_dir.exists():
-            save_dir.mkdir(parents=True, exist_ok=True)
-        for filename, array in zip(filenames, arrays):
-            np.save(file=save_dir / filename, arr=array)
-
-
 def savefig_dir_list(
         fig: Figure,
         filename: str,
@@ -60,6 +44,7 @@ def savefig_dir_list(
 
 
 def visualize_and_save(
+        visualize_rc_params: dict,
         visualize_subplots_options: dict,
         visualize_func: Callable,
         visualize_func_options: dict,
@@ -69,6 +54,7 @@ def visualize_and_save(
         save_fmt: str = "pdf",
         save_bbox_inches: str = "tight",
 ):
+    plt.rcParams['font.size'] = str(visualize_rc_params["fontsize"])
     fig, axes = plt.subplots(**visualize_subplots_options)
     visualize_func(axs=axes[0, 0], **visualize_func_options)
     savefig_dir_list(
