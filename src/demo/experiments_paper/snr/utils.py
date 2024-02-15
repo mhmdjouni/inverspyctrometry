@@ -38,7 +38,8 @@ def experiment_subdir_convention(
     config = load_config()
     db = config.database()
     subdir = f"invert_{db.datasets[dataset_id].title}"
-    subdir = f"{subdir}/{db.interferometers[interferometer_id].title}"
+    if interferometer_id >= 0:
+        subdir = f"{subdir}/{db.interferometers[interferometer_id].title}"
     if noise_level_index >= 0:
         subdir = f"{subdir}/{int(db.noise_levels[noise_level_index])}_db"
     if inversion_protocol_id >= 0:
