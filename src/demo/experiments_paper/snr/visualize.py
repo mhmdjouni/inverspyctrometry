@@ -29,7 +29,6 @@ def visualize_transfer_matrix(
         experiment_id: int,
         dataset_id: int,
         interferometer_id: int,
-        noise_level_index: int,
         rc_params: RcParamsOptions,
         subplots_options: SubplotsOptions,
         plot_options: dict,
@@ -45,7 +44,7 @@ def visualize_transfer_matrix(
     save_subdir = experiment_figures_subdir_convention(
         dataset_id=dataset_id,
         interferometer_id=interferometer_id,
-        noise_level_index=noise_level_index,
+        noise_level_index=-1,
         folder_name="transfer_matrix",
     )
 
@@ -78,7 +77,7 @@ def visualize_spectrum_comparison(
         rc_params: RcParamsOptions,
         subplots_options: SubplotsOptions,
         plot_options: dict,
-        inversion_protocol_ids: list,
+        inversion_protocol_indices: list,
 ):
     config = load_config()
     paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
@@ -97,7 +96,7 @@ def visualize_spectrum_comparison(
     )
     inversion_protocol_list = [
         db.experiments[experiment_id].inversion_protocol_ids[ip_id]
-        for ip_id in inversion_protocol_ids
+        for ip_id in inversion_protocol_indices
     ]
 
     # Load
@@ -143,7 +142,7 @@ def visualize_spectrum_comparison(
         )
 
     # Save
-    filename = f"acquisition_{acquisition_index:3}.pdf"
+    filename = f"acquisition_{acquisition_index:03}.pdf"
     savefig_dir_list(
         fig=fig,
         filename=filename,
@@ -211,7 +210,7 @@ def visualize_interferograms_noisy(
         interferograms_noisy.visualize(
             axs=axes[0, 0],
             acq_ind=acquisition_index,
-            label=f"{int(db.noise_levels[i_nl])} dB",
+            label=f"{int(db.noise_levels[noise_level_index])} dB",
             color=f"C{i_nl + 1}",
             linewidth=1.3,
             title="",
@@ -219,10 +218,85 @@ def visualize_interferograms_noisy(
         )
 
     # Save
-    filename = f"acquisition_{acquisition_index:3}.pdf"
+    filename = f"acquisition_{acquisition_index:03}.pdf"
     savefig_dir_list(
         fig=fig,
         filename=filename,
         directories_list=figures_dir_list,
         subdirectory=save_subdir,
     )
+
+
+def main():
+    experiment_id = 0
+
+    config = load_config()
+    db = config.database()
+
+    experiment_config = db.experiments[experiment_id]
+
+    for ds_id in experiment_config.dataset_ids:
+        for ifm_id in experiment_config.interferometer_ids:
+            visualize_transfer_matrix(
+                experiment_id=experiment_id,
+                dataset_id=ds_id,
+                interferometer_id=ifm_id,
+                rc_params=RcParamsOptions(fontsize=17),
+                subplots_options=SubplotsOptions(),
+                plot_options={
+                    "title": "",
+                },
+            )
+            for nl_idx in experiment_config.noise_level_indices:
+                visualize_interferograms_noisy(
+                    experiment_id=experiment_id,
+                    dataset_id=ds_id,
+                    interferometer_id=ifm_id,
+                    acquisition_index=0,
+                    rc_params=RcParamsOptions(fontsize=17),
+                    subplots_options=SubplotsOptions(),
+                    plot_options={},
+                )
+                visualize_interferograms_noisy(
+                    experiment_id=experiment_id,
+                    dataset_id=ds_id,
+                    interferometer_id=ifm_id,
+                    acquisition_index=13,
+                    rc_params=RcParamsOptions(fontsize=17),
+                    subplots_options=SubplotsOptions(),
+                    plot_options={},
+                )
+                visualize_spectrum_comparison(
+                    experiment_id=experiment_id,
+                    dataset_id=ds_id,
+                    interferometer_id=ifm_id,
+                    noise_level_index=nl_idx,
+                    acquisition_index=0,
+                    rc_params=RcParamsOptions(fontsize=17),
+                    subplots_options=SubplotsOptions(),
+                    plot_options={
+                        "linestyle": "-",
+                        "ylabel": "Normalized Intensity",
+                        "ylim": [-0.1, 1.1],
+                    },
+                    inversion_protocol_indices=[2, 3, 4],
+                )
+                visualize_spectrum_comparison(
+                    experiment_id=experiment_id,
+                    dataset_id=ds_id,
+                    interferometer_id=ifm_id,
+                    noise_level_index=nl_idx,
+                    acquisition_index=13,
+                    rc_params=RcParamsOptions(fontsize=17),
+                    subplots_options=SubplotsOptions(),
+                    plot_options={
+                        "linestyle": "-",
+                        "ylabel": "Normalized Intensity",
+                        "ylim": [-0.1, 1.1],
+                    },
+                    inversion_protocol_indices=[2, 3, 4],
+                )
+
+
+if __name__ == "__main__":
+    main()
