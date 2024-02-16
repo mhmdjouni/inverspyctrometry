@@ -6,6 +6,7 @@ General purpose utilities
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 
 from src.common_utils.custom_vars import Opd, Wvn, Acq, Deg
 
@@ -170,3 +171,33 @@ def polyval_rows(
     interval_powered = np.power(interval, powers)
     polynomials = coefficients @ interval_powered
     return polynomials
+
+
+def numpy_to_dataframe(
+        array: np.ndarray,
+        row_labels: list[str],
+):
+    df = pd.DataFrame(array, index=row_labels)
+    return df
+
+
+def numpy_to_latex(
+        array: np.ndarray,
+        row_labels: list[str],
+        header: bool | list[str] = True,
+        index: bool = True,
+        na_rep: str = "Nan",
+        float_format: str = None,
+        caption: str = "",
+        position: str = "h",
+) -> str:
+    df = pd.DataFrame(array, index=row_labels)
+    latex_table = df.to_latex(
+        header=header,
+        index=index,
+        na_rep=na_rep,
+        float_format=float_format,
+        caption=caption,
+        position=position,
+    )
+    return latex_table
