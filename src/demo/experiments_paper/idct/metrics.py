@@ -1,14 +1,14 @@
-import numpy as np
-
+from src.common_utils.utils import calculate_rmse
 from src.demo.experiments_paper.snr.utils import experiment_dir_convention, experiment_subdir_convention
 from src.interface.configuration import load_config
-from src.outputs.serialize import numpy_save_list
+from src.outputs.serialize import numpy_save_list, numpy_load_list
 
 
 def main():
     config = load_config()
     db = config.database()
 
+    is_verbose = True
     experiment_id = 3
     experiment_config = db.experiments[experiment_id]
 
@@ -25,6 +25,10 @@ def main():
                 dir_type="reconstruction",
                 experiment_id=experiment_id,
             )
+            metrics_dir = experiment_dir_convention(
+                dir_type="metrics",
+                experiment_id=experiment_id,
+            )
             inverter_subdir = experiment_subdir_convention(
                 dataset_id=dataset_id,
                 interferometer_id=interferometer_id,
@@ -32,30 +36,27 @@ def main():
                 inversion_protocol_id=inversion_protocol_id,
             )
 
-            spectra_ref = db.dataset_spectrum(ds_id=dataset_id)
-            interferometer = db.interferometer(ifm_id=interferometer_id)
-
-            interferograms_ref = interferometer.acquire_interferogram(spectrum=spectra_ref)
-            interferograms_ref = interferograms_ref.rescale(new_max=1, axis=-2)
-            interferograms_ref = interferograms_ref.center(new_mean=0, axis=-2)
-
-            transfer_matrix = interferometer.transmittance_response(wavenumbers=spectra_ref.wavenumbers)
-            transfer_matrix = transfer_matrix.rescale(new_max=1, axis=None)
-
-            snr_db = db.noise_levels[noise_level_index]
-            np.random.seed(0)
-            interferograms_noisy = interferograms_ref.add_noise(snr_db=snr_db)
-
-            lambdaa = db.inversion_protocol_lambdaas(inv_protocol_id=inversion_protocol_id)[0]
-            inverter = db.inversion_protocol(inv_protocol_id=inversion_protocol_id, lambdaa=lambdaa)
-            spectra_rec = inverter.reconstruct_spectrum(
-                interferogram=interferograms_noisy, transmittance_response=transfer_matrix
+            spectra_rec, = numpy_load_list(
+                filenames=["spectra_rec.npy"],
+                directory=reconstruction_dir,
+                subdirectory=inverter_subdir,
             )
+
+            spectra_ref = db.dataset_spectrum(ds_id=dataset_id).data
+            rmse_min = calculate_rmse(
+                array=spectra_rec,
+                reference=spectra_ref,
+                is_match_axis=-2,
+                is_match_stats=True,
+                is_rescale_reference=True,
+            )
+            if is_verbose:
+                print(f"\t\t\t\tRMSE:   {rmse_min:.3f}")
 
             numpy_save_list(
                 filenames=["spectra_rec.npy"],
-                arrays=[spectra_rec.data],
-                directories=[reconstruction_dir],
+                arrays=[spectra_rec],
+                directories=[metrics_dir],
                 subdirectory=inverter_subdir,
             )
 

@@ -1,7 +1,3 @@
-"""
-Minimal working template for simulated inversion, without comments and extra functionality (saving arrays, etc.)
-"""
-
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -12,17 +8,6 @@ from src.inverse_model.protocols import inversion_protocol_factory
 
 
 def main():
-    """
-    - Load the dataset
-    - Load the interferometer
-    - Generate the transmittance response (i.e., Transfer Matrix)
-    - Simulate the interferograms (i.e., the data, observation, acquisition)
-    - Preprocessing: Rescaling / Normalizing the transfer matrix (linear operator) and the data
-    - Add noise to the interferogram
-    - Load the inversion protocol
-    - Inversion: Reconstruct the spectrum
-    """
-
     config = load_config()
     db = config.database()
 
