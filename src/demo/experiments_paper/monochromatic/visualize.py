@@ -310,8 +310,7 @@ def visualize_interferogram_comparison(
                 **plot_options,
             )
 
-            for i_ip, ip_id in enumerate(
-                    [experiment_config.inversion_protocol_ids[ip_index] for ip_index in ip_indices]):
+            for i_ip, ip_id in enumerate([experiment_config.inversion_protocol_ids[ip_index] for ip_index in ip_indices]):
                 inverter_subdir = f"{characterization_subdir}/{db.inversion_protocols[ip_id].title}"
                 spectra_rec_all = np.load(file=reconstruction_dir / inverter_subdir / "spectra_rec_all.npy")
                 rmse_diagonal = np.load(file=metrics_dir / inverter_subdir / "rmse_diagonal.npy")
@@ -458,12 +457,14 @@ def visualize_matching_intensity(
                 inverter_subdir = f"{characterization_subdir}/{db.inversion_protocols[ip_id].title}"
                 spectra_rec_all = np.load(file=reconstruction_dir / inverter_subdir / "spectra_rec_all.npy")
                 rmse_diagonal = np.load(file=metrics_dir / inverter_subdir / "rmse_diagonal.npy")
+                rmcw = np.load(file=metrics_dir / inverter_subdir / "rmcw.npy")
                 best_idx = np.argmin(rmse_diagonal)
                 spectra_rec = replace(spectra_ref, data=spectra_rec_all[best_idx])
                 spectra_rec, _ = spectra_rec.match_stats(reference=spectra_ref, axis=-2)
 
                 plt.rcParams['font.size'] = str(rc_params.fontsize)
 
+                plot_options["title"] = f"Nb. MCW = {rmcw[best_idx]}"
                 fig, axes = plt.subplots(**asdict(subplots_options))
                 visualize_matching_central_wavenumbers(
                     spectra=spectra_rec,
@@ -570,7 +571,7 @@ def visualization_inputs_factory(experiment_id: int, option: VisualizationOption
         inputs_dict = {
             "experiment_id": experiment_id,
             "acquisition_index_ratio": 0.4,
-            "ip_indices": [2, 3, 8],
+            "ip_indices": [2, 3, 9],
             "subplots_options": SubplotsOptions(),
             "rc_params": RcParamsOptions(fontsize=17),
             "plot_options": {
@@ -583,7 +584,7 @@ def visualization_inputs_factory(experiment_id: int, option: VisualizationOption
         inputs_dict = {
             "experiment_id": experiment_id,
             "acquisition_index_ratio": 0.4,
-            "ip_indices": [2, 3, 8],
+            "ip_indices": [2, 3, 9],
             "subplots_options": SubplotsOptions(),
             "rc_params": RcParamsOptions(fontsize=17),
             "plot_options": {
