@@ -18,8 +18,8 @@ def main():
 
     rc_params = RcParamsOptions(fontsize=17)
     subplots_options = SubplotsOptions()
-    plot_options = {"ylim": [-0.3, 1.1]}
-    acquisition_index = [0, 13]
+    plot_options = {"ylim": [-0.3, 1.3]}
+    acquisition_indices = [0, 13]
 
     for i_ds, dataset_id in enumerate(experiment_config.dataset_ids):
         print(f"Dataset: {db.datasets[dataset_id].title.upper()}")
@@ -44,7 +44,7 @@ def main():
 
         spectra_ref_scaled.visualize(
             axs=axes[0, 0],
-            acq_ind=acquisition_index[i_ds],
+            acq_ind=acquisition_indices[i_ds],
             label="Reference",
             color="C0",
             linewidth=3,
@@ -72,21 +72,21 @@ def main():
             )
             spectra_rec_matched, _ = spectra_rec.match_stats(reference=spectra_ref_scaled, axis=-2)
 
+            delta_min_str = r"$\delta_{min}$"
             spectra_rec_matched.visualize(
                 axs=axes[0, 0],
-                acq_ind=acquisition_index[i_ds],
+                acq_ind=acquisition_indices[i_ds],
                 label=(
-                    f"{db.inversion_protocols[inversion_protocol_id].title.upper()}"
-                    f" - "
-                    f"{db.interferometers[interferometer_id].title.upper()}"
+                    f"{delta_min_str}={db.interferometers[interferometer_id].opds.start:.2f}"
                 ),
                 color=f"C{i_ifm + 1}",
                 linewidth=1.3,
-                title="",
+                title=f"{db.inversion_protocols[inversion_protocol_id].title.upper()}",
                 **plot_options,
             )
 
-        filename = f"acquisition_{acquisition_index[i_ds]:03}.pdf"
+        filename = f"acquisition_{acquisition_indices[i_ds]:03}.pdf"
+        plt.show()
         savefig_dir_list(
             fig=fig,
             filename=filename,

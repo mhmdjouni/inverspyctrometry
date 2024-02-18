@@ -40,7 +40,7 @@ def savefig_dir_list(
         if not save_dir.exists():
             save_dir.mkdir(parents=True, exist_ok=True)
         fig.savefig(fname=save_dir / filename, format=fmt, bbox_inches=bbox_inches)
-        plt.close(fig=fig)
+    plt.close(fig=fig)
 
 
 def visualize_and_save(

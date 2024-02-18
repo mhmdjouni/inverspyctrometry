@@ -309,8 +309,8 @@
       "lambdaas_schema": {
         "key": "regularization_parameter",
         "start": -1,
-        "stop": 1,
-        "num": 31,
+        "stop": 0,
+        "num": 16,
         "space": "logspace"
       },
       "norm_operator": [
@@ -329,8 +329,8 @@
       "lambdaas_schema": {
         "key": "regularization_parameter",
         "start": -1,
-        "stop": 1,
-        "num": 31,
+        "stop": 0,
+        "num": 16,
         "space": "logspace"
       },
       "norm_operator": [
@@ -349,8 +349,8 @@
       "lambdaas_schema": {
         "key": "regularization_parameter",
         "start": -1,
-        "stop": 1,
-        "num": 31,
+        "stop": 0,
+        "num": 16,
         "space": "logspace"
       },
       "norm_operator": [
@@ -368,9 +368,9 @@
       "type": "loris_verhoeven",
       "lambdaas_schema": {
         "key": "regularization_parameter",
-        "start": -2,
+        "start": -1,
         "stop": 0,
-        "num": 11,
+        "num": 16,
         "space": "logspace"
       },
       "norm_operator": [
