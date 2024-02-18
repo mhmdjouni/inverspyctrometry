@@ -10,6 +10,7 @@ from scipy import interpolate
 from src.common_utils.custom_vars import Wvn, Acq
 from src.common_utils.utils import convert_meter_units, standardize, min_max_normalize, rescale, add_noise, match_stats, \
     calculate_rmse
+from src.outputs.visualization import plot_custom
 
 
 @dataclass(frozen=True)
@@ -30,26 +31,25 @@ class Spectrum:
             ylabel: str = None,
             ylim: list = None,
     ):
-        axs.plot(
-            self.wavenumbers,
-            self.data[:, acq_ind],
-            linestyle=linestyle,
-            label=label,
-            color=color,
-            linewidth=linewidth,
-        )
         if title is None:
             title = "Spectral Radiance"
         if ylabel is None:
             ylabel = "Intensity"
-        if ylim is not None:
-            axs.set_ylim(ylim)
-
-        axs.set_title(title)
-        axs.set_ylabel(ylabel)
-        axs.set_xlabel(rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]")
-        axs.legend()
-        axs.grid(visible=True)
+        xlabel = rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]"
+        plot_custom(
+            axs=axs,
+            x_array=self.wavenumbers,
+            array=self.data[:, acq_ind],
+            linestyle=linestyle,
+            label=label,
+            color=color,
+            linewidth=linewidth,
+            title=title,
+            xlabel=xlabel,
+            xlim=None,
+            ylabel=ylabel,
+            ylim=ylim,
+        )
 
     def visualize_matrix(
             self,

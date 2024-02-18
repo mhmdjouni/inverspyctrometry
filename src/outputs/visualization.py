@@ -4,7 +4,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
+import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 
@@ -25,6 +27,41 @@ class SubplotsOptions:
     squeeze: bool = False
     figsize: tuple = (6.4, 4.8)
     tight_layout: bool = False
+
+
+def plot_custom(
+        axs: Axes,
+        x_array: np.ndarray | list,
+        array: np.ndarray,
+        linestyle: str = "-",
+        label: str = None,
+        color: str = "C0",
+        linewidth: float = 1.5,
+        title: str = None,
+        xlabel: str = None,
+        xlim: list = None,
+        ylabel: str = None,
+        ylim: list = None,
+):
+    axs.plot(
+        x_array,
+        array,
+        linestyle=linestyle,
+        label=label,
+        color=color,
+        linewidth=linewidth,
+    )
+
+    if xlim is not None:
+        axs.set_xlim(xlim)
+    if ylim is not None:
+        axs.set_ylim(ylim)
+
+    axs.set_title(title)
+    axs.set_ylabel(ylabel)
+    axs.set_xlabel(xlabel)
+    axs.legend()
+    axs.grid(visible=True)
 
 
 def savefig_dir_list(

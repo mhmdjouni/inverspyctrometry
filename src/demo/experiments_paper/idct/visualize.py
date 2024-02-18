@@ -6,92 +6,240 @@ from matplotlib import pyplot as plt
 from src.demo.experiments_paper.snr.utils import experiment_dir_convention, experiment_subdir_convention
 from src.demo.experiments_paper.snr.visualize import experiment_figures_subdir_convention
 from src.interface.configuration import load_config
-from src.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_dir_list
+from src.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_dir_list, plot_custom
 
 
-def main():
+def convert_zero_to_infty_latex(order: int) -> str:
+    if order == 0:
+        return r"$\infty$"
+    else:
+        return f"{order:.0f}"
+
+
+def visualize_spectrum_compare(
+        experiment_id: int,
+        dataset_id: int,
+        noise_level_index: int,
+        inversion_protocol_id: int,
+        rc_params: RcParamsOptions,
+        subplots_options: SubplotsOptions,
+        plot_options: dict,
+        acquisition_index: int,
+):
     config = load_config()
     db = config.database()
 
-    experiment_id = 3
     experiment_config = db.experiments[experiment_id]
 
-    rc_params = RcParamsOptions(fontsize=17)
-    subplots_options = SubplotsOptions()
-    plot_options = {"ylim": [-0.3, 1.3]}
-    acquisition_indices = [0, 13]
+    paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
+    reconstruction_dir = experiment_dir_convention(dir_type="reconstruction", experiment_id=experiment_id)
+    figures_dir_list = [
+        experiment_dir_convention(dir_type="figures", experiment_id=experiment_id),
+        experiment_dir_convention(dir_type="paper_figures", experiment_id=experiment_id, custom_dir=paper_dir),
+    ]
+    save_subdir = experiment_figures_subdir_convention(
+        dataset_id=dataset_id,
+        interferometer_id=-1,
+        noise_level_index=noise_level_index,
+        folder_name="spectrum_comparison",
+    )
 
-    for i_ds, dataset_id in enumerate(experiment_config.dataset_ids):
-        print(f"Dataset: {db.datasets[dataset_id].title.upper()}")
+    spectra_ref_scaled = db.dataset_spectrum(ds_id=dataset_id).rescale(new_max=1, axis=-2)
 
-        paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
-        reconstruction_dir = experiment_dir_convention(dir_type="reconstruction", experiment_id=experiment_id)
-        figures_dir_list = [
-            experiment_dir_convention(dir_type="figures", experiment_id=experiment_id),
-            experiment_dir_convention(dir_type="paper_figures", experiment_id=experiment_id, custom_dir=paper_dir),
-        ]
-        save_subdir = experiment_figures_subdir_convention(
+    plt.rcParams['font.size'] = str(rc_params.fontsize)
+    fig, axes = plt.subplots(**asdict(subplots_options))
+
+    spectra_ref_scaled.visualize(
+        axs=axes[0, 0],
+        acq_ind=acquisition_index,
+        label="Reference",
+        color="C0",
+        linewidth=3,
+        title="",
+        **plot_options,
+    )
+
+    for i_ifm, interferometer_id in enumerate(experiment_config.interferometer_ids):
+        print(f"\tInterferometer: {db.interferometers[interferometer_id].title.upper()}")
+
+        load_subdir = experiment_subdir_convention(
             dataset_id=dataset_id,
-            interferometer_id=-1,
-            noise_level_index=-1,
-            folder_name="spectrum_comparison",
+            interferometer_id=interferometer_id,
+            noise_level_index=noise_level_index,
+            inversion_protocol_id=inversion_protocol_id,
         )
 
-        spectra_ref_scaled = db.dataset_spectrum(ds_id=dataset_id).rescale(new_max=1, axis=-2)
+        spectra_rec = replace(
+            spectra_ref_scaled,
+            data=np.load(file=reconstruction_dir / load_subdir / "spectra_rec.npy"),
+        )
+        spectra_rec_matched, _ = spectra_rec.match_stats(reference=spectra_ref_scaled, axis=-2)
 
-        plt.rcParams['font.size'] = str(rc_params.fontsize)
-        fig, axes = plt.subplots(**asdict(subplots_options))
+        # TODO: Visualization options either in database or in schema or in
+        if experiment_id == 3:
+            label = r"$\delta_{min}$=" + f"{db.interferometers[interferometer_id].opds.start:.2f}"
+            title = (f"{db.interferometers[interferometer_id].type.value} "
+                     f"model")
+        elif experiment_id == 4 or experiment_id == 5:
+            reflectance_coeffs = np.array(db.interferometers[interferometer_id].reflectance_coefficients)
+            if reflectance_coeffs.size == 1:
+                label = r"$\mathcal{R}$=" + f"{reflectance_coeffs[0, 0]:.2f}"
+            else:
+                label = r"Variant $\mathcal{R}$"
+            title = (
+                f"{db.interferometers[interferometer_id].type.value} "
+                f"{convert_zero_to_infty_latex(db.interferometers[interferometer_id].order)}-wave "
+                f"model"
+            )
+        else:
+            label = f"Interferometer {interferometer_id}"
+            title = f"model"
 
-        spectra_ref_scaled.visualize(
+        spectra_rec_matched.visualize(
             axs=axes[0, 0],
-            acq_ind=acquisition_indices[i_ds],
-            label="Reference",
-            color="C0",
-            linewidth=3,
-            title="",
+            acq_ind=acquisition_index,
+            label=label,
+            color=f"C{i_ifm + 1}",
+            linewidth=1.3,
+            title=title,
             **plot_options,
         )
 
-        for i_ifm, interferometer_id in enumerate(experiment_config.interferometer_ids):
-            print(f"\tInterferometer: {db.interferometers[interferometer_id].title.upper()}")
+    filename = f"acquisition_{acquisition_index:03}.pdf"
+    plt.show()
+    savefig_dir_list(
+        fig=fig,
+        filename=filename,
+        directories_list=figures_dir_list,
+        subdirectory=save_subdir,
+    )
 
-            noise_level_index = experiment_config.noise_level_indices[0]
 
-            inversion_protocol_id = experiment_config.inversion_protocol_ids[0]
+def visualize_reflectance(
+        experiment_id: int,
+        dataset_id: int,
+        rc_params: RcParamsOptions,
+        subplots_options: SubplotsOptions,
+        plot_options: dict,
+):
+    config = load_config()
+    db = config.database()
 
-            load_subdir = experiment_subdir_convention(
-                dataset_id=dataset_id,
-                interferometer_id=interferometer_id,
-                noise_level_index=noise_level_index,
-                inversion_protocol_id=inversion_protocol_id,
+    experiment_config = db.experiments[experiment_id]
+
+    paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
+    figures_dir_list = [
+        experiment_dir_convention(dir_type="figures", experiment_id=experiment_id),
+        experiment_dir_convention(dir_type="paper_figures", experiment_id=experiment_id, custom_dir=paper_dir),
+    ]
+    save_subdir = experiment_figures_subdir_convention(
+        dataset_id=dataset_id,
+        interferometer_id=-1,
+        noise_level_index=-1,
+        folder_name="reflectance_comparison",
+    )
+
+    wavenumbers = db.dataset_central_wavenumbers(dataset_id=dataset_id)
+
+    plt.rcParams['font.size'] = str(rc_params.fontsize)
+    fig, axes = plt.subplots(**asdict(subplots_options))
+
+    for i_ifm, interferometer_id in enumerate(experiment_config.interferometer_ids):
+        print(f"\tInterferometer: {db.interferometers[interferometer_id].title.upper()}")
+
+        array = db.interferometer(ifm_id=interferometer_id).reflectance(wavenumbers=wavenumbers)[0]
+
+        # TODO: Visualization options either in database or in schema or in
+        if experiment_id == 3:
+            label = r"$\delta_{min}$=" + f"{db.interferometers[interferometer_id].opds.start:.2f}"
+            title = (f"{db.interferometers[interferometer_id].type.value} "
+                     f"model")
+        elif experiment_id == 4 or experiment_id == 5:
+            reflectance_coeffs = np.array(db.interferometers[interferometer_id].reflectance_coefficients)
+            if reflectance_coeffs.size == 1:
+                label = r"$\mathcal{R}$=" + f"{reflectance_coeffs[0, 0]:.2f}"
+            else:
+                label = r"Variant $\mathcal{R}$"
+            title = (
+                f"{db.interferometers[interferometer_id].type.value} "
+                f"{convert_zero_to_infty_latex(db.interferometers[interferometer_id].order)}-wave "
+                f"model"
             )
+        else:
+            label = f"Interferometer {interferometer_id}"
+            title = f"model"
 
-            spectra_rec = replace(
-                spectra_ref_scaled,
-                data=np.load(file=reconstruction_dir / load_subdir / "spectra_rec.npy"),
-            )
-            spectra_rec_matched, _ = spectra_rec.match_stats(reference=spectra_ref_scaled, axis=-2)
+        plot_custom(
+            axs=axes[0, 0],
+            x_array=wavenumbers,
+            array=array,
+            label=label,
+            color=f"C{i_ifm + 1}",
+            linewidth=1.5,
+            title=title,
+            **plot_options,
+        )
 
-            delta_min_str = r"$\delta_{min}$"
-            spectra_rec_matched.visualize(
-                axs=axes[0, 0],
-                acq_ind=acquisition_indices[i_ds],
-                label=(
-                    f"{delta_min_str}={db.interferometers[interferometer_id].opds.start:.2f}"
-                ),
-                color=f"C{i_ifm + 1}",
-                linewidth=1.3,
-                title=f"{db.inversion_protocols[inversion_protocol_id].title.upper()}",
-                **plot_options,
-            )
+    filename = f"reflectance.pdf"
+    plt.show()
+    savefig_dir_list(
+        fig=fig,
+        filename=filename,
+        directories_list=figures_dir_list,
+        subdirectory=save_subdir,
+    )
 
-        filename = f"acquisition_{acquisition_indices[i_ds]:03}.pdf"
-        plt.show()
-        savefig_dir_list(
-            fig=fig,
-            filename=filename,
-            directories_list=figures_dir_list,
-            subdirectory=save_subdir,
+
+def visualize_one_experiment(
+        experiment_id: int,
+        rc_params: RcParamsOptions,
+        subplots_options: SubplotsOptions,
+        plot_options: dict,
+        acquisition_indices: list[int],
+):
+    db = load_config().database()
+
+    experiment_config = db.experiments[experiment_id]
+    for i_ds, dataset_id in enumerate(experiment_config.dataset_ids):
+        print(f"Dataset: {db.datasets[dataset_id].title.upper()}")
+
+        noise_level_index = experiment_config.noise_level_indices[0]
+        inversion_protocol_id = experiment_config.inversion_protocol_ids[0]
+
+        visualize_spectrum_compare(
+            experiment_id=experiment_id,
+            dataset_id=dataset_id,
+            noise_level_index=noise_level_index,
+            inversion_protocol_id=inversion_protocol_id,
+            rc_params=rc_params,
+            subplots_options=subplots_options,
+            plot_options=plot_options,
+            acquisition_index=acquisition_indices[i_ds],
+        )
+
+        visualize_reflectance(
+            experiment_id=experiment_id,
+            dataset_id=dataset_id,
+            rc_params=rc_params,
+            subplots_options=subplots_options,
+            plot_options=plot_options,
+        )
+
+
+def main():
+    experiment_ids = [3, 4, 5]
+    rc_params = RcParamsOptions(fontsize=17)
+    subplots_options = SubplotsOptions()
+    plot_options = {"ylim": [-0.2, 1.4]}
+    acquisition_indices = [0, 13, 13]
+
+    for experiment_id in experiment_ids:
+        visualize_one_experiment(
+            experiment_id=experiment_id,
+            rc_params=rc_params,
+            subplots_options=subplots_options,
+            plot_options=plot_options,
+            acquisition_indices=acquisition_indices,
         )
 
 
