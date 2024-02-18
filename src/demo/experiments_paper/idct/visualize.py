@@ -3,17 +3,11 @@ from dataclasses import asdict, replace
 import numpy as np
 from matplotlib import pyplot as plt
 
+from src.common_utils.utils import convert_zero_to_infty_latex
 from src.demo.experiments_paper.snr.utils import experiment_dir_convention, experiment_subdir_convention
 from src.demo.experiments_paper.snr.visualize import experiment_figures_subdir_convention
 from src.interface.configuration import load_config
 from src.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_dir_list, plot_custom
-
-
-def convert_zero_to_infty_latex(order: int) -> str:
-    if order == 0:
-        return r"$\infty$"
-    else:
-        return f"{order:.0f}"
 
 
 def visualize_spectrum_compare(
@@ -142,7 +136,8 @@ def visualize_reflectance(
         folder_name="reflectance_comparison",
     )
 
-    wavenumbers = db.dataset_central_wavenumbers(dataset_id=dataset_id)
+    spectra_ref = db.dataset_spectrum(ds_id=dataset_id)
+    wavenumbers = spectra_ref.wavenumbers
 
     plt.rcParams['font.size'] = str(rc_params.fontsize)
     fig, axes = plt.subplots(**asdict(subplots_options))
@@ -178,8 +173,10 @@ def visualize_reflectance(
             array=array,
             label=label,
             color=f"C{i_ifm + 1}",
-            linewidth=1.5,
+            linewidth=2,
             title=title,
+            ylabel="Intensity",
+            xlabel=rf"Wavenumbers $\sigma$ [{spectra_ref.wavenumbers_unit}]",
             **plot_options,
         )
 
@@ -255,7 +252,7 @@ def visualize_list_experiments(
 
 
 def main():
-    experiment_ids = [3, 4, 5]
+    experiment_ids = [3, 4, 5, 6]
     rc_params = RcParamsOptions(fontsize=17)
     subplots_options = SubplotsOptions()
     plot_options = {"ylim": [-0.2, 1.4]}

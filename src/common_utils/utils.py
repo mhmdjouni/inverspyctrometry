@@ -201,3 +201,10 @@ def numpy_to_latex(
         position=position,
     )
     return latex_table
+
+
+def convert_zero_to_infty_latex(order: int) -> str:
+    if order == 0:
+        return r"$\infty$"
+    else:
+        return f"{order:.0f}"

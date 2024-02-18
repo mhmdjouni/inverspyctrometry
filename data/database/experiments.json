@@ -74,7 +74,7 @@
     {
       "id": 3,
       "title": "idct_opd_min_comparison_michelson",
-      "type": "idct",
+      "type": "idct/opd_min_comparison_michelson",
       "dataset_ids": [
         0,
         2
@@ -94,7 +94,7 @@
     {
       "id": 4,
       "title": "idct_reflectance_invariance_comparison_fp_2",
-      "type": "idct",
+      "type": "idct/reflectance_invariance_comparison_fp_2",
       "dataset_ids": [
         0,
         2
@@ -114,7 +114,7 @@
     {
       "id": 5,
       "title": "idct_reflectance_levels_comparison_fp_0",
-      "type": "idct",
+      "type": "idct/reflectance_levels_comparison_fp_0",
       "dataset_ids": [
         0,
         2
@@ -135,8 +135,8 @@
     },
     {
       "id": 6,
-      "title": "idct_reflectance_levels_comparison_fp_0",
-      "type": "idct",
+      "title": "idct_snr_levels_fp_0",
+      "type": "idct/snr_levels_fp_0",
       "dataset_ids": [
         0,
         2
@@ -157,7 +157,7 @@
     {
       "id": 7,
       "title": "idct_mc451",
-      "type": "real",
+      "type": "idct/mc451",
       "dataset_ids": [
         3,
         4

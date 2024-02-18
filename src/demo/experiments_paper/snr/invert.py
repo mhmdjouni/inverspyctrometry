@@ -36,6 +36,7 @@ def main():
             interferograms_ref = simulate_interferogram(transmittance_response=transfer_matrix, spectrum=spectra_ref)
 
             interferograms_ref = interferograms_ref.rescale(new_max=1, axis=-2)
+            # interferograms_ref = interferograms_ref.center(new_mean=0)
             transfer_matrix = transfer_matrix.rescale(new_max=1, axis=None)
 
             for nl_idx in experiment_config.noise_level_indices:

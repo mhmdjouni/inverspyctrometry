@@ -28,13 +28,16 @@ def run_full_pipeline(
 
 def main():
     experiment_ids = [3, 4, 5, 6]
+
     is_compensate = True
+
     is_verbose = True
+
     rc_params = RcParamsOptions(fontsize=17)
     subplots_options = SubplotsOptions()
     plot_options = {"ylim": [-0.2, 1.4]}
     acquisition_indices = [0, 13, 13]
-    is_plot_show = True
+    is_plot_show = False
 
     run_full_pipeline(
         experiment_ids=experiment_ids,
