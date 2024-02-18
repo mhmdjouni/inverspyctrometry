@@ -25,6 +25,7 @@ def visualize_spectrum_compare(
         subplots_options: SubplotsOptions,
         plot_options: dict,
         acquisition_index: int,
+        is_plot_show: bool = False,
 ):
     config = load_config()
     db = config.database()
@@ -106,7 +107,8 @@ def visualize_spectrum_compare(
         )
 
     filename = f"acquisition_{acquisition_index:03}.pdf"
-    plt.show()
+    if is_plot_show:
+        plt.show()
     savefig_dir_list(
         fig=fig,
         filename=filename,
@@ -121,6 +123,7 @@ def visualize_reflectance(
         rc_params: RcParamsOptions,
         subplots_options: SubplotsOptions,
         plot_options: dict,
+        is_plot_show: bool = False,
 ):
     config = load_config()
     db = config.database()
@@ -181,7 +184,8 @@ def visualize_reflectance(
         )
 
     filename = f"reflectance.pdf"
-    plt.show()
+    if is_plot_show:
+        plt.show()
     savefig_dir_list(
         fig=fig,
         filename=filename,
@@ -196,6 +200,7 @@ def visualize_one_experiment(
         subplots_options: SubplotsOptions,
         plot_options: dict,
         acquisition_indices: list[int],
+        is_plot_show: bool = False,
 ):
     db = load_config().database()
 
@@ -217,6 +222,7 @@ def visualize_one_experiment(
                 subplots_options=subplots_options,
                 plot_options=plot_options,
                 acquisition_index=acquisition_indices[i_ds],
+                is_plot_show=is_plot_show,
             )
 
             visualize_reflectance(
@@ -225,6 +231,7 @@ def visualize_one_experiment(
                 rc_params=rc_params,
                 subplots_options=subplots_options,
                 plot_options=plot_options,
+                is_plot_show=is_plot_show,
             )
 
 
@@ -234,6 +241,7 @@ def visualize_list_experiments(
         subplots_options: SubplotsOptions,
         plot_options: dict,
         acquisition_indices: list[int],
+        is_plot_show: bool = False,
 ):
     for experiment_id in experiment_ids:
         visualize_one_experiment(
@@ -242,6 +250,7 @@ def visualize_list_experiments(
             subplots_options=subplots_options,
             plot_options=plot_options,
             acquisition_indices=acquisition_indices,
+            is_plot_show=is_plot_show,
         )
 
 
@@ -251,12 +260,14 @@ def main():
     subplots_options = SubplotsOptions()
     plot_options = {"ylim": [-0.2, 1.4]}
     acquisition_indices = [0, 13, 13]
+    is_plot_show = True
     visualize_list_experiments(
         experiment_ids=experiment_ids,
         rc_params=rc_params,
         subplots_options=subplots_options,
         plot_options=plot_options,
         acquisition_indices=acquisition_indices,
+        is_plot_show=is_plot_show,
     )
 
 

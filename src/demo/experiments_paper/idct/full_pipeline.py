@@ -12,6 +12,7 @@ def run_full_pipeline(
         subplots_options: SubplotsOptions,
         plot_options: dict,
         acquisition_indices: list[int],
+        is_plot_show: bool = False,
 ):
     invert_list_experiments(experiment_ids=experiment_ids, is_compensate=is_compensate)
     metrics_list_experiments(experiment_ids=experiment_ids, is_verbose=is_verbose)
@@ -21,6 +22,7 @@ def run_full_pipeline(
         subplots_options=subplots_options,
         plot_options=plot_options,
         acquisition_indices=acquisition_indices,
+        is_plot_show=is_plot_show,
     )
 
 
@@ -32,6 +34,7 @@ def main():
     subplots_options = SubplotsOptions()
     plot_options = {"ylim": [-0.2, 1.4]}
     acquisition_indices = [0, 13, 13]
+    is_plot_show = True,
 
     run_full_pipeline(
         experiment_ids=experiment_ids,
@@ -41,6 +44,7 @@ def main():
         subplots_options=subplots_options,
         plot_options=plot_options,
         acquisition_indices=acquisition_indices,
+        is_plot_show=is_plot_show,
     )
 
 
