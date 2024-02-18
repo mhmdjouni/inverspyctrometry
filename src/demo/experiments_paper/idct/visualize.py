@@ -228,13 +228,13 @@ def visualize_one_experiment(
             )
 
 
-def main():
-    experiment_ids = [3, 4, 5]
-    rc_params = RcParamsOptions(fontsize=17)
-    subplots_options = SubplotsOptions()
-    plot_options = {"ylim": [-0.2, 1.4]}
-    acquisition_indices = [0, 13, 13]
-
+def visualize_list_experiments(
+        experiment_ids: list,
+        rc_params: RcParamsOptions,
+        subplots_options: SubplotsOptions,
+        plot_options: dict,
+        acquisition_indices: list[int],
+):
     for experiment_id in experiment_ids:
         visualize_one_experiment(
             experiment_id=experiment_id,
@@ -243,6 +243,21 @@ def main():
             plot_options=plot_options,
             acquisition_indices=acquisition_indices,
         )
+
+
+def main():
+    experiment_ids = [3, 4, 5]
+    rc_params = RcParamsOptions(fontsize=17)
+    subplots_options = SubplotsOptions()
+    plot_options = {"ylim": [-0.2, 1.4]}
+    acquisition_indices = [0, 13, 13]
+    visualize_list_experiments(
+        experiment_ids=experiment_ids,
+        rc_params=rc_params,
+        subplots_options=subplots_options,
+        plot_options=plot_options,
+        acquisition_indices=acquisition_indices,
+    )
 
 
 if __name__ == "__main__":

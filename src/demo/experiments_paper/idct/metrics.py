@@ -83,15 +83,21 @@ def metrics_one_experiment(
                 )
 
 
-def main():
-    experiment_ids = [3, 4, 5]
-    is_verbose = True
-
+def metrics_list_experiments(
+        experiment_ids: list,
+        is_verbose: bool = True,
+):
     for experiment_id in experiment_ids:
         metrics_one_experiment(
             experiment_id=experiment_id,
             is_verbose=is_verbose,
         )
+
+
+def main():
+    experiment_ids = [3, 4, 5]
+    is_verbose = True
+    metrics_list_experiments(experiment_ids=experiment_ids, is_verbose=is_verbose)
 
 
 if __name__ == "__main__":

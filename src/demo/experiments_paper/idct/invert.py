@@ -86,24 +86,30 @@ def invert_one_experiment(
                 inversion_protocol_id = experiment_config.inversion_protocol_ids[0]
 
                 invert_core(
-                    experiment_id,
-                    dataset_id,
-                    interferometer_id,
-                    noise_level_index,
-                    inversion_protocol_id,
-                    is_compensate,
+                    experiment_id=experiment_id,
+                    dataset_id=dataset_id,
+                    interferometer_id=interferometer_id,
+                    noise_level_index=noise_level_index,
+                    inversion_protocol_id=inversion_protocol_id,
+                    is_compensate=is_compensate,
                 )
 
 
-def main():
-    experiment_ids = [3, 4, 5, 6]
-    is_compensate = True
-
+def invert_list_experiments(
+        experiment_ids: list,
+        is_compensate: bool = True,
+):
     for experiment_id in experiment_ids:
         invert_one_experiment(
             experiment_id=experiment_id,
             is_compensate=is_compensate,
         )
+
+
+def main():
+    experiment_ids = [3, 4, 5, 6]
+    is_compensate = True
+    invert_list_experiments(experiment_ids=experiment_ids, is_compensate=is_compensate)
 
 
 if __name__ == "__main__":
