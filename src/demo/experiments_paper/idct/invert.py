@@ -80,21 +80,23 @@ def invert_one_experiment(
         for interferometer_id in experiment_config.interferometer_ids:
             print(f"\tInterferometer: {db.interferometers[interferometer_id].title.upper()}")
 
-            noise_level_index = experiment_config.noise_level_indices[0]
-            inversion_protocol_id = experiment_config.inversion_protocol_ids[0]
+            for noise_level_index in experiment_config.noise_level_indices:
+                print(f"\t\tNoise Level: {db.noise_levels[noise_level_index]:.0f}")
 
-            invert_core(
-                experiment_id,
-                dataset_id,
-                interferometer_id,
-                noise_level_index,
-                inversion_protocol_id,
-                is_compensate,
-            )
+                inversion_protocol_id = experiment_config.inversion_protocol_ids[0]
+
+                invert_core(
+                    experiment_id,
+                    dataset_id,
+                    interferometer_id,
+                    noise_level_index,
+                    inversion_protocol_id,
+                    is_compensate,
+                )
 
 
 def main():
-    experiment_ids = [3, 4, 5]
+    experiment_ids = [3, 4, 5, 6]
     is_compensate = True
 
     for experiment_id in experiment_ids:

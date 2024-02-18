@@ -135,6 +135,27 @@
     },
     {
       "id": 6,
+      "title": "idct_reflectance_levels_comparison_fp_0",
+      "type": "idct",
+      "dataset_ids": [
+        0,
+        2
+      ],
+      "interferometer_ids": [
+        4
+      ],
+      "noise_level_indices": [
+        1,
+        2,
+        3
+      ],
+      "inversion_protocol_ids": [
+        0
+      ],
+      "description": "Compares between low, medium, high, and variable reflectance, using FP infty-wave interferometer."
+    },
+    {
+      "id": 7,
       "title": "idct_mc451",
       "type": "real",
       "dataset_ids": [

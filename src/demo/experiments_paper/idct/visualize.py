@@ -203,27 +203,29 @@ def visualize_one_experiment(
     for i_ds, dataset_id in enumerate(experiment_config.dataset_ids):
         print(f"Dataset: {db.datasets[dataset_id].title.upper()}")
 
-        noise_level_index = experiment_config.noise_level_indices[0]
-        inversion_protocol_id = experiment_config.inversion_protocol_ids[0]
+        for noise_level_index in experiment_config.noise_level_indices:
+            print(f"\t\tNoise Level: {db.noise_levels[noise_level_index]:.0f}")
 
-        visualize_spectrum_compare(
-            experiment_id=experiment_id,
-            dataset_id=dataset_id,
-            noise_level_index=noise_level_index,
-            inversion_protocol_id=inversion_protocol_id,
-            rc_params=rc_params,
-            subplots_options=subplots_options,
-            plot_options=plot_options,
-            acquisition_index=acquisition_indices[i_ds],
-        )
+            inversion_protocol_id = experiment_config.inversion_protocol_ids[0]
 
-        visualize_reflectance(
-            experiment_id=experiment_id,
-            dataset_id=dataset_id,
-            rc_params=rc_params,
-            subplots_options=subplots_options,
-            plot_options=plot_options,
-        )
+            visualize_spectrum_compare(
+                experiment_id=experiment_id,
+                dataset_id=dataset_id,
+                noise_level_index=noise_level_index,
+                inversion_protocol_id=inversion_protocol_id,
+                rc_params=rc_params,
+                subplots_options=subplots_options,
+                plot_options=plot_options,
+                acquisition_index=acquisition_indices[i_ds],
+            )
+
+            visualize_reflectance(
+                experiment_id=experiment_id,
+                dataset_id=dataset_id,
+                rc_params=rc_params,
+                subplots_options=subplots_options,
+                plot_options=plot_options,
+            )
 
 
 def main():

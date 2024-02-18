@@ -68,17 +68,19 @@ def metrics_one_experiment(
         for interferometer_id in experiment_config.interferometer_ids:
             print(f"\tInterferometer: {db.interferometers[interferometer_id].title.upper()}")
 
-            noise_level_index = experiment_config.noise_level_indices[0]
-            inversion_protocol_id = experiment_config.inversion_protocol_ids[0]
+            for noise_level_index in experiment_config.noise_level_indices:
+                print(f"\t\tNoise Level: {db.noise_levels[noise_level_index]:.0f}")
 
-            metrics_core(
-                experiment_id=experiment_id,
-                dataset_id=dataset_id,
-                interferometer_id=interferometer_id,
-                noise_level_index=noise_level_index,
-                inversion_protocol_id=inversion_protocol_id,
-                is_verbose=is_verbose,
-            )
+                inversion_protocol_id = experiment_config.inversion_protocol_ids[0]
+
+                metrics_core(
+                    experiment_id=experiment_id,
+                    dataset_id=dataset_id,
+                    interferometer_id=interferometer_id,
+                    noise_level_index=noise_level_index,
+                    inversion_protocol_id=inversion_protocol_id,
+                    is_verbose=is_verbose,
+                )
 
 
 def main():
