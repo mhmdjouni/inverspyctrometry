@@ -34,7 +34,7 @@ def main():
     subplots_options = SubplotsOptions()
     plot_options = {"ylim": [-0.2, 1.4]}
     acquisition_indices = [0, 13, 13]
-    is_plot_show = True,
+    is_plot_show = True
 
     run_full_pipeline(
         experiment_ids=experiment_ids,
