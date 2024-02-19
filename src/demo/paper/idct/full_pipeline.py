@@ -1,6 +1,6 @@
-from src.demo.experiments_paper.idct.invert import invert_list_experiments
-from src.demo.experiments_paper.idct.metrics import metrics_list_experiments
-from src.demo.experiments_paper.idct.visualize import visualize_list_experiments
+from src.demo.paper.idct.invert import invert_list_experiments
+from src.demo.paper.idct.metrics import metrics_list_experiments
+from src.demo.paper.idct.visualize import visualize_list_experiments
 from src.outputs.visualization import RcParamsOptions, SubplotsOptions
 
 

@@ -4,7 +4,7 @@ import numpy as np
 
 from src.common_utils.light_wave import Spectrum
 from src.common_utils.utils import match_stats, calculate_rmse
-from src.demo.experiments_paper.monochromatic.utils import print_metrics, calculate_rmcw
+from src.demo.paper.monochromatic.utils import print_metrics, calculate_rmcw
 from src.interface.configuration import load_config
 
 

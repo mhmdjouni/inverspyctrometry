@@ -2,7 +2,7 @@ from dataclasses import replace
 
 import numpy as np
 
-from src.demo.experiments_paper.snr.utils import experiment_dir_convention, experiment_subdir_convention
+from src.demo.paper.snr.utils import experiment_dir_convention, experiment_subdir_convention
 from src.interface.configuration import load_config
 from src.outputs.serialize import numpy_save_list
 

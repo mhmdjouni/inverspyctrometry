@@ -4,8 +4,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from src.common_utils.utils import convert_zero_to_infty_latex
-from src.demo.experiments_paper.snr.utils import experiment_dir_convention, experiment_subdir_convention
-from src.demo.experiments_paper.snr.visualize import experiment_figures_subdir_convention
+from src.demo.paper.snr.utils import experiment_dir_convention, experiment_subdir_convention
+from src.demo.paper.snr.visualize import experiment_figures_subdir_convention
 from src.interface.configuration import load_config
 from src.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_dir_list, plot_custom
 

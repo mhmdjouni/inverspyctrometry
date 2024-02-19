@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 from src.common_utils.light_wave import Spectrum
 from src.common_utils.utils import calculate_rmse, match_stats
-from src.demo.experiments_paper.monochromatic.utils import calculate_rmcw
+from src.demo.paper.monochromatic.utils import calculate_rmcw
 from src.interface.configuration import load_config
 from src.inverse_model.protocols import inversion_protocol_factory
 

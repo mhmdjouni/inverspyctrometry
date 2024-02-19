@@ -1,5 +1,5 @@
 from src.common_utils.utils import calculate_rmse
-from src.demo.experiments_paper.snr.utils import experiment_dir_convention, experiment_subdir_convention
+from src.demo.paper.snr.utils import experiment_dir_convention, experiment_subdir_convention
 from src.interface.configuration import load_config
 from src.outputs.serialize import numpy_save_list, numpy_load_list
 

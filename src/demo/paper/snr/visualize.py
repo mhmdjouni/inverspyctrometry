@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from src.common_utils.interferogram import Interferogram
-from src.demo.experiments_paper.snr.utils import experiment_subdir_convention, experiment_dir_convention
+from src.demo.paper.snr.utils import experiment_subdir_convention, experiment_dir_convention
 from src.interface.configuration import load_config
 from src.outputs.serialize import numpy_load_list
 from src.outputs.visualization import savefig_dir_list, RcParamsOptions, SubplotsOptions

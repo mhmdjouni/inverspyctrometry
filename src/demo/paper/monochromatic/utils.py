@@ -7,7 +7,7 @@ import numpy as np
 from src.common_utils.custom_vars import Wvn, Acq
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
-from src.demo.experiments_paper.snr.utils import experiment_dir_convention
+from src.demo.paper.snr.utils import experiment_dir_convention
 from src.interface.configuration import load_config
 from src.outputs.serialize import numpy_load_list
 

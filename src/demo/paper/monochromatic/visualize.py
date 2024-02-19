@@ -7,7 +7,7 @@ import numpy as np
 
 from src.common_utils.light_wave import Spectrum
 from src.common_utils.utils import match_stats
-from src.demo.experiments_paper.monochromatic.utils import visualize_matching_central_wavenumbers
+from src.demo.paper.monochromatic.utils import visualize_matching_central_wavenumbers
 from src.direct_model.interferometer import simulate_interferogram
 from src.interface.configuration import load_config
 from src.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_dir_list

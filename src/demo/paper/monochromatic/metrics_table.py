@@ -1,6 +1,6 @@
 from src.common_utils.utils import numpy_to_latex
-from src.demo.experiments_paper.monochromatic.utils import metrics_full_table
-from src.demo.experiments_paper.snr.utils import experiment_dir_convention
+from src.demo.paper.monochromatic.utils import metrics_full_table
+from src.demo.paper.snr.utils import experiment_dir_convention
 from src.outputs.serialize import numpy_save_list
 
 
