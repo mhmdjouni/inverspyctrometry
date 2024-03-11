@@ -32,7 +32,7 @@ class MichelsonInverSpectrometer(InverSpectrometer):
         # This is equivalent to: x = 2 * scipy.fft.idct(y - 1/2 * y[0], type=2. norm=None) / (2*T)
         spectrum = fft.idct(interferogram_compensated, axis=-2) / self.transmittance[:, None]
         wavenumbers = generate_wavenumbers_from_opds(
-            nb_wn=interferogram.opds.size,
+            wavenumbers_num=interferogram.opds.size,
             del_opd=np.mean(np.diff(interferogram.opds)),
         )
         return Spectrum(data=spectrum, wavenumbers=wavenumbers)

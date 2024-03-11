@@ -2,9 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from src.common_utils.custom_vars import InterferometerType as IfmType
+from src.common_utils.light_wave import Spectrum
 from src.common_utils.utils import generate_sampled_opds, generate_wavenumbers_from_opds
 from src.direct_model.interferometer import interferometer_factory
-from src.common_utils.light_wave import Spectrum
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
     nb_opd, del_opd = 320, 0.175
     opds = generate_sampled_opds(nb_opd=nb_opd, opd_step=del_opd)
     nb_wn = opds.size*4  # quasi-continuous
-    wavenumbers = generate_wavenumbers_from_opds(nb_wn=nb_wn, del_opd=del_opd)
+    wavenumbers = generate_wavenumbers_from_opds(wavenumbers_num=nb_wn, del_opd=del_opd)
 
     reflectance_coefficients = 0.13 * np.ones(shape=(opds.size, 1))
     transmittance_coefficients = 1 - reflectance_coefficients

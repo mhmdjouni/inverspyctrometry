@@ -139,9 +139,18 @@ def generate_sampled_opds(nb_opd: int, opd_step: float, opd_min: float = 0) -> n
     return opds
 
 
-def generate_wavenumbers_from_opds(nb_wn: int, del_opd: float) -> np.ndarray[tuple[Wvn], np.dtype[np.float_]]:
-    del_wn = 1 / (2 * nb_wn * del_opd)  # del_wn tends to zero as nb_wn tends to infinity (implies continuous)
-    wavenumbers = del_wn * (np.arange(nb_wn) + 1/2)
+def generate_wavenumbers_from_opds(
+        wavenumbers_num: int,
+        del_opd: float,
+        wavenumbers_start: float = None,
+        wavenumbers_stop: float = None,
+) -> np.ndarray[tuple[Wvn], np.dtype[np.float_]]:
+    del_wn = 1 / (2 * wavenumbers_num * del_opd)  # del_wn tends to zero as nb_wn tends to infinity (implies continuous)
+    wavenumbers = del_wn * (np.arange(wavenumbers_num) + 1 / 2)
+    if wavenumbers_start is not None:
+        wavenumbers = wavenumbers[wavenumbers >= wavenumbers_start]
+    if wavenumbers_stop is not None:
+        wavenumbers = wavenumbers[wavenumbers <= wavenumbers_stop]
     return wavenumbers
 
 

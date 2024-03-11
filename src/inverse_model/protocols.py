@@ -3,10 +3,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy import fft
 from tqdm import tqdm
 
@@ -15,8 +13,8 @@ from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
 from src.common_utils.transmittance_response import TransmittanceResponse
 from src.common_utils.utils import generate_wavenumbers_from_opds
-from src.inverse_model.operators import ProximalOperator, LinearOperator
 from src.inverse_model.loris_verhoeven_utils import LorisVerhoevenIteration
+from src.inverse_model.operators import ProximalOperator, LinearOperator
 
 
 def inversion_protocol_factory(option: InversionProtocolType, parameters: dict):
@@ -78,7 +76,7 @@ class IDCT(InversionProtocol):
     ) -> Spectrum:
         spectrum = fft.idct(interferogram.data, axis=-2)
         wavenumbers = generate_wavenumbers_from_opds(
-            nb_wn=interferogram.opds.size,
+            wavenumbers_num=interferogram.opds.size,
             del_opd=np.mean(np.diff(interferogram.opds))
         )
         spectrum_obj = Spectrum(data=spectrum, wavenumbers=wavenumbers)

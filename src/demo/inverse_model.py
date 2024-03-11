@@ -5,9 +5,9 @@ import numpy as np
 
 from src.common_utils.custom_vars import InterferometerType, InversionProtocolType, NormOperatorType, \
     LinearOperatorMethod
-from src.common_utils.transmittance_response import TransmittanceResponse
-from src.common_utils.utils import generate_shifted_dirac, generate_sampled_opds, generate_wavenumbers_from_opds
 from src.common_utils.interferogram import Interferogram
+from src.common_utils.transmittance_response import TransmittanceResponse
+from src.common_utils.utils import generate_sampled_opds, generate_wavenumbers_from_opds
 from src.direct_model.interferometer import interferometer_factory
 from src.inverse_model.inverspectrometer import MichelsonInverSpectrometer
 from src.inverse_model.operators import CTVOperator, NormOperator, LinearOperator
@@ -64,7 +64,7 @@ def main():
     interferogram = Interferogram(data=observation, opds=opds)
 
     # Transmittance response information
-    wavenumbers = generate_wavenumbers_from_opds(nb_wn=nb_wn, del_opd=del_opd)
+    wavenumbers = generate_wavenumbers_from_opds(wavenumbers_num=nb_wn, del_opd=del_opd)
     reflectance_coefficients = 0.13 * np.ones(shape=(opds.size, 1))
     transmittance_coefficients = 1 - reflectance_coefficients
     phase_shift = np.zeros_like(a=opds)
