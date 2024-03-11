@@ -44,22 +44,26 @@ class TransmittanceResponse:
             vmin: float = None,
             vmax: float = None,
             is_colorbar: bool = True,
+            x_ticks_num: int = 6,
+            x_ticks_decimals: int = 2,
+            y_ticks_num: int = 6,
+            y_ticks_decimals: int = 2,
     ):
         imshow = axs.imshow(
             self.data,
-            aspect='auto',
+            # aspect='auto',
             vmin=vmin,
             vmax=vmax,
         )
         if is_colorbar:
             fig.colorbar(imshow, ax=axs)
 
-        opd_ticks = np.linspace(start=0, stop=self.opds.size - 1, num=6, dtype=int)
-        opd_labels = np.around(a=self.opds[opd_ticks], decimals=2)
+        opd_ticks = np.linspace(start=0, stop=self.opds.size - 1, num=y_ticks_num, dtype=int)
+        opd_labels = np.around(a=self.opds[opd_ticks], decimals=y_ticks_decimals)
         axs.set_yticks(ticks=opd_ticks, labels=opd_labels)
 
-        wavenumbers_ticks = np.linspace(start=0, stop=self.wavenumbers.size-1, num=6, dtype=int)
-        wavenumbers_labels = np.around(a=self.wavenumbers[wavenumbers_ticks], decimals=2)
+        wavenumbers_ticks = np.linspace(start=0, stop=self.wavenumbers.size-1, num=x_ticks_num, dtype=int)
+        wavenumbers_labels = np.around(a=self.wavenumbers[wavenumbers_ticks], decimals=x_ticks_decimals)
         axs.set_xticks(ticks=wavenumbers_ticks, labels=wavenumbers_labels)
 
         if title is None:
@@ -68,9 +72,20 @@ class TransmittanceResponse:
         axs.set_ylabel(rf"OPDs $\delta$ [{self.opds_unit}]")
         axs.set_xlabel(rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]")
 
-    def visualize_opd_response(self, axs, opd_idx: int, title: str = None, show_full_title: bool = True):
+    def visualize_opd_response(
+            self,
+            axs,
+            opd_idx: int,
+            title: str = None,
+            show_full_title: bool = True,
+            linewidth: float = 1.5,
+    ):
         """Visualize a selected row of the transmittance response"""
-        axs.plot(self.wavenumbers, self.data[opd_idx])
+        axs.plot(
+            self.wavenumbers,
+            self.data[opd_idx],
+            linewidth=linewidth,
+        )
         if title is None:
             if show_full_title:
                 title = rf"OPD Response for $\delta$={self.opds[opd_idx]:.2f} {self.opds_unit}"
@@ -81,27 +96,44 @@ class TransmittanceResponse:
         axs.set_xlabel(rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]")
         axs.grid(True)
 
-    def visualize_wavenumber_response(self, axs, wavenumber_idx):
-        axs.plot(self.opds, self.data[:, wavenumber_idx])
+    def visualize_wavenumber_response(
+            self,
+            axs,
+            wavenumber_idx,
+            linewidth: float = 1.5,
+    ):
+        axs.plot(self.opds, self.data[:, wavenumber_idx], linewidth=linewidth)
         axs.set_title(rf"Wavenumber Response for $\sigma$={self.wavenumbers[wavenumber_idx]} {self.wavenumbers_unit}")
         axs.set_ylabel("Intensity")
         axs.set_xlabel(rf"OPDs $\delta$ [{self.opds_unit}]")
         axs.grid(True)
 
-    def visualize_singular_values(self, axs, title: str = None):
+    def visualize_singular_values(
+            self,
+            axs,
+            title: str = None,
+            linewidth: float = 1.5,
+    ):
         singular_values = self.compute_singular_values()
-        axs.plot(singular_values)
+        axs.plot(singular_values, linewidth=linewidth)
         if title is None:
             title = "Singular Values"
         axs.set_title(title)
         axs.set_ylabel("Amplitude")
-        axs.set_xlabel(r"Singular Value index [$R_{A}$]")
+        axs.set_xlabel(r"Singular Value index")
         axs.grid(True)
 
-    def visualize_dct(self, axs, opd_idx: int = -1, title: str = None, show_full_title: bool = True):
+    def visualize_dct(
+            self,
+            axs,
+            opd_idx: int = -1,
+            title: str = None,
+            show_full_title: bool = True,
+            linewidth: float = 1.5,
+    ):
         dct = self.compute_dct(opd_idx)
         x_axis = np.mean(np.diff(a=self.opds)) * np.arange(dct.shape[0])
-        axs.plot(x_axis, dct)
+        axs.plot(x_axis, dct, linewidth=linewidth)
         if title is None:
             if show_full_title:
                 if opd_idx == -1:
