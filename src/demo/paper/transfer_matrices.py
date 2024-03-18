@@ -2,7 +2,10 @@ from dataclasses import replace, asdict
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 
+from src.common_utils.utils import generate_wavenumbers_from_opds
 from src.demo.paper.snr.visualize import experiment_figures_subdir_convention
 from src.interface.configuration import load_config
 from src.outputs.visualization import SubplotsOptions, RcParamsOptions, savefig_dir_list
@@ -32,7 +35,15 @@ def visualize_transfer_matrices(
     opds = np.linspace(0, 10, 300)
     interferometer = replace(interferometer, opds=opds, phase_shift=np.array([0.]))
     wavenumbers = np.linspace(1, 2.85, opds.size)
+    # opds = interferometer.opds
+    # wavenumbers = generate_wavenumbers_from_opds(
+    #     wavenumbers_num=opds.size,
+    #     del_opd=np.mean(np.diff(opds)),
+    #     wavenumbers_start=1.,
+    #     wavenumbers_stop=2.85,
+    # )
     transmittance_response = interferometer.transmittance_response(wavenumbers=wavenumbers)
+    transmittance_response = transmittance_response.rescale(new_max=1.)
 
     # Visualize
     plt.rcParams['font.size'] = str(rc_params.fontsize)
@@ -76,6 +87,42 @@ def visualize_transfer_matrices(
     )
 
 
+def visualize_transfer_matrices_concatenated(
+        fig: Figure,
+        axs: Axes,
+        interferometer_id: int,
+        rc_params: RcParamsOptions,
+        transmat_imshow_options: dict,
+):
+    config = load_config()
+    paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
+
+    db = config.database()
+    figures_dir_list = [
+        paper_dir / "figures" / "direct_model",
+    ]
+    save_subdir = f"{db.interferometers[interferometer_id].title}/transfer_matrices"
+
+    # Load
+    interferometer = db.interferometer(ifm_id=interferometer_id)
+    opds = np.linspace(0, 10, 300)
+    interferometer = replace(interferometer, opds=opds, phase_shift=np.array([0.]))
+    wavenumbers = np.linspace(1, 2.85, opds.size)
+    # opds = interferometer.opds
+    # wavenumbers = generate_wavenumbers_from_opds(
+    #     wavenumbers_num=opds.size,
+    #     del_opd=np.mean(np.diff(opds)),
+    #     wavenumbers_start=1.,
+    #     wavenumbers_stop=2.85,
+    # )
+    transmittance_response = interferometer.transmittance_response(wavenumbers=wavenumbers)
+    transmittance_response = transmittance_response.rescale(new_max=1.)
+
+    # Visualize
+    plt.rcParams['font.size'] = str(rc_params.fontsize)
+    transmittance_response.visualize(fig=fig, axs=axs, **transmat_imshow_options)
+
+
 def main():
     interferometer_ids = [0, 4, 5, 6]
 
@@ -104,11 +151,20 @@ def main():
         "opd_idx": 50,
     }
 
-    for interferometer_id in interferometer_ids:
-        visualize_transfer_matrices(
+    fig, axes = plt.subplots(nrows=1, ncols=2,)
+    for i_ifm, interferometer_id in zip(interferometer_ids, axes):
+        visualize_transfer_matrices_concatenated(
+            fig=fig,
+            axs=axes,
             interferometer_id=interferometer_id,
-            **inputs_dict,
+            rc_params=inputs_dict["rc_params"],
+            transmat_imshow_options=inputs_dict["transmat_imshow_options"],
         )
+        # visualize_transfer_matrices(
+        #     interferometer_id=interferometer_id,
+        #     **inputs_dict,
+        # )
+    plt.show()
 
 
 if __name__ == "__main__":

@@ -18,10 +18,10 @@ def main():
     acq_ind = 0
     nb_opd, del_opd = 320, 0.175
     opds = generate_sampled_opds(nb_opd=nb_opd, opd_step=del_opd)
-    nb_wn = opds.size*4  # quasi-continuous
+    nb_wn = opds.size*6  # quasi-continuous
     wavenumbers = generate_wavenumbers_from_opds(wavenumbers_num=nb_wn, del_opd=del_opd)
 
-    reflectance_coefficients = 0.13 * np.ones(shape=(opds.size, 1))
+    reflectance_coefficients = 0.15 * np.ones(shape=(opds.size, 1))
     transmittance_coefficients = 1 - reflectance_coefficients
     phase_shift = np.zeros_like(a=opds)
 
@@ -71,19 +71,19 @@ def main():
     interferogram_fp_2 = fabry_perot_2.acquire_interferogram(spectrum=spectrum)
 
     fig, axs = plt.subplots(nrows=2, ncols=2, squeeze=False)
-    transfer_matrix_mich.visualize(axs=axs[0, 0])
+    transfer_matrix_mich.visualize(fig=fig, axs=axs[0, 0])
     transfer_matrix_mich.visualize_opd_response(axs=axs[0, 1], opd_idx=plot_opd_idx)
     transfer_matrix_mich.visualize_dct(axs=axs[1, 0], opd_idx=-1)
     transfer_matrix_mich.visualize_singular_values(axs=axs[1, 1])
 
     fig, axs = plt.subplots(nrows=2, ncols=2, squeeze=False)
-    transfer_matrix_fp_2.visualize(axs=axs[0, 0])
+    transfer_matrix_fp_2.visualize(fig=fig, axs=axs[0, 0])
     transfer_matrix_fp_2.visualize_opd_response(axs=axs[0, 1], opd_idx=plot_opd_idx)
     transfer_matrix_fp_2.visualize_dct(axs=axs[1, 0], opd_idx=-1)
     transfer_matrix_fp_2.visualize_singular_values(axs=axs[1, 1])
 
     fig, axs = plt.subplots(nrows=2, ncols=2, squeeze=False)
-    transfer_matrix_fp.visualize(axs=axs[0, 0])
+    transfer_matrix_fp.visualize(fig=fig, axs=axs[0, 0])
     transfer_matrix_fp.visualize_opd_response(axs=axs[0, 1], opd_idx=plot_opd_idx)
     transfer_matrix_fp.visualize_dct(axs=axs[1, 0], opd_idx=-1)
     transfer_matrix_fp.visualize_singular_values(axs=axs[1, 1])

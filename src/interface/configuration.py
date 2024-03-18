@@ -63,4 +63,3 @@ def load_config(config_sub_path: Path | str = "data/database/config.json") -> Co
     with open(config_path) as config_file:
         config_dict = json.load(fp=config_file)
     return ConfigSchema(**config_dict)
-

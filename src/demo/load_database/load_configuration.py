@@ -15,7 +15,9 @@ def main():
     print()
 
     db = config.database()
+    pprint(db.characterizations)
     pprint(db.datasets)
+    pprint(db.experiments)
     pprint(db.interferometers)
     pprint(db.inversion_protocols)
     pprint(db.noise_levels)

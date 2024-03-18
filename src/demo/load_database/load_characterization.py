@@ -32,7 +32,7 @@ def main():
     interferograms.visualize_matrix(fig=fig, axs=axs[0, 0])
 
     fig, axs = plt.subplots(nrows=1, ncols=1, squeeze=False, figsize=plot_options["figsize"], tight_layout=True)
-    transmittance_response.visualize(axs=axs[0, 0])
+    transmittance_response.visualize(fig=fig, axs=axs[0, 0])
 
     plt.show()
 
