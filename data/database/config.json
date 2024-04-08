@@ -1,18 +1,17 @@
 {
   "directory_paths": {
-    "project": "/home/jounim/Work/codebase_projects/inverspyctrometry",
-    "data": "/home/jounim/Work/codebase_projects/inverspyctrometry/data",
-    "datasets": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets",
-    "notebooks": "/home/jounim/Work/codebase_projects/inverspyctrometry/notebooks",
-    "reports": "/home/jounim/Work/codebase_projects/inverspyctrometry/reports",
-    "src": "/home/jounim/Work/codebase_projects/inverspyctrometry/src"
+    "data": "${PROJECT_DIR:}/data",
+    "datasets": "${PROJECT_DIR:}/data/datasets",
+    "notebooks": "${PROJECT_DIR:}/notebooks",
+    "reports": "${PROJECT_DIR:}/reports",
+    "src": "${PROJECT_DIR:}/src"
   },
   "database_paths": {
-    "characterizations": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/characterizations.json",
-    "datasets": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/datasets.json",
-    "experiments": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/experiments.json",
-    "interferometers": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/interferometers.json",
-    "inversion_protocols": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/inversion_protocols.json",
-    "noise_levels": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/database/noise_levels.json"
+    "characterizations": "${PROJECT_DIR:}/data/database/characterizations.json",
+    "datasets": "${PROJECT_DIR:}/data/database/datasets.json",
+    "experiments": "${PROJECT_DIR:}/data/database/experiments.json",
+    "interferometers": "${PROJECT_DIR:}/data/database/interferometers.json",
+    "inversion_protocols": "${PROJECT_DIR:}/data/database/inversion_protocols.json",
+    "noise_levels": "${PROJECT_DIR:}/data/database/noise_levels.json"
   }
 }
