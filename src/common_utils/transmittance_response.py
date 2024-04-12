@@ -41,6 +41,7 @@ class TransmittanceResponse:
             fig: Figure,
             axs,
             title: str = None,
+            aspect: str | float = 1.,
             vmin: float = None,
             vmax: float = None,
             is_colorbar: bool = True,
@@ -51,7 +52,6 @@ class TransmittanceResponse:
     ):
         imshow = axs.imshow(
             self.data,
-            # aspect='auto',
             vmin=vmin,
             vmax=vmax,
         )
@@ -69,6 +69,7 @@ class TransmittanceResponse:
         if title is None:
             title = "Transmittance Response"
         axs.set_title(title)
+        axs.set_aspect(aspect)
         axs.set_ylabel(rf"OPDs $\delta$ [{self.opds_unit}]")
         axs.set_xlabel(rf"Wavenumbers $\sigma$ [{self.wavenumbers_unit}]")
 

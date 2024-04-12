@@ -172,6 +172,13 @@ def convert_meter_units(values: float | np.ndarray, from_: str, to_: str):
     return converted_values
 
 
+def convert_hertz_to_meter(values: float | np.ndarray, to_: str = "m"):
+    light_speed = 3 * 10**8  # m/s = m*Hz
+    light_speed = convert_meter_units(light_speed, "m", to_)
+    converted_values = light_speed / values
+    return converted_values
+
+
 def polyval_rows(
         coefficients: np.ndarray[tuple[Opd, Deg], np.dtype[np.float_]],
         interval: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
