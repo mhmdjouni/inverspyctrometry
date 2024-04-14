@@ -68,12 +68,15 @@ class IDCT(InversionProtocol):
     """
     Inverse Discrete Cosine Transform
     """
+    is_mean_center: bool = True
 
     def reconstruct_spectrum(
             self,
             interferogram: Interferogram,
             transmittance_response: TransmittanceResponse,
     ) -> Spectrum:
+        if self.is_mean_center:
+            interferogram = interferogram.center(new_mean=0, axis=-2)
         spectrum = fft.idct(interferogram.data, axis=-2)
         wavenumbers = generate_wavenumbers_from_opds(
             wavenumbers_num=interferogram.opds.size,
