@@ -78,7 +78,8 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
 
         integrands = kernel[None, :] * cosines  # This should be multiplied by 2 in principle for n>0
         variable_differential = np.mean(np.diff(variable))  # a scalar, because it's regularly sampled
-        coefficients = np.sum(integrands * variable_differential, axis=-1)
+        coefficients = 2 * np.sum(integrands * variable_differential, axis=-1)
+        coefficients[0] /= 2
 
         return coefficients
 
@@ -112,7 +113,7 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
             transfer_matrix=transfer_matrix,
             wn_idx_start=wn_idx_range[0][0],
             wn_idx_stop=wn_idx_range[0][-1],
-            kernel_coefficient=kernel_coefficients[0],
+            kernel_coefficient=kernel_coefficients[1],
         )
 
         wavenumbers_target = wavenumbers_dct[wn_idx_range]

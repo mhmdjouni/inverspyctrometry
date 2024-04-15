@@ -5,6 +5,7 @@ from src.common_utils.light_wave import Spectrum
 from src.common_utils.function_generator import GaussianGenerator
 from src.direct_model.interferometer import FabryPerotInterferometer
 from src.inverse_model.inverspectrometer import FabryPerotInverSpectrometerHaar
+from src.inverse_model.protocols import IDCT, PseudoInverse
 
 
 def my_test():
@@ -72,11 +73,12 @@ def paper_test(
         gauss_coeffs,
         gauss_means,
         gauss_stds,
-        reflectance,
         opd_step: float,
         opd_num: int,
+        reflectance,
         wn_min: float,
         wn_max: float,
+        order: int,
 ):
     opds = opd_step * np.arange(opd_num) + opd_step
 
@@ -103,7 +105,6 @@ def paper_test(
     )
     interferogram = fp_0.acquire_interferogram(spectrum=spectrum_ref)
 
-    order = 20
     fp_haar = FabryPerotInverSpectrometerHaar(
         transmittance=transmittance,
         wavenumbers=wavenumbers,
@@ -111,9 +112,22 @@ def paper_test(
         order=order,
         is_mean_center=True,
     )
-
     coefficients = fp_haar.kernel_fourier_coefficients()
-    spectrum_rec = fp_haar.reconstruct_spectrum(interferogram=interferogram)
+    spectrum_haar = fp_haar.reconstruct_spectrum(interferogram=interferogram)
+
+    idct_inv = IDCT(is_mean_center=True)
+    transmittance_response = fp_0.transmittance_response(wavenumbers=wavenumbers, is_correct_transmittance=False)
+    spectrum_idct = idct_inv.reconstruct_spectrum(
+        interferogram=interferogram,
+        transmittance_response=transmittance_response
+    )
+
+    pinv_inv = PseudoInverse()
+    transmittance_response = fp_0.transmittance_response(wavenumbers=wavenumbers, is_correct_transmittance=False)
+    spectrum_pinv = pinv_inv.reconstruct_spectrum(
+        interferogram=interferogram,
+        transmittance_response=transmittance_response
+    )
 
     print(np.around(coefficients, decimals=3))
     print()
@@ -126,9 +140,16 @@ def paper_test(
 
     interferogram.visualize(axs=axs[0, 1], acq_ind=acq_ind)
 
-    spectrum_rec_eq, spectrum_ref = spectrum_rec.match_stats(reference=spectrum_ref, axis=-2)
     spectrum_ref.visualize(axs=axs[0, 2], acq_ind=acq_ind, color="C0")
-    spectrum_rec_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="--", color="C1")
+
+    spectrum_haar_eq, _ = spectrum_haar.match_stats(reference=spectrum_ref, axis=-2)
+    spectrum_haar_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="--", color="C1")
+
+    spectrum_idct_eq, _ = spectrum_idct.match_stats(reference=spectrum_ref, axis=-2)
+    spectrum_idct_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="--", color="C2")
+
+    spectrum_pinv_eq, _ = spectrum_pinv.match_stats(reference=spectrum_ref, axis=-2)
+    spectrum_pinv_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="--", color="C3")
 
     plt.show()
 
@@ -138,11 +159,12 @@ def main():
         gauss_coeffs=np.array([1., 0.9, 0.75]),
         gauss_means=np.array([2000, 4250, 6500]),  # cm
         gauss_stds=np.array([300, 1125, 400]),  # cm
-        reflectance=np.array([0.7]),
         opd_step=100*1e-7,  # cm
         opd_num=2048,
+        reflectance=np.array([0.7]),
         wn_min=1000.,  # cm
         wn_max=8000.,  # cm
+        order=20,
     )
 
 
