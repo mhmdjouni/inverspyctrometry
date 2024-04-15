@@ -122,18 +122,6 @@ def calculate_rmse(
     return rmse
 
 
-def generate_shifted_dirac(array: np.ndarray, shift: float) -> np.ndarray:
-    dirac_signal = np.zeros_like(array)
-    index = index_from_value(array=array, value=shift)
-    dirac_signal[index] = 1
-    return dirac_signal
-
-
-def index_from_value(array: np.ndarray, value: float) -> int:
-    index = (np.abs(array - value)).argmin()
-    return index
-
-
 def generate_sampled_opds(nb_opd: int, opd_step: float, opd_min: float = 0) -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
     opds = opd_step * np.arange(nb_opd) + opd_min
     return opds

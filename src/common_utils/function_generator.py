@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 
 import numpy as np
@@ -8,8 +9,19 @@ from src.common_utils.custom_vars import Acq, Wvn
 
 
 @dataclass
-class GaussianGenerator:
+class FunctionGenerator(ABC):
     coefficients: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
+
+    @abstractmethod
+    def generate(
+            self,
+            variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+    ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
+        pass
+
+
+@dataclass
+class GaussianGenerator(FunctionGenerator):
     means: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
     stds: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
 
@@ -32,3 +44,34 @@ class GaussianGenerator:
         gaussian_funcs = np.exp(-variable_centered**2)
         data = np.sum(self.coefficients[:, :, None] * gaussian_funcs, axis=0).T
         return data
+
+
+@dataclass
+class CosineGenerator(FunctionGenerator):
+    frequencies: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
+
+    def generate(
+            self,
+            variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+    ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
+        pass
+
+
+@dataclass
+class LorentzianGenerator(FunctionGenerator):
+
+    def generate(
+            self,
+            variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+    ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
+        pass
+
+
+class DiracGenerator(FunctionGenerator):
+    shifts: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
+
+    def generate(
+            self,
+            variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+    ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
+        pass
