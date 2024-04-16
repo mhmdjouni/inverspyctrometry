@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
+from enum import Enum
 
 import numpy as np
 
@@ -22,7 +23,6 @@ class FunctionGenerator(ABC):
 
 @dataclass
 class DiracGenerator(FunctionGenerator):
-    coefficients: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
     shifts: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
 
     def generate(
@@ -45,7 +45,10 @@ class CosineGenerator(FunctionGenerator):
             self,
             variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
     ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
-        pass
+        variable_oscillated = 2 * np.pi * self.frequencies[:, :, None] * variable[None, None, :]
+        gaussian_funcs = np.cos(variable_oscillated)
+        data = np.sum(self.coefficients[:, :, None] * gaussian_funcs, axis=0).T
+        return data
 
 
 @dataclass
@@ -69,8 +72,8 @@ class GaussianGenerator(FunctionGenerator):
             variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
     ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
         variable_centered = (variable[None, None, :] - self.means[:, :, None]) / self.stds[:, :, None]
-        gaussian_funcs = np.exp(-variable_centered**2)
-        data = np.sum(self.coefficients[:, :, None] * gaussian_funcs, axis=0).T
+        lorentzian_funcs = np.exp(-variable_centered**2)
+        data = np.sum(self.coefficients[:, :, None] * lorentzian_funcs, axis=0).T
         return data
 
 

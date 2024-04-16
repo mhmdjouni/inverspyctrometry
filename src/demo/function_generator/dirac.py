@@ -13,7 +13,6 @@ def main():
         shifts=np.array([[1.5, 2.7, 4.5,], [1., 2., 4.,]]).T,
     )
     dirac_funcs = dirac_gen.generate(variable=wavenumbers)
-    print(dirac_funcs)
 
     fig, axs = plt.subplots(1, 1, squeeze=False)
     dirac_funcs = np.where(dirac_funcs != 0., dirac_funcs, np.nan)
