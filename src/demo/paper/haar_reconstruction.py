@@ -55,17 +55,18 @@ def my_test():
     print()
 
     acq_ind = 0
+    ylim = [-0.1, 1.5]
 
     fig, axs = plt.subplots(squeeze=False)
-    spectrum_ref.visualize(axs=axs[0, 0], acq_ind=acq_ind)
+    spectrum_ref.visualize(axs=axs[0, 0], acq_ind=acq_ind, ylim=ylim)
 
     fig, axs = plt.subplots(squeeze=False)
     interferogram.visualize(axs=axs[0, 0], acq_ind=acq_ind)
 
     fig, axs = plt.subplots(squeeze=False)
     spectrum_rec_eq, spectrum_ref = spectrum_rec.match_stats(reference=spectrum_ref, axis=-2)
-    spectrum_ref.visualize(axs=axs[0, 0], acq_ind=acq_ind, color="C0")
-    spectrum_rec_eq.visualize(axs=axs[0, 0], acq_ind=acq_ind, linestyle="--", color="C1")
+    spectrum_ref.visualize(axs=axs[0, 0], acq_ind=acq_ind, color="C0", ylim=ylim)
+    spectrum_rec_eq.visualize(axs=axs[0, 0], acq_ind=acq_ind, linestyle="--", color="C1", ylim=ylim)
     plt.show()
 
 
@@ -133,23 +134,24 @@ def paper_test(
     print()
 
     acq_ind = 0
+    ylim = [-0.1, 1.5]
 
     fig, axs = plt.subplots(1, 3, squeeze=False)
 
-    spectrum_ref.visualize(axs=axs[0, 0], acq_ind=acq_ind)
+    spectrum_ref.visualize(axs=axs[0, 0], acq_ind=acq_ind, ylim=ylim)
 
     interferogram.visualize(axs=axs[0, 1], acq_ind=acq_ind)
 
-    spectrum_ref.visualize(axs=axs[0, 2], acq_ind=acq_ind, color="C0")
+    spectrum_ref.visualize(axs=axs[0, 2], acq_ind=acq_ind, color="C0", ylim=ylim)
 
     spectrum_haar_eq, _ = spectrum_haar.match_stats(reference=spectrum_ref, axis=-2)
-    spectrum_haar_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="--", color="C1")
+    spectrum_haar_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="dashed", color="C1", ylim=ylim)
 
     spectrum_idct_eq, _ = spectrum_idct.match_stats(reference=spectrum_ref, axis=-2)
-    spectrum_idct_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="--", color="C2")
+    spectrum_idct_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="dashed", color="C2", ylim=ylim)
 
-    spectrum_pinv_eq, _ = spectrum_pinv.match_stats(reference=spectrum_ref, axis=-2)
-    spectrum_pinv_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="--", color="C3")
+    # spectrum_pinv_eq, _ = spectrum_pinv.match_stats(reference=spectrum_ref, axis=-2)
+    # spectrum_pinv_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, marker="x", color="C3", ylim=ylim)
 
     plt.show()
 
@@ -162,8 +164,8 @@ def main():
         opd_step=100*1e-7,  # cm
         opd_num=2048,
         reflectance=np.array([0.7]),
-        wn_min=1000.,  # cm
-        wn_max=8000.,  # cm
+        wn_min=700.,  # cm
+        wn_max=8200.,  # cm
         order=20,
     )
 
