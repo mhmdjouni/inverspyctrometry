@@ -12,7 +12,7 @@ def main():
         coefficients=np.array([[1., 0.3], [1., 0.3]]).T,
         frequencies=np.array([[1., 2.], [1., 3.1]]).T,  # Hz
     )
-    cos_funcs = cos_gen.generate(variable=wavenumbers)
+    cos_funcs = cos_gen.generate_data(variable=wavenumbers)
 
     fig, axs = plt.subplots(1, 1, squeeze=False)
     axs[0, 0].plot(wavenumbers, cos_funcs[:, 0], color="C0")

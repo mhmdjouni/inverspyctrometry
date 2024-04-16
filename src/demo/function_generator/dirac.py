@@ -12,7 +12,7 @@ def main():
         coefficients=np.array([[0.5, 0.75, 1.], [1.1, 0.85, 0.6]]).T,
         shifts=np.array([[1.5, 2.7, 4.5,], [1., 2., 4.,]]).T,
     )
-    dirac_funcs = dirac_gen.generate(variable=wavenumbers)
+    dirac_funcs = dirac_gen.generate_data(variable=wavenumbers)
 
     fig, axs = plt.subplots(1, 1, squeeze=False)
     dirac_funcs = np.where(dirac_funcs != 0., dirac_funcs, np.nan)

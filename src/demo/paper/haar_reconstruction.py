@@ -24,7 +24,7 @@ def my_test():
         stds=np.array([0.3, 1.125, 0.4])[:, None],
     )
     gaussian_gen = paper_gaussian.rescale_parameters(ref_min=0., ref_max=20., new_min=wn_min, new_max=wn_max)
-    spectrum_data = gaussian_gen.generate(variable=wavenumbers)
+    spectrum_data = gaussian_gen.generate_data(variable=wavenumbers)
     spectrum_ref = Spectrum(data=spectrum_data, wavenumbers=wavenumbers)
 
     reflectance = np.array([0.1])
@@ -91,7 +91,7 @@ def paper_test(
         means=gauss_means[:, None],
         stds=gauss_stds[:, None],
     )
-    spectrum_data = gaussian_gen.generate(variable=wavenumbers)
+    spectrum_data = gaussian_gen.generate_data(variable=wavenumbers)
     spectrum_ref = Spectrum(data=spectrum_data, wavenumbers=wavenumbers)
 
     transmittance = np.array([1.])  # The values in the paper seem to be normalized by the transmittance

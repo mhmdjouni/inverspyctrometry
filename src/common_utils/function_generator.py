@@ -4,8 +4,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from enum import Enum
 
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fft import ifft, fft
+from scipy.signal import convolve
 
 from src.common_utils.custom_vars import Acq, Wvn
 
@@ -15,7 +17,7 @@ class FunctionGenerator(ABC):
     coefficients: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
 
     @abstractmethod
-    def generate(
+    def generate_data(
             self,
             variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
     ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
@@ -26,7 +28,7 @@ class FunctionGenerator(ABC):
 class DiracGenerator(FunctionGenerator):
     shifts: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
 
-    def generate(
+    def generate_data(
             self,
             variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
     ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
@@ -42,7 +44,7 @@ class DiracGenerator(FunctionGenerator):
 class CosineGenerator(FunctionGenerator):
     frequencies: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
 
-    def generate(
+    def generate_data(
             self,
             variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
     ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
@@ -57,6 +59,11 @@ class GaussianGenerator(FunctionGenerator):
     means: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
     stds: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
 
+    @property
+    def fwhm(self):
+        """Full width at half maximum"""
+        return 2 * np.sqrt(2 * np.log(2)) * self.stds
+
     def rescale_parameters(
             self,
             ref_min,
@@ -68,12 +75,19 @@ class GaussianGenerator(FunctionGenerator):
         stds = self.stds / ref_max * (new_max - new_min)
         return replace(self, means=means, stds=stds)
 
-    def generate(
+    def generate_funcs(
+            self,
+            variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+    ):
+        variable_centered = (variable[None, None, :] - self.means[:, :, None]) / self.stds[:, :, None]
+        gaussian_funcs = np.exp(- 0.5 * variable_centered ** 2)
+        return gaussian_funcs
+
+    def generate_data(
             self,
             variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
     ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
-        variable_centered = (variable[None, None, :] - self.means[:, :, None]) / self.stds[:, :, None]
-        gaussian_funcs = np.exp(- variable_centered ** 2)
+        gaussian_funcs = self.generate_funcs(variable=variable)
         data = np.sum(self.coefficients[:, :, None] * gaussian_funcs, axis=0).T
         return data
 
@@ -83,11 +97,53 @@ class LorentzianGenerator(FunctionGenerator):
     locations: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]  # location of the peak of the distribution
     scales: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]  # half-width at half-maximum (HWHM)
 
-    def generate(
+    @property
+    def fwhm(self):
+        """Full width at half maximum"""
+        return 2 * self.scales
+
+    def generate_funcs(
+            self,
+            variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+    ):
+        variable_centered = (variable[None, None, :] - self.locations[:, :, None]) / self.scales[:, :, None]
+        lorentzian_funcs = 1 / (1 + variable_centered ** 2)
+        return lorentzian_funcs
+
+    def generate_data(
             self,
             variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
     ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
-        variable_centered = (variable[None, None, :] - self.locations[:, :, None]) / self.scales[:, :, None]
-        lorentzian_funcs = 1 / (1 + variable_centered ** 2)
+        lorentzian_funcs = self.generate_funcs(variable=variable)
         data = np.sum(self.coefficients[:, :, None] * lorentzian_funcs, axis=0).T
+        return data
+
+
+@dataclass
+class VoigtGenerator(FunctionGenerator):
+    centers: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
+    gauss_stds: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
+    lorentz_scales: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
+
+    def generate_data(
+            self,
+            variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+    ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
+        gauss_gen = GaussianGenerator(
+            coefficients=np.array([[0.4]]),
+            means=self.centers,
+            stds=self.gauss_stds
+        )
+        gauss_funcs = gauss_gen.generate_funcs(variable=variable)
+
+        lorentz_gen = LorentzianGenerator(
+            coefficients=np.array([[0.31]]),
+            locations=self.centers,
+            scales=self.lorentz_scales
+        )
+        lorentz_funcs = lorentz_gen.generate_funcs(variable=variable)
+
+        voigt_funcs = convolve(in1=gauss_funcs, in2=lorentz_funcs, mode="same") * np.mean(np.diff(variable))
+
+        data = np.sum(self.coefficients[:, :, None] * voigt_funcs, axis=0).T
         return data

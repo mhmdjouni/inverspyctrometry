@@ -22,7 +22,7 @@ def main():
 
     wavenumbers = np.linspace(start=0, stop=5, num=501, endpoint=True)
     gauss_gen = GaussianGenerator(**options["multiple_components"])
-    gauss_funcs = gauss_gen.generate(variable=wavenumbers)
+    gauss_funcs = gauss_gen.generate_data(variable=wavenumbers)
 
     fig, axs = plt.subplots(1, 1, squeeze=False)
     axs[0, 0].plot(wavenumbers, gauss_funcs[:, 0], color="C0")
