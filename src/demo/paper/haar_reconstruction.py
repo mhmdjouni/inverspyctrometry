@@ -23,7 +23,7 @@ def my_test():
         means=np.array([2., 4.25, 6.5])[:, None],
         stds=np.array([0.3, 1.125, 0.4])[:, None],
     )
-    gaussian_gen = paper_gaussian.min_max_parameters(ref_min=0., ref_max=20., new_min=wn_min, new_max=wn_max)
+    gaussian_gen = paper_gaussian.rescale_parameters(ref_min=0., ref_max=20., new_min=wn_min, new_max=wn_max)
     spectrum_data = gaussian_gen.generate(variable=wavenumbers)
     spectrum_ref = Spectrum(data=spectrum_data, wavenumbers=wavenumbers)
 

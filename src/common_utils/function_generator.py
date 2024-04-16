@@ -21,11 +21,39 @@ class FunctionGenerator(ABC):
 
 
 @dataclass
+class DiracGenerator(FunctionGenerator):
+    coefficients: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
+    shifts: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
+
+    def generate(
+            self,
+            variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+    ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
+        distances_from_shifts = np.abs(self.shifts[:, :, None] - variable[None, None, :])
+        shifts_idxs = np.argmin(distances_from_shifts, axis=-1)
+        dirac_funcs = np.zeros(shape=(variable.size, self.shifts.shape[-1]))
+        acq_indices = np.arange(self.shifts.shape[-1])
+        dirac_funcs[shifts_idxs[:, acq_indices], acq_indices] = self.coefficients[:, acq_indices]
+        return dirac_funcs
+
+
+@dataclass
+class CosineGenerator(FunctionGenerator):
+    frequencies: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
+
+    def generate(
+            self,
+            variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
+    ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
+        pass
+
+
+@dataclass
 class GaussianGenerator(FunctionGenerator):
     means: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
     stds: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
 
-    def min_max_parameters(
+    def rescale_parameters(
             self,
             ref_min,
             ref_max,
@@ -47,28 +75,7 @@ class GaussianGenerator(FunctionGenerator):
 
 
 @dataclass
-class CosineGenerator(FunctionGenerator):
-    frequencies: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
-
-    def generate(
-            self,
-            variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
-    ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
-        pass
-
-
-@dataclass
 class LorentzianGenerator(FunctionGenerator):
-
-    def generate(
-            self,
-            variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
-    ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
-        pass
-
-
-class DiracGenerator(FunctionGenerator):
-    shifts: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
 
     def generate(
             self,
