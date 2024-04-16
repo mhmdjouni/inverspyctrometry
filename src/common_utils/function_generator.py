@@ -5,6 +5,7 @@ from dataclasses import dataclass, replace
 from enum import Enum
 
 import numpy as np
+from scipy.fft import ifft, fft
 
 from src.common_utils.custom_vars import Acq, Wvn
 
@@ -31,10 +32,10 @@ class DiracGenerator(FunctionGenerator):
     ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
         distances_from_shifts = np.abs(self.shifts[:, :, None] - variable[None, None, :])
         shifts_idxs = np.argmin(distances_from_shifts, axis=-1)
-        dirac_funcs = np.zeros(shape=(variable.size, self.shifts.shape[-1]))
-        acq_indices = np.arange(self.shifts.shape[-1])
-        dirac_funcs[shifts_idxs[:, acq_indices], acq_indices] = self.coefficients[:, acq_indices]
-        return dirac_funcs
+        acq_idxs = np.arange(self.shifts.shape[-1])
+        data = np.zeros(shape=(variable.size, self.shifts.shape[-1]))
+        data[shifts_idxs[:, acq_idxs], acq_idxs] = self.coefficients[:, acq_idxs]
+        return data
 
 
 @dataclass
@@ -79,14 +80,14 @@ class GaussianGenerator(FunctionGenerator):
 
 @dataclass
 class LorentzianGenerator(FunctionGenerator):
-    means: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
-    stds: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]
+    locations: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]  # location of the peak of the distribution
+    scales: np.ndarray[tuple[int, Acq], np.dtype[np.float_]]  # half-width at half-maximum (HWHM)
 
     def generate(
             self,
             variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
     ) -> np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]:
-        variable_centered = (variable[None, None, :] - self.means[:, :, None]) / self.stds[:, :, None]
+        variable_centered = (variable[None, None, :] - self.locations[:, :, None]) / self.scales[:, :, None]
         lorentzian_funcs = 1 / (1 + variable_centered ** 2)
         data = np.sum(self.coefficients[:, :, None] * lorentzian_funcs, axis=0).T
         return data
