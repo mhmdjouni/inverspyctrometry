@@ -16,10 +16,10 @@ def main():
         opd_num=2048,
         reflectance=np.array([0.7]),
         wn_min=0.,  # cm
-        wn_max=20000.,  # cm
+        wn_max=20000.1,  # cm
         haar_order=5,
-        opd_samples_skip=0,
         fp_order=0,
+        opd_samples_skip=0,
     )
 
 
@@ -45,10 +45,11 @@ def paper_test(
     opds = opd_step * np.arange(opd_num)
     opds[:opd_samples_skip] = 0
 
-    wn_step = 1 / (2 * opds.max())
+    # wn_step = 1 / (2 * opds.max())
     wn_max_dct = 1 / (2 * opd_step)
     wn_num = int(opd_num * (wn_max - wn_min) / wn_max_dct)
-    wavenumbers = wn_min + wn_step * np.arange(wn_num)  # um-1
+    wavenumbers = np.linspace(start=wn_min, stop=wn_max, num=wn_num*10, endpoint=False)  # um-1
+
     gaussian_gen = GaussianGenerator(
         coefficients=gauss_coeffs[:, None],
         means=gauss_means[:, None],
@@ -68,6 +69,11 @@ def paper_test(
     )
     interferogram = ifm.acquire_interferogram(spectrum=spectrum_ref)
 
+    wn_step = 1 / (2 * opds.max())
+    wn_max_dct = 1 / (2 * opd_step)
+    wn_num = int(opd_num * (wn_max - wn_min) / wn_max_dct)
+    wavenumbers = wn_min + wn_step * np.arange(wn_num)  # um-1
+
     idct_inv = IDCT(is_mean_center=True)
     transmittance_response = ifm.transmittance_response(wavenumbers=wavenumbers, is_correct_transmittance=False)
     spectrum_idct = idct_inv.reconstruct_spectrum(
@@ -83,7 +89,7 @@ def paper_test(
     )
 
     acq_ind = 0
-    ylim = [-0.2, 1.2]
+    ylim = [-0.2, 1.3]
 
     fig, axs = plt.subplots(1, 3, squeeze=False)
 
@@ -99,9 +105,9 @@ def paper_test(
 
     spectrum_ref.visualize(axs=axs[0, 2], acq_ind=acq_ind, color="red", label='Reference', ylim=ylim)
     spectrum_idct_eq, _ = spectrum_idct.match_stats(reference=spectrum_ref, axis=-2)
-    spectrum_idct_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="dashed", color="green", label='IDCT', ylim=ylim)
-    spectrum_pinv_eq, _ = spectrum_pinv.match_stats(reference=spectrum_ref, axis=-2)
-    spectrum_pinv_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="dashed", marker="x", markevery=5, color="blue", label='PINV', ylim=ylim)
+    spectrum_idct.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="dashed", color="green", label='IDCT', ylim=ylim)
+    # spectrum_pinv_eq, _ = spectrum_pinv.match_stats(reference=spectrum_ref, axis=-2)
+    # spectrum_pinv_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="dashed", color="blue", label='PINV', ylim=ylim)
     axs[0, 2].set_title('Reconstructed Spectrum')
     axs[0, 2].set_xlabel('Wavenumbers [cm-1]')
     axs[0, 2].set_ylabel('Intensity')
