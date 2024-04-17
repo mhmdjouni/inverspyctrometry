@@ -85,9 +85,11 @@ def imshow_custom(
         y_ticks_num: int = 6,
         y_ticks_decimals: int = 2,
         y_label: str = "",
+        interpolation: str = "antialiased",
 ):
     imshow = axs.imshow(
         image,
+        interpolation=interpolation,
         vmin=vmin,
         vmax=vmax,
     )
