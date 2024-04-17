@@ -69,11 +69,11 @@ def plot_custom(
 
 
 def imshow_custom(
+        fig: Figure,
+        axs,
         image: np.ndarray[tuple[int, int], np.dtype[np.float_]],
         x_variable: np.ndarray[tuple[int], np.dtype[np.float_]],
         y_variable: np.ndarray[tuple[int], np.dtype[np.float_]],
-        fig: Figure,
-        axs,
         title: str = None,
         aspect: str | float = 1.,
         vmin: float = None,
