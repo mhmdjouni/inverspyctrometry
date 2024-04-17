@@ -68,6 +68,46 @@ def plot_custom(
     axs.grid(visible=True)
 
 
+def imshow_custom(
+        image: np.ndarray[tuple[int, int], np.dtype[np.float_]],
+        x_variable: np.ndarray[tuple[int], np.dtype[np.float_]],
+        y_variable: np.ndarray[tuple[int], np.dtype[np.float_]],
+        fig: Figure,
+        axs,
+        title: str = None,
+        aspect: str | float = 1.,
+        vmin: float = None,
+        vmax: float = None,
+        is_colorbar: bool = True,
+        x_ticks_num: int = 6,
+        x_ticks_decimals: int = 2,
+        x_label: str = "",
+        y_ticks_num: int = 6,
+        y_ticks_decimals: int = 2,
+        y_label: str = "",
+):
+    imshow = axs.imshow(
+        image,
+        vmin=vmin,
+        vmax=vmax,
+    )
+    if is_colorbar:
+        fig.colorbar(imshow, ax=axs)
+
+    y_ticks = np.linspace(start=0, stop=y_variable.size - 1, num=y_ticks_num, dtype=int)
+    y_ticks_labels = np.around(a=y_variable[y_ticks], decimals=y_ticks_decimals)
+    axs.set_yticks(ticks=y_ticks, labels=y_ticks_labels)
+
+    x_ticks = np.linspace(start=0, stop=x_variable.size - 1, num=x_ticks_num, dtype=int)
+    x_ticks_labels = np.around(a=x_variable[x_ticks], decimals=x_ticks_decimals)
+    axs.set_xticks(ticks=x_ticks, labels=x_ticks_labels)
+
+    axs.set_title(title)
+    axs.set_aspect(aspect)
+    axs.set_ylabel(y_label)
+    axs.set_xlabel(x_label)
+
+
 def savefig_dir_list(
         fig: Figure,
         filename: str,
