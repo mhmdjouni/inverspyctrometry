@@ -8,6 +8,21 @@ from src.inverse_model.inverspectrometer import FabryPerotInverSpectrometerHaar
 from src.inverse_model.protocols import IDCT, PseudoInverse
 
 
+def main():
+    paper_test(
+        gauss_coeffs=np.array([1., 0.9, 0.75]),
+        gauss_means=np.array([2000, 4250, 6500]),  # cm
+        gauss_stds=np.array([300, 1125, 400]),  # cm
+        opd_step=100*1e-7,  # cm
+        opd_num=2048,
+        reflectance=np.array([0.7]),
+        wn_min=0.,  # cm
+        wn_max=20000.,  # cm
+        haar_order=5,
+        fp_order=0,
+    )
+
+
 def paper_test(
         gauss_coeffs,
         gauss_means,
@@ -17,7 +32,8 @@ def paper_test(
         reflectance,
         wn_min: float,
         wn_max: float,
-        order: int,
+        haar_order: int,
+        fp_order: int = 0,
 ):
     opds = opd_step * np.arange(opd_num)
 
@@ -40,7 +56,7 @@ def paper_test(
         opds=opds,
         phase_shift=np.array([0]),
         reflectance_coefficients=reflectance,
-        order=0,
+        order=fp_order,
     )
     interferogram = fp_0.acquire_interferogram(spectrum=spectrum_ref)
 
@@ -48,7 +64,7 @@ def paper_test(
         transmittance=transmittance,
         wavenumbers=wavenumbers,
         reflectance=reflectance,
-        order=order,
+        order=haar_order,
         is_mean_center=True,
     )
     coefficients = fp_haar.kernel_fourier_coefficients()
@@ -100,20 +116,6 @@ def paper_test(
     plt.legend()
     plt.grid(True)
     plt.show()
-
-
-def main():
-    paper_test(
-        gauss_coeffs=np.array([1., 0.9, 0.75]),
-        gauss_means=np.array([2000, 4250, 6500]),  # cm
-        gauss_stds=np.array([300, 1125, 400]),  # cm
-        opd_step=100*1e-7,  # cm
-        opd_num=2048,
-        reflectance=np.array([0.7]),
-        wn_min=0.,  # cm
-        wn_max=20000.,  # cm
-        order=2,
-    )
 
 
 if __name__ == "__main__":

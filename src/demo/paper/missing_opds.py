@@ -10,15 +10,16 @@ from src.inverse_model.protocols import IDCT, PseudoInverse
 def main():
     paper_test(
         gauss_coeffs=np.array([1., 0.9, 0.75]),
-        gauss_means=np.array([2000., 4250., 6500.]) * np.sqrt(2),  # cm
-        gauss_stds=np.array([300., 1125., 400.]),  # cm
+        gauss_means=np.array([2000, 4250, 6500]),  # cm
+        gauss_stds=np.array([300, 1125, 400]),  # cm
         opd_step=100*1e-7,  # cm
         opd_num=2048,
         reflectance=np.array([0.7]),
         wn_min=0.,  # cm
         wn_max=20000.,  # cm
-        order=20,
-        opd_samples_skip=50,
+        haar_order=5,
+        opd_samples_skip=0,
+        fp_order=0,
     )
 
 
@@ -31,8 +32,9 @@ def paper_test(
         reflectance,
         wn_min: float,
         wn_max: float,
-        order: int,
+        haar_order: int,
         opd_samples_skip: int,
+        fp_order: int = 0,
 ):
     """
     Generate a list of OPDs with the lowest being missing.
@@ -57,12 +59,12 @@ def paper_test(
 
     transmittance = np.array([1.])  # The values in the paper seem to be normalized by the transmittance
 
-    ifm = MichelsonInterferometer(
+    ifm = FabryPerotInterferometer(
         transmittance_coefficients=transmittance,
         opds=opds,
         phase_shift=np.array([0]),
-        # reflectance_coefficients=reflectance,
-        # order=0,
+        reflectance_coefficients=reflectance,
+        order=fp_order,
     )
     interferogram = ifm.acquire_interferogram(spectrum=spectrum_ref)
 
