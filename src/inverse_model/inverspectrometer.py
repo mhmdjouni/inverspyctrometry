@@ -100,7 +100,7 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
         wn_idx_range = np.where(wns_range_condition)
         kernel_coefficients = self.kernel_fourier_coefficients()
 
-        transfer_matrix = equate_coefficients(
+        transfer_matrix = self.equate_coefficients(
             interferogram_dft_size=interferogram_dct.shape[-2],
             wn_idx_start=wn_idx_range[0][0],
             wn_idx_stop=wn_idx_range[0][-1],
@@ -108,7 +108,7 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
             kernel_fourier_coefficients=kernel_coefficients,
         )
 
-        spectrum_coefficients = recursive_recovery(
+        spectrum_coefficients = self.recursive_recovery(
             interferogram_dct=interferogram_dct,
             transfer_matrix=transfer_matrix,
             wn_idx_start=wn_idx_range[0][0],
@@ -125,6 +125,49 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
         )
 
         return spectrum
+
+    # TODO: Move these to Haar inversion utils?
+    @staticmethod
+    def equate_coefficients(
+            interferogram_dft_size: int,
+            wn_idx_start: int,
+            wn_idx_stop: int,
+            order: int,
+            kernel_fourier_coefficients: np.ndarray,
+    ) -> np.ndarray[tuple[int, int], np.dtype[np.float_]]:
+        """
+        TODO: The result doesn't match with the paper
+        """
+        transfer_matrix = np.zeros((interferogram_dft_size, interferogram_dft_size))
+        wn_idx_range = list(range(wn_idx_start, wn_idx_stop + 1))
+        order_idx_range = list(range(1, order + 1))
+        for dft_idx in wn_idx_range:  # u in [k_1, k_2]
+            for wn_idx in wn_idx_range:  # k in [k_1, k_2]
+                for order_idx in order_idx_range:  # n in [1, M]
+                    for sub_order_increment in range(order_idx):  # i in [0, n-1]
+                        index_factor = order_idx * wn_idx + sub_order_increment
+                        if index_factor == dft_idx:
+                            coefficient_ratio = kernel_fourier_coefficients[order_idx] / order_idx
+                            transfer_matrix[dft_idx, wn_idx] += coefficient_ratio
+        return transfer_matrix
+
+    @staticmethod
+    def recursive_recovery(
+            interferogram_dct: np.ndarray,
+            transfer_matrix: np.ndarray,
+            wn_idx_start: int,
+            wn_idx_stop: int,
+            kernel_coefficient: float,
+    ):
+        wn_idx_range = list(range(wn_idx_start, wn_idx_stop + 1))
+        spectrum_coefficients = np.zeros_like(interferogram_dct)
+        dft_idx = wn_idx_range[0]
+        spectrum_coefficients[dft_idx] = interferogram_dct[dft_idx]
+        for dft_idx in wn_idx_range[1:]:
+            vect = spectrum_coefficients[wn_idx_range[0]:dft_idx] * transfer_matrix[wn_idx_range[0]:dft_idx, [dft_idx]]
+            gamma = np.sum(vect, axis=-2, keepdims=True)
+            spectrum_coefficients[dft_idx] = (interferogram_dct[dft_idx] - gamma) / (2 * kernel_coefficient)
+        return spectrum_coefficients
 
 
 def evaluate_haar_function(
@@ -153,45 +196,3 @@ def spectrum_from_haar(
     )
     spectrum_data = np.sum(spectrum_coefficients[wn_idx_range, :, None] * haar_functions, axis=0).T
     return Spectrum(data=spectrum_data, wavenumbers=wavenumbers)
-
-
-def equate_coefficients(
-        interferogram_dft_size: int,
-        wn_idx_start: int,
-        wn_idx_stop: int,
-        order: int,
-        kernel_fourier_coefficients: np.ndarray,
-) -> np.ndarray[tuple[int, int], np.dtype[np.float_]]:
-    """
-    TODO: The result doesn't match with the paper
-    """
-    transfer_matrix = np.zeros((interferogram_dft_size, interferogram_dft_size))
-    wn_idx_range = list(range(wn_idx_start, wn_idx_stop + 1))
-    order_idx_range = list(range(1, order + 1))
-    for dft_idx in wn_idx_range:  # u in [k_1, k_2]
-        for wn_idx in wn_idx_range:  # k in [k_1, k_2]
-            for order_idx in order_idx_range:  # n in [1, M]
-                for sub_order_increment in range(order_idx):  # i in [0, n-1]
-                    index_factor = order_idx * wn_idx + sub_order_increment
-                    if index_factor == dft_idx:
-                        coefficient_ratio = kernel_fourier_coefficients[order_idx] / order_idx
-                        transfer_matrix[dft_idx, wn_idx] += coefficient_ratio
-    return transfer_matrix
-
-
-def recursive_recovery(
-        interferogram_dct: np.ndarray,
-        transfer_matrix: np.ndarray,
-        wn_idx_start: int,
-        wn_idx_stop: int,
-        kernel_coefficient: float,
-):
-    wn_idx_range = list(range(wn_idx_start, wn_idx_stop + 1))
-    spectrum_coefficients = np.zeros_like(interferogram_dct)
-    dft_idx = wn_idx_range[0]
-    spectrum_coefficients[dft_idx] = interferogram_dct[dft_idx]
-    for dft_idx in wn_idx_range[1:]:
-        vect = spectrum_coefficients[wn_idx_range[0]:dft_idx] * transfer_matrix[wn_idx_range[0]:dft_idx, [dft_idx]]
-        gamma = np.sum(vect, axis=-2, keepdims=True)
-        spectrum_coefficients[dft_idx] = (interferogram_dct[dft_idx] - gamma) / (2 * kernel_coefficient)
-    return spectrum_coefficients

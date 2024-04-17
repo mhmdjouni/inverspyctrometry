@@ -77,7 +77,7 @@ class GaussianGenerator(FunctionGenerator):
             variable: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
     ):
         variable_centered = (variable[None, None, :] - self.means[:, :, None]) / self.stds[:, :, None]
-        gaussian_funcs = np.exp(- 0.5 * variable_centered ** 2)
+        gaussian_funcs = np.exp(- variable_centered ** 2)
         return gaussian_funcs
 
     def generate_data(
