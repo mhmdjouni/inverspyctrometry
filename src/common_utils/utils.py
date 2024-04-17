@@ -134,7 +134,7 @@ def generate_wavenumbers_from_opds(
         wavenumbers_stop: float = None,
 ) -> np.ndarray[tuple[Wvn], np.dtype[np.float_]]:
     del_wn = 1 / (2 * wavenumbers_num * del_opd)  # del_wn tends to zero as nb_wn tends to infinity (implies continuous)
-    wavenumbers = del_wn * (np.arange(wavenumbers_num) + 1 / 2)
+    wavenumbers = del_wn * (np.arange(wavenumbers_num) + 1/2)
     if wavenumbers_start is not None:
         wavenumbers = wavenumbers[wavenumbers >= wavenumbers_start]
     if wavenumbers_stop is not None:
