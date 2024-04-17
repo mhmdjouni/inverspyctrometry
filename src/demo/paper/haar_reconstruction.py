@@ -8,68 +8,6 @@ from src.inverse_model.inverspectrometer import FabryPerotInverSpectrometerHaar
 from src.inverse_model.protocols import IDCT, PseudoInverse
 
 
-def my_test():
-    wn_max_target = 1 / 350 * 1000  # um
-    opd_step = 1 / (2 * wn_max_target)
-    opd_num = 319
-    opds = opd_step * np.arange(opd_num)
-
-    wn_min = 1/1000 * 1000
-    wn_max = 1/350 * 1000
-    wn_num = 319
-    wavenumbers = np.linspace(start=wn_min, stop=wn_max, num=wn_num)  # um-1
-    paper_gaussian = GaussianGenerator(
-        coefficients=np.array([1., 0.9, 0.75])[:, None],
-        means=np.array([2., 4.25, 6.5])[:, None],
-        stds=np.array([0.3, 1.125, 0.4])[:, None],
-    )
-    gaussian_gen = paper_gaussian.rescale_parameters(ref_min=0., ref_max=20., new_min=wn_min, new_max=wn_max)
-    spectrum_data = gaussian_gen.generate_data(variable=wavenumbers)
-    spectrum_ref = Spectrum(data=spectrum_data, wavenumbers=wavenumbers)
-
-    reflectance = np.array([0.1])
-    transmittance = np.array([1.])  # The values in the paper seem to be normalized by the transmittance
-
-    fp_0 = FabryPerotInterferometer(
-        transmittance_coefficients=transmittance,
-        opds=opds,
-        phase_shift=np.array([0]),
-        reflectance_coefficients=reflectance,
-        order=0,
-    )
-    interferogram = fp_0.acquire_interferogram(spectrum=spectrum_ref)
-
-    order = 50
-    fp_haar = FabryPerotInverSpectrometerHaar(
-        transmittance=transmittance,
-        wavenumbers=wavenumbers,
-        reflectance=reflectance,
-        order=order,
-        is_mean_center=True,
-    )
-
-    coefficients = fp_haar.kernel_fourier_coefficients()
-    spectrum_rec = fp_haar.reconstruct_spectrum(interferogram=interferogram)
-
-    print(np.around(coefficients, decimals=3))
-    print()
-
-    acq_ind = 0
-    ylim = [-0.1, 1.5]
-
-    fig, axs = plt.subplots(squeeze=False)
-    spectrum_ref.visualize(axs=axs[0, 0], acq_ind=acq_ind, ylim=ylim)
-
-    fig, axs = plt.subplots(squeeze=False)
-    interferogram.visualize(axs=axs[0, 0], acq_ind=acq_ind)
-
-    fig, axs = plt.subplots(squeeze=False)
-    spectrum_rec_eq, spectrum_ref = spectrum_rec.match_stats(reference=spectrum_ref, axis=-2)
-    spectrum_ref.visualize(axs=axs[0, 0], acq_ind=acq_ind, color="C0", ylim=ylim)
-    spectrum_rec_eq.visualize(axs=axs[0, 0], acq_ind=acq_ind, linestyle="--", color="C1", ylim=ylim)
-    plt.show()
-
-
 def paper_test(
         gauss_coeffs,
         gauss_means,
@@ -81,7 +19,7 @@ def paper_test(
         wn_max: float,
         order: int,
 ):
-    opds = opd_step * np.arange(opd_num) + opd_step
+    opds = opd_step * np.arange(opd_num)
 
     wn_step = 1 / (2 * opds.max())
     wn_max_dct = 1 / (2 * opd_step)
@@ -134,25 +72,33 @@ def paper_test(
     print()
 
     acq_ind = 0
-    ylim = [-0.1, 1.5]
+    ylim = [-0.2, 1.2]
 
     fig, axs = plt.subplots(1, 3, squeeze=False)
 
-    spectrum_ref.visualize(axs=axs[0, 0], acq_ind=acq_ind, ylim=ylim)
+    spectrum_ref.visualize(axs=axs[0, 0], acq_ind=acq_ind, color="red", label='Reference', ylim=ylim)
+    axs[0, 0].set_title('Reference Spectrum')
+    axs[0, 0].set_xlabel('Wavenumbers [cm-1]')
+    axs[0, 0].set_ylabel('Intensity')
 
     interferogram.visualize(axs=axs[0, 1], acq_ind=acq_ind)
+    axs[0, 1].set_title('Simulated Interferogram')
+    axs[0, 1].set_xlabel('OPDs [cm]')
+    axs[0, 1].set_ylabel('Intensity')
 
-    spectrum_ref.visualize(axs=axs[0, 2], acq_ind=acq_ind, color="C0", ylim=ylim)
-
-    spectrum_haar_eq, _ = spectrum_haar.match_stats(reference=spectrum_ref, axis=-2)
-    spectrum_haar_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="dashed", color="C1", ylim=ylim)
-
+    spectrum_ref.visualize(axs=axs[0, 2], acq_ind=acq_ind, color="red", label='Reference', ylim=ylim)
     spectrum_idct_eq, _ = spectrum_idct.match_stats(reference=spectrum_ref, axis=-2)
-    spectrum_idct_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="dashed", color="C2", ylim=ylim)
-
+    spectrum_idct_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="dashed", color="green", label='IDCT', ylim=ylim)
+    spectrum_haar_eq, _ = spectrum_haar.match_stats(reference=spectrum_ref, axis=-2)
+    spectrum_haar_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="dashed", marker="x", markevery=10, color="blue", label='Haar', ylim=ylim)
     # spectrum_pinv_eq, _ = spectrum_pinv.match_stats(reference=spectrum_ref, axis=-2)
-    # spectrum_pinv_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, marker="x", color="C3", ylim=ylim)
+    # spectrum_pinv_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="", marker="^", markevery=5, color="yellow", label='PINV', ylim=ylim)
+    axs[0, 2].set_title('Reconstructed Spectrum')
+    axs[0, 2].set_xlabel('Wavenumbers [cm-1]')
+    axs[0, 2].set_ylabel('Intensity')
 
+    plt.legend()
+    plt.grid(True)
     plt.show()
 
 
@@ -164,9 +110,9 @@ def main():
         opd_step=100*1e-7,  # cm
         opd_num=2048,
         reflectance=np.array([0.7]),
-        wn_min=700.,  # cm
-        wn_max=8200.,  # cm
-        order=20,
+        wn_min=0.,  # cm
+        wn_max=20000.,  # cm
+        order=2,
     )
 
 

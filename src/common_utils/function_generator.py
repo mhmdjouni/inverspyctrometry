@@ -2,11 +2,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
-from enum import Enum
 
-import matplotlib.pyplot as plt
 import numpy as np
-from scipy.fft import ifft, fft
 from scipy.signal import convolve
 
 from src.common_utils.custom_vars import Acq, Wvn
