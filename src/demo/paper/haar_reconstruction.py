@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -9,18 +11,44 @@ from src.inverse_model.protocols import IDCT, PseudoInverse
 
 
 def main():
-    paper_test(
-        gauss_coeffs=np.array([1., 0.9, 0.75]),
-        gauss_means=np.array([2000, 4250, 6500]),  # cm
-        gauss_stds=np.array([300, 1125, 400]),  # cm
-        opd_step=100*1e-7,  # cm
-        opd_num=2048,
-        reflectance=np.array([0.7]),
-        wn_min=0.,  # cm
-        wn_max=20000.,  # cm
-        haar_order=5,
-        fp_order=0,
-    )
+    is_imshow = True
+    for fp_order in [0]:
+        for reflectance in [0.7]:
+            for haar_order in [25]:
+                (
+                    interferogram,
+                    spectrum_ref,
+                    spectrum_idct,
+                    spectrum_haar,
+                ) = paper_test(
+                    gauss_coeffs=np.array([1., 0.9, 0.75]),
+                    gauss_means=np.array([2000, 4250, 6500]),  # cm
+                    gauss_stds=np.array([300, 1125, 400]),  # cm
+                    opd_step=100*1e-7,  # cm
+                    opd_num=2048,
+                    reflectance=np.array([reflectance]),
+                    # wn_min=24.31 * 1,  # cm
+                    # wn_max=24.41 * 7,  # cm
+                    wn_min=20.,  # cm
+                    wn_max=20000.1,  # cm
+                    haar_order=haar_order,
+                    fp_order=fp_order,
+                    wn_num_factor=10,
+                    idct_correction=1.4,
+                )
+
+                if is_imshow:
+                    visualize_test(
+                        reflectance=reflectance,
+                        haar_order=haar_order,
+                        interferogram=interferogram,
+                        spectrum_ref=spectrum_ref,
+                        spectrum_idct=spectrum_idct,
+                        spectrum_haar=spectrum_haar,
+                        acq_ind=0,
+                        ylim=[-0.2, 1.5],
+                    )
+        plt.show()
 
 
 def paper_test(
@@ -33,14 +61,17 @@ def paper_test(
         wn_min: float,
         wn_max: float,
         haar_order: int,
-        fp_order: int = 0,
+        fp_order: int,
+        wn_num_factor: float,
+        idct_correction: float,
 ):
     opds = opd_step * np.arange(opd_num)
 
-    wn_step = 1 / (2 * opds.max())
+    # wn_step = 1 / (2 * opds.max())
     wn_max_dct = 1 / (2 * opd_step)
-    wn_num = int(opd_num * (wn_max - wn_min) / wn_max_dct)
-    wavenumbers = wn_min + wn_step * np.arange(wn_num)  # um-1
+    wn_num = int(opd_num * (wn_max - wn_min) / wn_max_dct * wn_num_factor)
+    wavenumbers = np.linspace(start=wn_min, stop=wn_max, num=wn_num, endpoint=False)  # um-1
+
     gaussian_gen = GaussianGenerator(
         coefficients=gauss_coeffs[:, None],
         means=gauss_means[:, None],
@@ -59,6 +90,12 @@ def paper_test(
         order=fp_order,
     )
     interferogram = fp_0.acquire_interferogram(spectrum=spectrum_ref)
+    interferogram = replace(interferogram, data=interferogram.data / wn_num_factor / idct_correction)
+
+    wn_step = 1 / (2 * opds.max())
+    wn_max_dct = 1 / (2 * opd_step)
+    wn_num = int(opd_num * (wn_max - wn_min) / wn_max_dct)
+    wavenumbers = wn_min + wn_step * np.arange(wn_num)  # um-1
 
     fp_haar = FabryPerotInverSpectrometerHaar(
         transmittance=transmittance,
@@ -67,7 +104,6 @@ def paper_test(
         order=haar_order,
         is_mean_center=True,
     )
-    coefficients = fp_haar.kernel_fourier_coefficients()
     spectrum_haar = fp_haar.reconstruct_spectrum(interferogram=interferogram)
 
     idct_inv = IDCT(is_mean_center=True)
@@ -77,45 +113,44 @@ def paper_test(
         transmittance_response=transmittance_response
     )
 
-    pinv_inv = PseudoInverse()
-    transmittance_response = fp_0.transmittance_response(wavenumbers=wavenumbers, is_correct_transmittance=False)
-    spectrum_pinv = pinv_inv.reconstruct_spectrum(
-        interferogram=interferogram,
-        transmittance_response=transmittance_response
+    return (
+        interferogram,
+        spectrum_ref,
+        spectrum_idct,
+        spectrum_haar,
     )
 
-    print(np.around(coefficients, decimals=3))
-    print()
 
-    acq_ind = 0
-    ylim = [-0.2, 1.2]
+def visualize_test(
+        reflectance,
+        haar_order,
+        interferogram,
+        spectrum_ref,
+        spectrum_idct,
+        spectrum_haar,
+        acq_ind,
+        ylim,
+):
+    fig, axs = plt.subplots(1, 2, squeeze=False, figsize=(9, 5))
 
-    fig, axs = plt.subplots(1, 3, squeeze=False)
+    axs_current = axs[0, 0]
+    interferogram.visualize(axs=axs_current, acq_ind=acq_ind)
+    axs_current.set_title(f'Simulated Interferogram, R = {reflectance}')
+    axs_current.set_xlabel('OPDs [cm]')
+    axs_current.set_ylabel('Intensity')
 
-    spectrum_ref.visualize(axs=axs[0, 0], acq_ind=acq_ind, color="red", label='Reference', ylim=ylim)
-    axs[0, 0].set_title('Reference Spectrum')
-    axs[0, 0].set_xlabel('Wavenumbers [cm-1]')
-    axs[0, 0].set_ylabel('Intensity')
-
-    interferogram.visualize(axs=axs[0, 1], acq_ind=acq_ind)
-    axs[0, 1].set_title('Simulated Interferogram')
-    axs[0, 1].set_xlabel('OPDs [cm]')
-    axs[0, 1].set_ylabel('Intensity')
-
-    spectrum_ref.visualize(axs=axs[0, 2], acq_ind=acq_ind, color="red", label='Reference', ylim=ylim)
+    axs_current = axs[0, 1]
+    spectrum_ref.visualize(axs=axs_current, acq_ind=acq_ind, color="red", label='Reference', ylim=ylim)
     spectrum_idct_eq, _ = spectrum_idct.match_stats(reference=spectrum_ref, axis=-2)
-    spectrum_idct_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="dashed", color="green", label='IDCT', ylim=ylim)
+    spectrum_idct.visualize(axs=axs_current, acq_ind=acq_ind, linestyle="dashed", color="green", label='IDCT', ylim=ylim)
     spectrum_haar_eq, _ = spectrum_haar.match_stats(reference=spectrum_ref, axis=-2)
-    spectrum_haar_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="dashed", marker="x", markevery=10, color="blue", label='Haar', ylim=ylim)
-    # spectrum_pinv_eq, _ = spectrum_pinv.match_stats(reference=spectrum_ref, axis=-2)
-    # spectrum_pinv_eq.visualize(axs=axs[0, 2], acq_ind=acq_ind, linestyle="", marker="^", markevery=5, color="yellow", label='PINV', ylim=ylim)
-    axs[0, 2].set_title('Reconstructed Spectrum')
-    axs[0, 2].set_xlabel('Wavenumbers [cm-1]')
-    axs[0, 2].set_ylabel('Intensity')
+    spectrum_haar.visualize(axs=axs_current, acq_ind=acq_ind, linestyle="dashed", color="blue", label='Haar', ylim=ylim)
+    axs_current.set_title(f'Reconstructed Spectrum, M = {haar_order}')
+    axs_current.set_xlabel('Wavenumbers [cm-1]')
+    axs_current.set_ylabel('Intensity')
 
     plt.legend()
     plt.grid(True)
-    plt.show()
 
 
 if __name__ == "__main__":

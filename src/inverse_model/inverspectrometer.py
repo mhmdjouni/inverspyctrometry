@@ -3,11 +3,13 @@ from dataclasses import dataclass
 
 import numpy as np
 from scipy import fft
+import matplotlib.pyplot as plt
 
 from src.common_utils.custom_vars import Wvn, Opd, Acq
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
 from src.common_utils.utils import generate_wavenumbers_from_opds
+from src.outputs.visualization import imshow_custom
 
 
 # TODO: Supports only constant transmittance and reflectance
@@ -52,6 +54,73 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
     order: int
     is_mean_center: bool = True
 
+    def reconstruct_spectrum(
+            self,
+            interferogram: Interferogram,
+    ) -> Spectrum:
+        if self.is_mean_center:
+            interferogram = interferogram.center(new_mean=0, axis=-2)
+        interferogram_dft = np.abs(fft.fft(interferogram.data, axis=-2, norm="forward")[0:interferogram.data.shape[-2] // 2, :])
+        interferogram_dft = (interferogram_dft - interferogram_dft[1]) / 0.187
+        # interferogram_dft = fft.idct(interferogram.data, axis=-2, norm="backward") / (0.1 * np.sqrt(3))
+        wn_step_dct = 1 / (2 * interferogram.opds.max()) * 2
+        wavenumbers_dct = generate_wavenumbers_from_opds(
+            wavenumbers_num=interferogram_dft.shape[-2],
+            del_opd=np.mean(np.diff(interferogram.opds)),
+        )
+        wns_range_condition = np.logical_and(
+            self.wavenumbers[0] <= wavenumbers_dct,
+            wavenumbers_dct <= self.wavenumbers[-1]
+        )
+        wn_idx_range = np.where(wns_range_condition)
+        kernel_coefficients = self.kernel_fourier_coefficients()
+
+        transfer_matrix = self.equate_coefficients(
+            interferogram_dft_size=interferogram_dft.shape[-2],
+            wn_idx_start=wn_idx_range[0][0],
+            wn_idx_stop=wn_idx_range[0][-1],
+            order=self.order,
+            kernel_fourier_coefficients=kernel_coefficients,
+        )
+
+        # fig, axs = plt.subplots(1, 1, squeeze=False)
+        # imshow_custom(
+        #     fig=fig,
+        #     axs=axs[0, 0],
+        #     image=transfer_matrix,
+        #     title=f"Harmonics Order M = {self.order}",
+        #     x_variable=wavenumbers_dct,
+        #     y_variable=wavenumbers_dct,
+        #     x_label="Wavenumbers [cm^-1]",
+        #     y_label="Wavenumbers [cm^-1]",
+        #     vmin=0,
+        #     vmax=0.01,
+        #     interpolation="nearest",
+        # )
+
+        spectrum_coefficients = self.recursive_recovery(
+            interferogram_dft_amplitudes=interferogram_dft,
+            transfer_matrix=transfer_matrix,
+            wn_idx_start=wn_idx_range[0][0],
+            wn_idx_stop=wn_idx_range[0][-1],
+            kernel_coefficient_1=kernel_coefficients[1],
+        )
+
+        wavenumbers_target = wavenumbers_dct[wn_idx_range]
+        spectrum = spectrum_from_haar(
+            wavenumbers=wavenumbers_target,
+            wn_idx_range=wn_idx_range[0],
+            spectrum_coefficients=spectrum_coefficients,
+            wn_step=wn_step_dct,
+        )
+
+        print(f"M = {self.order}")
+        print(f"A = {np.round(kernel_coefficients, 3)}")
+        print(f"B =\n{np.round(transfer_matrix[:7, :7], 3)}")
+        print("\n\n")
+
+        return spectrum
+
     def variable(
             self,
             opds: np.ndarray[tuple[Opd], np.dtype[np.float_]],
@@ -83,49 +152,6 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
 
         return coefficients
 
-    def reconstruct_spectrum(
-            self,
-            interferogram: Interferogram,
-    ) -> Spectrum:
-        if self.is_mean_center:
-            interferogram = interferogram.center(new_mean=0, axis=-2)
-
-        interferogram_dct = fft.dct(interferogram.data, axis=-2)
-        wn_step_dct = 1 / (2 * interferogram.opds.max())
-        wavenumbers_dct = np.arange(interferogram.opds.size) * wn_step_dct
-        wns_range_condition = np.logical_and(
-            self.wavenumbers[0] <= wavenumbers_dct,
-            wavenumbers_dct <= self.wavenumbers[-1]
-        )
-        wn_idx_range = np.where(wns_range_condition)
-        kernel_coefficients = self.kernel_fourier_coefficients()
-
-        transfer_matrix = self.equate_coefficients(
-            interferogram_dft_size=interferogram_dct.shape[-2],
-            wn_idx_start=wn_idx_range[0][0],
-            wn_idx_stop=wn_idx_range[0][-1],
-            order=self.order,
-            kernel_fourier_coefficients=kernel_coefficients,
-        )
-
-        spectrum_coefficients = self.recursive_recovery(
-            interferogram_dct=interferogram_dct,
-            transfer_matrix=transfer_matrix,
-            wn_idx_start=wn_idx_range[0][0],
-            wn_idx_stop=wn_idx_range[0][-1],
-            kernel_coefficient=kernel_coefficients[1],
-        )
-
-        wavenumbers_target = wavenumbers_dct[wn_idx_range]
-        spectrum = spectrum_from_haar(
-            wavenumbers=wavenumbers_target,
-            wn_idx_range=wn_idx_range[0],
-            spectrum_coefficients=spectrum_coefficients,
-            wn_step=wn_step_dct,
-        )
-
-        return spectrum
-
     # TODO: Move these to Haar inversion utils?
     @staticmethod
     def equate_coefficients(
@@ -141,33 +167,38 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
         transfer_matrix = np.zeros((interferogram_dft_size, interferogram_dft_size))
         wn_idx_range = list(range(wn_idx_start, wn_idx_stop + 1))
         order_idx_range = list(range(1, order + 1))
-        for dft_idx in wn_idx_range:  # u in [k_1, k_2]
-            for wn_idx in wn_idx_range:  # k in [k_1, k_2]
-                for order_idx in order_idx_range:  # n in [1, M]
-                    for sub_order_increment in range(order_idx):  # i in [0, n-1]
-                        index_factor = order_idx * wn_idx + sub_order_increment
-                        if index_factor == dft_idx:
+        for dft_idx in wn_idx_range:
+            for wn_idx in wn_idx_range:
+                for order_idx in order_idx_range:
+                    sub_order_increment_range = list(range(order_idx))
+                    for sub_order_increment in sub_order_increment_range:
+                        if order_idx * wn_idx + sub_order_increment == dft_idx:
                             coefficient_ratio = kernel_fourier_coefficients[order_idx] / order_idx
                             transfer_matrix[dft_idx, wn_idx] += coefficient_ratio
+
         return transfer_matrix
 
     @staticmethod
     def recursive_recovery(
-            interferogram_dct: np.ndarray,
-            transfer_matrix: np.ndarray,
-            wn_idx_start: int,
-            wn_idx_stop: int,
-            kernel_coefficient: float,
+            interferogram_dft_amplitudes: np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]],  # J
+            transfer_matrix: np.ndarray[tuple[Wvn, Wvn], np.dtype[np.float_]],  # B
+            wn_idx_start: int,  # k1
+            wn_idx_stop: int,  # k2
+            kernel_coefficient_1: float,  # A1
     ):
-        wn_idx_range = list(range(wn_idx_start, wn_idx_stop + 1))
-        spectrum_coefficients = np.zeros_like(interferogram_dct)
-        dft_idx = wn_idx_range[0]
-        spectrum_coefficients[dft_idx] = interferogram_dct[dft_idx]
-        for dft_idx in wn_idx_range[1:]:
-            vect = spectrum_coefficients[wn_idx_range[0]:dft_idx] * transfer_matrix[wn_idx_range[0]:dft_idx, [dft_idx]]
-            gamma = np.sum(vect, axis=-2, keepdims=True)
-            spectrum_coefficients[dft_idx] = (interferogram_dct[dft_idx] - gamma) / (2 * kernel_coefficient)
-        return spectrum_coefficients
+        wn_idx_range = np.arange(start=wn_idx_start, stop=wn_idx_stop + 1)
+        spectrum_amplitudes = np.zeros_like(interferogram_dft_amplitudes)
+
+        tau = wn_idx_range[0]
+        spectrum_amplitudes[tau] = interferogram_dft_amplitudes[tau]
+
+        for tau in wn_idx_range[1:]:
+            spectrum_amplitudes_cropped = spectrum_amplitudes[wn_idx_start:tau, :]
+            transfer_matrix_row_cropped = transfer_matrix[tau, wn_idx_start:tau][:, None]
+            gamma = np.sum(spectrum_amplitudes_cropped * transfer_matrix_row_cropped, axis=-2, keepdims=True)
+            spectrum_amplitudes[tau] = (interferogram_dft_amplitudes[tau] - gamma) / (2 * kernel_coefficient_1)
+
+        return spectrum_amplitudes
 
 
 def evaluate_haar_function(

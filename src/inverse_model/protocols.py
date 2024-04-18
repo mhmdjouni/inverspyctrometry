@@ -78,7 +78,7 @@ class IDCT(InversionProtocol):
         if self.is_mean_center:
             interferogram = interferogram.center(new_mean=0, axis=-2)
         # spectrum_ifft = (np.abs(fft.ifft(interferogram.data, axis=-2)[0:interferogram.data.shape[-2]//2, :]))
-        spectrum = fft.idct(interferogram.data, axis=-2)
+        spectrum = fft.idct(interferogram.data, axis=-2, norm="backward")
         wavenumbers = generate_wavenumbers_from_opds(
             wavenumbers_num=spectrum.shape[-2],
             del_opd=np.mean(np.diff(interferogram.opds))
