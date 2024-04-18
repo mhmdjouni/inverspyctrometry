@@ -11,7 +11,7 @@ from src.inverse_model.protocols import IDCT, PseudoInverse
 
 
 def main():
-    is_imshow = True
+    is_imshow = False
     for fp_order in [0]:
         for reflectance in [0.7]:
             for haar_order in [25]:
