@@ -60,10 +60,10 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
     ) -> Spectrum:
         if self.is_mean_center:
             interferogram = interferogram.center(new_mean=0, axis=-2)
-        interferogram_dft = np.abs(fft.fft(interferogram.data, axis=-2, norm="forward")[0:interferogram.data.shape[-2] // 2, :])
-        interferogram_dft = (interferogram_dft - interferogram_dft[1]) / 0.187
-        # interferogram_dft = fft.idct(interferogram.data, axis=-2, norm="backward") / (0.1 * np.sqrt(3))
-        wn_step_dct = 1 / (2 * interferogram.opds.max()) * 2
+        # interferogram_dft = np.abs(fft.fft(interferogram.data, axis=-2, norm="forward")[0:interferogram.data.shape[-2] // 2, :])
+        # interferogram_dft = (interferogram_dft - interferogram_dft[1]) / 0.187
+        interferogram_dft = fft.idct(interferogram.data, axis=-2, norm="backward") / (0.1 * np.sqrt(3))
+        wn_step_dct = 1 / (2 * interferogram.opds.max())
         wavenumbers_dct = generate_wavenumbers_from_opds(
             wavenumbers_num=interferogram_dft.shape[-2],
             del_opd=np.mean(np.diff(interferogram.opds)),
