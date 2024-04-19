@@ -77,33 +77,19 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
 
         transfer_matrix = self.equate_coefficients(
             interferogram_dft_size=interferogram_dft.shape[-2],
-            wn_idx_start=wn_idx_range[0][0],
-            wn_idx_stop=wn_idx_range[0][-1],
+            wn_idx_start=int(wn_idx_range[0][0]),
+            wn_idx_stop=int(wn_idx_range[0][-1]),
             order=self.order,
             kernel_fourier_coefficients=kernel_coefficients,
         )
-
-        # fig, axs = plt.subplots(1, 1, squeeze=False)
-        # imshow_custom(
-        #     fig=fig,
-        #     axs=axs[0, 0],
-        #     image=transfer_matrix,
-        #     title=f"Harmonics Order M = {self.order}",
-        #     x_variable=wavenumbers_dct,
-        #     y_variable=wavenumbers_dct,
-        #     x_label="Wavenumbers [cm^-1]",
-        #     y_label="Wavenumbers [cm^-1]",
-        #     vmin=0,
-        #     vmax=0.01,
-        #     interpolation="nearest",
-        # )
+        # self.plot_transfer_matrix(transfer_matrix, wavenumbers_dct)
 
         spectrum_coefficients = self.recursive_recovery(
             interferogram_dft_amplitudes=interferogram_dft,
             transfer_matrix=transfer_matrix,
-            wn_idx_start=wn_idx_range[0][0],
-            wn_idx_stop=wn_idx_range[0][-1],
-            kernel_coefficient_1=kernel_coefficients[1],
+            wn_idx_start=int(wn_idx_range[0][0]),
+            wn_idx_stop=int(wn_idx_range[0][-1]),
+            kernel_coefficient_1=float(kernel_coefficients[1]),
         )
 
         wavenumbers_target = wavenumbers_dct[wn_idx_range]
@@ -121,12 +107,6 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
 
         return spectrum
 
-    def variable(
-            self,
-            opds: np.ndarray[tuple[Opd], np.dtype[np.float_]],
-    ) -> np.ndarray:
-        return opds[:, None] * self.wavenumbers[None, :]
-
     def kernel(
             self,
             variable: np.ndarray,
@@ -137,22 +117,19 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
         return numerator / denominator
 
     def kernel_fourier_coefficients(self) -> np.ndarray:
-        # TODO: For some reason, to match the results in the paper,
-        #  the coefficients for n>0 are not multiplied by 2
         variable = np.linspace(start=0, stop=1, num=int(1e4), endpoint=False)
 
         kernel = self.kernel(variable=variable)
         n_values = np.arange(self.order + 1)
         cosines = np.cos(2 * np.pi * n_values[:, None] * variable[None, :])
 
-        integrands = kernel[None, :] * cosines  # This should be multiplied by 2 in principle for n>0
-        variable_differential = np.mean(np.diff(variable))  # a scalar, because it's regularly sampled
+        integrands = kernel[None, :] * cosines
+        variable_differential = np.mean(np.diff(variable))
         coefficients = 2 * np.sum(integrands * variable_differential, axis=-1)
         coefficients[0] /= 2
 
         return coefficients
 
-    # TODO: Move these to Haar inversion utils?
     @staticmethod
     def equate_coefficients(
             interferogram_dft_size: int,
@@ -161,9 +138,6 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
             order: int,
             kernel_fourier_coefficients: np.ndarray,
     ) -> np.ndarray[tuple[int, int], np.dtype[np.float_]]:
-        """
-        TODO: The result doesn't match with the paper
-        """
         transfer_matrix = np.zeros((interferogram_dft_size, interferogram_dft_size))
         wn_idx_range = list(range(wn_idx_start, wn_idx_stop + 1))
         order_idx_range = list(range(1, order + 1))
@@ -174,7 +148,7 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
                     for sub_order_increment in sub_order_increment_range:
                         if order_idx * wn_idx + sub_order_increment == dft_idx:
                             coefficient_ratio = kernel_fourier_coefficients[order_idx] / order_idx
-                            transfer_matrix[dft_idx, wn_idx] += coefficient_ratio
+                            transfer_matrix[dft_idx, wn_idx] += kernel_fourier_coefficients[order_idx] / order_idx
 
         return transfer_matrix
 
@@ -199,6 +173,26 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
             spectrum_amplitudes[tau] = (interferogram_dft_amplitudes[tau] - gamma) / (2 * kernel_coefficient_1)
 
         return spectrum_amplitudes
+
+    def plot_transfer_matrix(
+            self,
+            transfer_matrix,
+            wavenumbers_dct,
+    ):
+        fig, axs = plt.subplots(1, 1, squeeze=False)
+        imshow_custom(
+            fig=fig,
+            axs=axs[0, 0],
+            image=transfer_matrix,
+            title=f"Harmonics Order M = {self.order}",
+            x_variable=wavenumbers_dct,
+            y_variable=wavenumbers_dct,
+            x_label="Wavenumbers [cm^-1]",
+            y_label="Wavenumbers [cm^-1]",
+            vmin=0,
+            vmax=0.01,
+            interpolation="nearest",
+        )
 
 
 def evaluate_haar_function(
