@@ -4,7 +4,7 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 from matplotlib.figure import Figure
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+from scipy import interpolate
 
 from src.common_utils.custom_vars import Opd, Acq
 from src.common_utils.utils import add_noise, rescale, min_max_normalize, standardize, center, match_stats
@@ -125,3 +125,33 @@ class Interferogram:
             is_rescale_reference=is_rescale_reference,
         )
         return replace(self, data=matched_data), replace(reference, data=scaled_reference)
+
+    def interpolate(
+            self,
+            opds: np.ndarray[tuple[Opd], np.dtype[np.float_]],
+            kind: str = "cubic",
+            fill_value: str | float | tuple = (0., 0.),
+    ) -> Interferogram:
+        interferogram_out = interpolate.interp1d(
+            x=self.opds,
+            y=self.data,
+            axis=-2,
+            kind=kind,
+            fill_value=fill_value,
+            bounds_error=False,
+        )(opds)
+        return replace(
+            self,
+            data=interferogram_out,
+            opds=opds,
+        )
+
+    def extrapolate(
+            self,
+            kind: str = "cubic",
+            fill_value: str | float | tuple = 0.,
+    ) -> Interferogram:
+        opd_step = np.mean(np.diff(self.opds))
+        opds = np.arange(start=0., stop=self.opds.max() + opd_step, step=opd_step)
+        interferogram_out = self.interpolate(opds=opds, kind=kind, fill_value=fill_value)
+        return interferogram_out
