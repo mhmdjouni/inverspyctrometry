@@ -389,32 +389,6 @@ def visualize(
     print(db)
 
 
-class ExperimentActionEnum(str, Enum):
-    SIMULATE = "simulate"
-    INVERT = "invert"
-    METRICS = "metrics"
-    VISUALIZE = "visualize"
-
-
-def action_factory(choice: ExperimentActionEnum):
-    if choice == ExperimentActionEnum.SIMULATE:
-        action = simulate
-    elif choice == ExperimentActionEnum.INVERT:
-        action = invert
-    elif choice == ExperimentActionEnum.METRICS:
-        action = metrics
-    elif choice == ExperimentActionEnum.VISUALIZE:
-        action = visualize
-    else:
-        raise EnumInvalidOptionError(option=choice, enum_class=ExperimentActionEnum)
-    return action
-
-
-def run_action(choice: ExperimentActionEnum, **inputs):
-    action = action_factory(choice=choice)
-    action(**inputs)
-
-
 @dataclass(frozen=True)
 class SubExperiment:
     """The flow of a single experiment taking into account having only one set of interferograms [Opds x Acqs]"""
