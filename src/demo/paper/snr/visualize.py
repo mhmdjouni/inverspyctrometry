@@ -78,6 +78,7 @@ def visualize_spectrum_comparison(
         subplots_options: SubplotsOptions,
         plot_options: dict,
         inversion_protocol_indices: list,
+        inverspectrometer: str = "haar",
 ):
     config = load_config()
     paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
@@ -110,9 +111,35 @@ def visualize_spectrum_comparison(
         acq_ind=acquisition_index,
         label="Reference",
         color="C0",
+        linestyle="-",
         linewidth=3,
         title="",
         **plot_options,
+    )
+
+    load_subdir = experiment_subdir_convention(
+        dataset_id=dataset_id,
+        interferometer_id=interferometer_id,
+        noise_level_index=noise_level_index,
+    ) + "/haar"
+
+    # Load
+    spectra_rec_best = replace(
+        spectra_ref_scaled,
+        data=np.load(file=reconstruction_dir / load_subdir / "spectra_rec_best.npy"),
+    )
+    spectra_rec_matched, _ = spectra_rec_best.match_stats(reference=spectra_ref_scaled, axis=-2)
+
+    # Visualize
+    spectra_rec_matched.visualize(
+        axs=axes[0, 0],
+        acq_ind=acquisition_index,
+        label="HAAR",
+        color=f"C1",
+        linestyle="--",
+        linewidth=1.3,
+        title="",
+        **plot_options
     )
 
     for i_ip, ip_id in enumerate(inversion_protocol_list):
@@ -135,7 +162,8 @@ def visualize_spectrum_comparison(
             axs=axes[0, 0],
             acq_ind=acquisition_index,
             label=db.inversion_protocols[ip_id].title.upper(),
-            color=f"C{i_ip + 1}",
+            color=f"C{i_ip + 2}",
+            linestyle="--",
             linewidth=1.3,
             title="",
             **plot_options
@@ -275,11 +303,11 @@ def main():
                     rc_params=RcParamsOptions(fontsize=17),
                     subplots_options=SubplotsOptions(),
                     plot_options={
-                        "linestyle": "-",
                         "ylabel": "Normalized Intensity",
                         "ylim": [-0.1, 1.1],
                     },
                     inversion_protocol_indices=[2, 3, 4],
+                    inverspectrometer="haar",
                 )
                 visualize_spectrum_comparison(
                     experiment_id=experiment_id,
@@ -290,11 +318,11 @@ def main():
                     rc_params=RcParamsOptions(fontsize=17),
                     subplots_options=SubplotsOptions(),
                     plot_options={
-                        "linestyle": "-",
                         "ylabel": "Normalized Intensity",
                         "ylim": [-0.1, 1.1],
                     },
                     inversion_protocol_indices=[2, 3, 4],
+                    inverspectrometer="haar",
                 )
 
 
