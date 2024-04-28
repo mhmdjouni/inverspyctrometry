@@ -4,6 +4,7 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 from matplotlib.figure import Figure
+from pydantic import DirectoryPath
 from scipy import interpolate
 
 from src.common_utils.custom_vars import Opd, Acq
@@ -155,3 +156,9 @@ class Interferogram:
         opds = np.arange(start=0., stop=self.opds.max() + opd_step, step=opd_step)
         interferogram_out = self.interpolate(opds=opds, kind=kind, fill_value=fill_value)
         return interferogram_out
+
+    @classmethod
+    def load_from_dir(cls, directory: DirectoryPath):
+        data = np.load(file=directory / "data.npy")
+        opds = np.load(file=directory / "opds.npy")
+        return Interferogram(data=data, opds=opds)
