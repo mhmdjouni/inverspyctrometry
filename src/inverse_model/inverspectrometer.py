@@ -99,13 +99,12 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
             spectrum_coefficients=spectrum_coefficients,
             wn_step=wn_step_dct,
         )
+        spectrum_cropped = spectrum.interpolate(
+            wavenumbers=self.wavenumbers,
+            fill_value="extrapolate",
+        )
 
-        print(f"M = {self.order}")
-        print(f"A = {np.round(kernel_coefficients, 3)}")
-        print(f"B =\n{np.round(transfer_matrix[:7, :7], 3)}")
-        print("\n\n")
-
-        return spectrum
+        return spectrum_cropped
 
     def kernel(
             self,
