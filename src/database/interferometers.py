@@ -16,6 +16,10 @@ class OPDSchema(BaseModel):
     def as_array(self) -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
         return generate_sampled_opds(nb_opd=self.num, opd_step=self.step, opd_min=self.start)
 
+    @property
+    def max(self) -> float:
+        return self.start + self.step * (self.num - 1)
+
 
 class InterferometerSchema(BaseModel):
     id: int
