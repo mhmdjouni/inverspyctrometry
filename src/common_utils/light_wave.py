@@ -112,13 +112,14 @@ class Spectrum:
             self,
             wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
             kind: str = "cubic",
+            fill_value: float | tuple | str = (0., 0.),
     ) -> "Spectrum":
         spectrum_out = interpolate.interp1d(
             x=self.wavenumbers,
             y=self.data,
             axis=-2,
             kind=kind,
-            fill_value=(0, 0),
+            fill_value=fill_value,
             bounds_error=False,
         )(wavenumbers)
         return Spectrum(
