@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from pprint import pprint
 
 import numpy as np
@@ -9,13 +10,24 @@ from src.interface.configuration import load_config
 # TODO: Dump the experiment configuration in the reports/experiment/ folder (could also be a separate function to call)
 
 
-def main():
+@dataclass(frozen=True)
+class ExtrapCase:
+    case: int
+    description: str
+    opds_resampler: str
+    extrap_kind: str
+    extrap_fill: any
+    transmat_extrap: str
+
+
+def run_one_experiment(
+        experiment_id_options: list,
+        extrap_case: ExtrapCase,
+):
     config = load_config()
     db = config.database()
 
     reports_folder = config.directory_paths.reports
-
-    experiment_id_options = [1, 2]
 
     for experiment_id in experiment_id_options:
         experiment_config = db.experiments[experiment_id]
@@ -72,6 +84,43 @@ def main():
         # if not experiment_dir.exists():
         #     experiment_dir.mkdir(parents=True, exist_ok=True)
         # experiment_config.model_dump_json()
+
+
+def main():
+    extrap_cases = [
+        ExtrapCase(
+            case=1,
+            description="Concatenate lowest OPDs but set the corresponding interferogram values to zero",
+            opds_resampler="concatenate_missing",
+            extrap_kind="linear",
+            extrap_fill=(0., 0.),
+            transmat_extrap="model"
+        ),
+        ExtrapCase(
+            case=2,
+            description="Concatenate lowest OPDs but extrapolate the interferogram values using conventional methods",
+            opds_resampler="concatenate_missing",
+            extrap_kind="linear",
+            extrap_fill="extrapolate",
+            transmat_extrap="model"
+        ),
+        ExtrapCase(
+            case=3,
+            description="Concatenate lowest OPDs but extrapolate the interferogram values using fourier series",
+            opds_resampler="concatenate_missing",
+            extrap_kind="linear",
+            extrap_fill="fourier",
+            transmat_extrap="model"
+        ),
+    ]
+
+    experiment_id_options = [1]  # 1, 2, 8
+
+    for extrap_case in extrap_cases:
+        run_one_experiment(
+            experiment_id_options=experiment_id_options,
+            extrap_case=extrap_case,
+        )
 
 
 if __name__ == "__main__":
