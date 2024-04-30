@@ -1,6 +1,9 @@
-from dataclasses import dataclass
+from __future__ import annotations
+
+from dataclasses import dataclass, replace
 
 import numpy as np
+from scipy import interpolate
 
 from src.common_utils.custom_vars import Opd, Deg, InterferometerType, Wvn
 from src.common_utils.transmittance_response import TransmittanceResponse
@@ -56,3 +59,47 @@ class Characterization:
             wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
     ) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
         return self.coeffs_to_polynomials(coefficients=self.reflectance_coefficients, wavenumbers=wavenumbers)
+
+    def extrapolate_opds(
+            self,
+            support_resampler: str,
+    ) -> Characterization:
+        opd_mean_step = np.mean(np.diff(self.opds))
+        lowest_missing_opds = np.arange(start=0., stop=self.opds.min(), step=opd_mean_step)
+        
+        if support_resampler == "resample_all":
+            # opds = np.arange(start=0., stop=self.opds.max() + opd_mean_step, step=opd_mean_step)
+            raise ValueError(f"Support resampling option '{support_resampler}' is not yet supported.")
+        elif support_resampler == "concatenate_missing":
+            opds = np.concatenate((lowest_missing_opds, self.opds))
+        else:
+            raise ValueError(f"Support resampling option '{support_resampler}' is not supported.")
+        
+        def extrapolate_coeffs(coefficients: np.ndarray) -> np.ndarray:
+            """
+            I'm taking the mean here because theoretically interferometers sharing the similar materials should have
+              the same the transmittance and reflectance (independent of the OPD as a physical parameter), so then
+              the "missing interferometers" will have that.
+            """
+            coeffs_mean = np.mean(coefficients, axis=-2, keepdims=True)
+            coeffs_missing = np.tile(coeffs_mean, reps=(lowest_missing_opds.size, 1))
+            concatenated_coeffs = np.concatenate((coeffs_missing, coefficients), axis=-2)
+            return concatenated_coeffs
+        
+        transmittance_coeffs = extrapolate_coeffs(self.transmittance_coefficients)
+        reflectance_coeffs = extrapolate_coeffs(self.reflectance_coefficients)
+        phase_shift = interpolate.interp1d(
+            x=self.opds,
+            y=self.phase_shift,
+            kind="zero",
+            fill_value=0.,
+            bounds_error=False,
+        )(opds)
+
+        return replace(
+            self,
+            transmittance_coefficients=transmittance_coeffs,
+            opds=opds,
+            phase_shift=phase_shift,
+            reflectance_coefficients=reflectance_coeffs,
+        )
