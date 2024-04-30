@@ -252,14 +252,14 @@ def main():
             extrap_fill="extrapolate",
             transmat_extrap="model"
         ),
-        # ExtrapCase(
-        #     case=3,
-        #     description="Concatenate lowest OPDs but extrapolate the interferogram values using fourier series",
-        #     opds_resampler="concatenate_missing",
-        #     extrap_kind="linear",
-        #     extrap_fill="fourier",
-        #     transmat_extrap="model"
-        # ),
+        ExtrapCase(
+            case=3,
+            description="Concatenate lowest OPDs but extrapolate the interferogram values using fourier series",
+            opds_resampler="concatenate_missing",
+            extrap_kind="linear",
+            extrap_fill="fourier",
+            transmat_extrap="model"
+        ),
     ]
 
     experiment_id_options = [1]  # 1, 2, 8

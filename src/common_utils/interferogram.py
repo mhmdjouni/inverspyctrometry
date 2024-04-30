@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 
+import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
 from pydantic import DirectoryPath
@@ -147,6 +148,10 @@ class Interferogram:
             opds=opds,
         )
 
+    def extrapolate_fourier(self, opds: np.ndarray) -> Interferogram:
+        data, opds = extrapolate_fourier(array=self.data, support=self.opds, support_missing=opds)
+        return replace(self, data=data, opds=opds)
+
     def extrapolate(
             self,
             support_resampler: str,
@@ -161,7 +166,11 @@ class Interferogram:
             opds = np.concatenate((lowest_missing_opds, self.opds))
         else:
             raise ValueError(f"Support resampling option {support_resampler} is not supported")
-        interferogram_out = self.interpolate(opds=opds, kind=kind, fill_value=fill_value)
+
+        if fill_value == "fourier":
+            interferogram_out = self.extrapolate_fourier(opds=lowest_missing_opds)
+        else:
+            interferogram_out = self.interpolate(opds=opds, kind=kind, fill_value=fill_value)
         return interferogram_out
 
     @classmethod
@@ -169,3 +178,47 @@ class Interferogram:
         data = np.load(file=directory / "data.npy")
         opds = np.load(file=directory / "opds.npy")
         return Interferogram(data=data, opds=opds)
+
+
+def extrapolate_fourier(
+        array: np.ndarray,
+        support: np.ndarray,
+        support_missing: np.ndarray = None,
+):
+    support_range = support.max() - support.min()
+
+    n_coeffs = support.size // 2
+    fft_vals = np.fft.fft(array - array.mean(axis=-2, keepdims=True), axis=-2)
+    a0 = fft_vals[0:1] / support.size
+    an = 2 * np.real(fft_vals[1:n_coeffs]) / support.size
+    bn = -2 * np.imag(fft_vals[1:n_coeffs]) / support.size
+
+    if support_missing is None:
+        step = np.mean(np.diff(np.sort(support)))
+        support_missing = np.arange(start=0., stop=support.min(), step=step)
+    support_missing = support_missing[:, None]
+    support_adjusted = (support_missing - support.min()) % support_range + support.min()
+
+    array_missing = a0 / 2 * np.ones_like(support_missing)
+    for n in range(1, n_coeffs):
+        array_missing += (
+                an[n-1] * np.cos(2 * np.pi * n * (support_adjusted - support.min()) / support_range)
+                +
+                bn[n-1] * np.sin(2 * np.pi * n * (support_adjusted - support.min()) / support_range)
+        )
+
+    array_missing += array.mean(axis=-2, keepdims=True)
+    array_missing = np.real(array_missing)
+
+    array = np.concatenate((array_missing, array), axis=-2)
+    support = np.concatenate((support_missing[:, 0], support))
+
+    # support_idx = 150
+    # plt.figure(figsize=(20, 10))
+    # plt.plot(support, array[:, support_idx], label='Original Data')
+    # plt.plot(support_missing[:, 0], array_missing[:, support_idx], label='Fourier Interpolation', linestyle='--')
+    # plt.legend()
+    # plt.show()
+    # plt.grid()
+
+    return array, support
