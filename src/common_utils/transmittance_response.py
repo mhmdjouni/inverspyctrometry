@@ -4,7 +4,7 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 from matplotlib.figure import Figure
-from scipy import fft
+from scipy import fft, interpolate
 
 from src.common_utils.custom_vars import Opd, Wvn
 from src.common_utils.utils import rescale
@@ -21,6 +21,43 @@ class TransmittanceResponse:
     def rescale(self, new_max: float = 1., axis: int = None) -> TransmittanceResponse:
         rescaled_data = rescale(array=self.data, new_max=new_max, axis=axis)
         return replace(self, data=rescaled_data)
+
+    def interpolate_opds(
+            self,
+            opds: np.ndarray[tuple[Opd], np.dtype[np.float_]],
+            kind: str = "cubic",
+            fill_value: str | float | tuple = (0., 0.),
+    ) -> TransmittanceResponse:
+        transfer_matrix_out_out = interpolate.interp1d(
+            x=self.opds,
+            y=self.data,
+            axis=-2,
+            kind=kind,
+            fill_value=fill_value,
+            bounds_error=False,
+        )(opds)
+        return replace(
+            self,
+            data=transfer_matrix_out_out,
+            opds=opds,
+        )
+
+    def extrapolate_opds(
+            self,
+            support_resampler: str,
+            kind: str = "cubic",
+            fill_value: str | float | tuple = 0.,
+    ) -> TransmittanceResponse:
+        opd_step = np.mean(np.diff(self.opds))
+        if support_resampler == "resample_all":
+            opds = np.arange(start=0., stop=self.opds.max() + opd_step, step=opd_step)
+        elif support_resampler == "concatenate_missing":
+            lowest_missing_opds = np.arange(start=0., stop=self.opds.min(), step=opd_step)
+            opds = np.concatenate((lowest_missing_opds, self.opds))
+        else:
+            raise ValueError(f"Support resampling option {support_resampler} is not supported")
+        transfer_matrix_out = self.interpolate_opds(opds=opds, kind=kind, fill_value=fill_value)
+        return transfer_matrix_out
 
     def compute_singular_values(self):
         zero_mean_opd_responses = self.data - np.mean(self.data, axis=1, keepdims=True)

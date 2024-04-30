@@ -149,11 +149,18 @@ class Interferogram:
 
     def extrapolate(
             self,
+            support_resampler: str,
             kind: str = "cubic",
             fill_value: str | float | tuple = 0.,
     ) -> Interferogram:
         opd_step = np.mean(np.diff(self.opds))
-        opds = np.arange(start=0., stop=self.opds.max() + opd_step, step=opd_step)
+        if support_resampler == "resample_all":
+            opds = np.arange(start=0., stop=self.opds.max() + opd_step, step=opd_step)
+        elif support_resampler == "concatenate_missing":
+            lowest_missing_opds = np.arange(start=0., stop=self.opds.min(), step=opd_step)
+            opds = np.concatenate((lowest_missing_opds, self.opds))
+        else:
+            raise ValueError(f"Support resampling option {support_resampler} is not supported")
         interferogram_out = self.interpolate(opds=opds, kind=kind, fill_value=fill_value)
         return interferogram_out
 
