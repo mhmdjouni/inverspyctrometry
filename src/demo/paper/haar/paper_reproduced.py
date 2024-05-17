@@ -10,7 +10,6 @@ from matplotlib import pyplot as plt
 from src.common_utils.interferogram import Interferogram
 from src.demo.paper.haar.utils import generate_synthetic_spectrum, generate_interferogram
 from src.direct_model.interferometer import FabryPerotInterferometer
-from src.interface.configuration import load_config
 from src.inverse_model.inverspectrometer import FabryPerotInverSpectrometerHaar
 from src.inverse_model.protocols import IDCT
 
