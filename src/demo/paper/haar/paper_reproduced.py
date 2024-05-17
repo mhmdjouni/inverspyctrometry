@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from src.common_utils.interferogram import Interferogram
-from src.demo.paper.haar.utils import generate_synthetic_spectrum, generate_interferogram
+from src.demo.paper.haar.utils import generate_synthetic_spectrum, generate_interferogram, compute_wavenumbers
 from src.direct_model.interferometer import FabryPerotInterferometer
 from src.inverse_model.inverspectrometer import FabryPerotInverSpectrometerHaar
 from src.inverse_model.protocols import IDCT
@@ -38,14 +38,6 @@ def invert_idct(wavenumbers, fp, interferogram: Interferogram):
     idct = IDCT(is_mean_center=True)
     spectrum = idct.reconstruct_spectrum(interferogram=interferogram, transmittance_response=transmittance_response)
     return spectrum
-
-
-def compute_wavenumbers(opd, wn):
-    opd_max = opd.num * opd.step
-    wn_step_min = 1 / (2 * opd_max)  # Nyquist-Shannon bandwidth
-    wn_step = wn_step_min / wn.num_factor  # oversampling to mimic continuity
-    wavenumbers = np.arange(wn.start, wn.stop, wn_step)
-    return wavenumbers
 
 
 def paper_test_modified():

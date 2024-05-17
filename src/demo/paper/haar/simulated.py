@@ -5,8 +5,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from src.common_utils.interferogram import Interferogram
-from src.demo.paper.haar.paper_reproduced import compute_wavenumbers, invert_haar
-from src.demo.paper.haar.utils import generate_synthetic_spectrum, generate_interferogram
+from src.demo.paper.haar.paper_reproduced import invert_haar
+from src.demo.paper.haar.utils import generate_synthetic_spectrum, generate_interferogram, compute_wavenumbers
 from src.direct_model.interferometer import FabryPerotInterferometer
 from src.interface.configuration import load_config
 
@@ -136,7 +136,7 @@ def paper_test_modified():
         acq_ind=acq_idx,
         label="Reference",
         color="red",
-        ylim=[-0.1, 1.4],
+        ylim=spc_ylim,
     )
 
     for spectrum_protocol, protocol in zip(spectrum_protocols, protocols):

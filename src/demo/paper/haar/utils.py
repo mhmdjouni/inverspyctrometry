@@ -132,3 +132,11 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def compute_wavenumbers(opd, wn):
+    opd_max = opd.num * opd.step
+    wn_step_min = 1 / (2 * opd_max)  # Nyquist-Shannon bandwidth
+    wn_step = wn_step_min / wn.num_factor  # oversampling to mimic continuity
+    wavenumbers = np.arange(wn.start, wn.stop, wn_step)
+    return wavenumbers
