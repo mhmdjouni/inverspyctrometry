@@ -1,3 +1,6 @@
+"""
+Reproducing the paper's restults
+"""
 from dataclasses import replace
 from types import SimpleNamespace
 
@@ -5,11 +8,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from src.common_utils.interferogram import Interferogram
-from src.demo.haar_check import generate_synthetic_spectrum, generate_interferogram
+from src.demo.paper.haar.haar_check import generate_synthetic_spectrum, generate_interferogram
 from src.direct_model.interferometer import FabryPerotInterferometer
 from src.interface.configuration import load_config
 from src.inverse_model.inverspectrometer import FabryPerotInverSpectrometerHaar
-from src.inverse_model.protocols import PseudoInverse
 
 
 def invert_haar(wavenumbers, fp, haar_order, interferogram: Interferogram):
@@ -24,22 +26,6 @@ def invert_haar(wavenumbers, fp, haar_order, interferogram: Interferogram):
     return spectrum
 
 
-def invert_pinv(wavenumbers, fp, interferogram: Interferogram):
-    device = FabryPerotInterferometer(
-        transmittance_coefficients=fp.transmittance,
-        opds=interferogram.opds,
-        phase_shift=fp.phase_shift,
-        reflectance_coefficients=fp.reflectance,
-        order=fp.order,
-    )
-    transmittance_response = device.transmittance_response(wavenumbers=wavenumbers)
-
-    pinv = PseudoInverse()
-    spectrum = pinv.reconstruct_spectrum(interferogram=interferogram, transmittance_response=transmittance_response)
-
-    return spectrum
-
-
 def invert_protocols(protocols: list, wavenumbers, fp, interferogram: Interferogram):
     device = FabryPerotInterferometer(
         transmittance_coefficients=fp.transmittance,
@@ -50,7 +36,6 @@ def invert_protocols(protocols: list, wavenumbers, fp, interferogram: Interferog
     )
     transmittance_response = device.transmittance_response(wavenumbers=wavenumbers)
 
-    interferogram = interferogram.rescale(new_max=1., axis=-2)
     transmittance_response = transmittance_response.rescale(new_max=1., axis=None)
 
     spectrum_protocols = []
@@ -83,24 +68,6 @@ def import_inversion_protocols():
     return protocols
 
 
-def load_solar_spectrum():
-    config = load_config()
-    db = config.database()
-    spectrum = db.dataset_spectrum(ds_id=0)
-    acq_id = 0
-    spectrum = replace(spectrum, data=spectrum.data[:, acq_id:acq_id+1])
-    return spectrum
-
-
-def load_specim_spectrum():
-    config = load_config()
-    db = config.database()
-    spectrum = db.dataset_spectrum(ds_id=2)
-    acq_id = 13
-    spectrum = replace(spectrum, data=spectrum.data[:, acq_id:acq_id+1])
-    return spectrum
-
-
 def paper_test_modified():
     # OPTIONS
 
@@ -110,8 +77,8 @@ def paper_test_modified():
         unit="cm",
     )
     wn_bounds_obj = SimpleNamespace(
-        start=1.,  # cm-1
-        stop=2.85,  # cm-1
+        start=0,  # cm-1
+        stop=20000.1,  # cm-1
         num_factor=10,
         unit="1/cm",
     )  # nm
@@ -123,7 +90,7 @@ def paper_test_modified():
     fp_obj = SimpleNamespace(
         transmittance=np.array([1.]),
         phase_shift=np.array([0.]),
-        reflectance=np.array([0.2]),
+        reflectance=np.array([0.7]),
         order=0,
     )
     haar_order = 10
@@ -132,14 +99,13 @@ def paper_test_modified():
 
     # SIMULATION
 
-    # spectrum_ref = generate_synthetic_spectrum(opd_info_obj, wn_bounds_obj, gauss_params_obj)
-    spectrum_ref = load_solar_spectrum()
-    # spectrum_ref = load_specim_spectrum()
+    spectrum_ref = generate_synthetic_spectrum(opd_info_obj, wn_bounds_obj, gauss_params_obj)
 
     # OBSERVATION
 
     interferogram_sim = generate_interferogram(opd_info_obj, fp_obj, spectrum_ref)
-    interferogram_sim.rescale(new_max=1., axis=-2)
+    interferogram_sim = interferogram_sim.center(new_mean=0., axis=-2)
+    interferogram_sim = interferogram_sim.rescale(new_max=1., axis=-2)
     if snr_db is not None:
         interferogram_sim = interferogram_sim.add_noise(snr_db=snr_db)
 
@@ -152,10 +118,9 @@ def paper_test_modified():
     # VISUALIZATION
 
     acq_idx = 0
-    fig, axs = plt.subplots(1, 3)
+    fig, axs = plt.subplots(1, 3, figsize=(20, 5))
     axs_spc, axs_ifm, axs_rec = axs
 
-    spectrum_ref = spectrum_ref.rescale(new_max=1., axis=-2)
     spectrum_ref.visualize(
         axs=axs_spc,
         acq_ind=acq_idx,
@@ -166,27 +131,35 @@ def paper_test_modified():
 
     interferogram_sim.visualize(axs=axs_ifm, acq_ind=acq_idx, title="Simulated Interferogram " + r"$I(x)$", color="red")
 
+    spectrum_ref.visualize(
+        axs=axs_rec,
+        acq_ind=acq_idx,
+        label="Reference",
+        color="red",
+        # ylim=[-0.2, 1.4],
+    )
+
     for spectrum_protocol, protocol in zip(spectrum_protocols, protocols):
-        spectrum_protocol, _ = spectrum_protocol.match_stats(reference=spectrum_ref)
+        spectrum_protocol = replace(spectrum_protocol, data=(spectrum_protocol.data - 0.0066) / 0.083 * spectrum_ref.data.max())
         spectrum_protocol.visualize(
             axs=axs_rec,
             acq_ind=acq_idx,
             label=protocol.label,
             color=protocol.color,
             linestyle="--",
-            ylim=[-0.2, 1.4],
+            # ylim=[-0.2, 1.4],
         )
 
-    spectrum_haar, _ = spectrum_haar.match_stats(reference=spectrum_ref, axis=-2)
+    spectrum_haar = replace(spectrum_haar, data=(spectrum_haar.data - 0.0024) / 0.021 * spectrum_ref.data.max())
     spectrum_haar.visualize(
         axs=axs_rec,
         acq_ind=acq_idx,
         label="HAAR",
         color="blue",
-        linestyle="--",
-        # marker="x",
-        # markevery=10,
-        ylim=[-0.2, 1.4],
+        linestyle=":",
+        marker="x",
+        markevery=40,
+        # ylim=[-0.2, 1.4],
     )
 
     plt.show()
