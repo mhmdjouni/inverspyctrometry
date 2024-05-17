@@ -99,13 +99,14 @@ def paper_test_modified():
     acq_idx = 0
     fig, axs = plt.subplots(1, 3, figsize=(20, 5))
     axs_spc, axs_ifm, axs_rec = axs
+    spc_ylim = [-0.1, 1.4]
 
     spectrum_ref.visualize(
         axs=axs_spc,
         acq_ind=acq_idx,
         label="Reference",
         color="red",
-        ylim=[-0.1, 1.4],
+        ylim=spc_ylim,
     )
 
     interferogram_sim.visualize(
@@ -120,7 +121,7 @@ def paper_test_modified():
         acq_ind=acq_idx,
         label="Reference",
         color="red",
-        ylim=[-0.1, 1.4],
+        ylim=spc_ylim,
     )
 
     spectrum_protocol = replace(spectrum_idct, data=(spectrum_idct.data - 0.0066) / 0.083 * spectrum_ref.data.max())
@@ -130,7 +131,7 @@ def paper_test_modified():
         label="IDCT",
         color="green",
         linestyle="--",
-        ylim=[-0.1, 1.4],
+        ylim=spc_ylim,
     )
 
     spectrum_haar = replace(spectrum_haar, data=(spectrum_haar.data - 0.0024) / 0.021 * spectrum_ref.data.max())
@@ -142,7 +143,7 @@ def paper_test_modified():
         linestyle=":",
         marker="x",
         markevery=40,
-        ylim=[-0.1, 1.4],
+        ylim=spc_ylim,
     )
 
     plt.show()
