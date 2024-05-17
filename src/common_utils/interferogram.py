@@ -167,7 +167,7 @@ class Interferogram:
         else:
             raise ValueError(f"Support resampling option {support_resampler} is not supported")
 
-        if fill_value == "fourier":
+        if kind == "fourier" or fill_value == "fourier":
             interferogram_out = self.extrapolate_fourier(opds=lowest_missing_opds)
         else:
             interferogram_out = self.interpolate(opds=opds, kind=kind, fill_value=fill_value)

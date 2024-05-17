@@ -9,7 +9,7 @@ from scipy import interpolate
 
 from src.common_utils.custom_vars import Wvn, Acq
 from src.common_utils.utils import convert_meter_units, standardize, min_max_normalize, rescale, add_noise, match_stats, \
-    calculate_rmse
+    calculate_rmse, center
 from src.outputs.visualization import plot_custom
 
 
@@ -32,6 +32,7 @@ class Spectrum:
             title: str = None,
             ylabel: str = None,
             ylim: list = None,
+            x_ticklabel_format: bool = None,
     ):
         if title is None:
             title = "Spectral Radiance"
@@ -53,6 +54,7 @@ class Spectrum:
             xlim=None,
             ylabel=ylabel,
             ylim=ylim,
+            x_ticklabel_format=x_ticklabel_format,
         )
 
     def visualize_matrix(
@@ -131,6 +133,10 @@ class Spectrum:
     def add_noise(self, snr_db) -> Spectrum:
         noisy_data = add_noise(array=self.data, snr_db=snr_db)
         return replace(self, data=noisy_data)
+
+    def center(self, new_mean: float = 0., axis: int = -2) -> Spectrum:
+        centered_data = center(array=self.data, new_mean=new_mean, axis=axis)
+        return replace(self, data=centered_data)
 
     def rescale(self, new_max: float = 1., axis: int = -2) -> Spectrum:
         rescaled_data = rescale(array=self.data, new_max=new_max, axis=axis)
