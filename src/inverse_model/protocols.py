@@ -77,15 +77,18 @@ class IDCT(InversionProtocol):
     ) -> Spectrum:
         if self.is_mean_center:
             interferogram = interferogram.center(new_mean=0, axis=-2)
-        # spectrum_ifft = (np.abs(fft.ifft(interferogram.data, axis=-2)[0:interferogram.data.shape[-2]//2, :]))
-        spectrum = fft.idct(interferogram.data, axis=-2, norm="backward")
+        spectrum = fft.idct(interferogram.data, axis=-2, norm="ortho")
         wavenumbers = generate_wavenumbers_from_opds(
             wavenumbers_num=spectrum.shape[-2],
             del_opd=np.mean(np.diff(interferogram.opds))
         )
         spectrum_obj = Spectrum(data=spectrum, wavenumbers=wavenumbers)
-        spectrum_cropped = spectrum_obj.interpolate(wavenumbers=transmittance_response.wavenumbers)
-        return spectrum_cropped
+        spectrum_obj = spectrum_obj.interpolate(
+            wavenumbers=transmittance_response.wavenumbers,
+            kind="cubic",
+            fill_value="extrapolate",
+        )
+        return spectrum_obj
 
 
 @dataclass(frozen=True)
