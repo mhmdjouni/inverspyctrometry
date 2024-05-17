@@ -12,6 +12,7 @@ from src.demo.paper.haar.utils import generate_synthetic_spectrum, generate_inte
 from src.direct_model.interferometer import FabryPerotInterferometer
 from src.interface.configuration import load_config
 from src.inverse_model.inverspectrometer import FabryPerotInverSpectrometerHaar
+from src.inverse_model.protocols import IDCT
 
 
 def invert_haar(wavenumbers, fp, haar_order, interferogram: Interferogram):
@@ -26,7 +27,7 @@ def invert_haar(wavenumbers, fp, haar_order, interferogram: Interferogram):
     return spectrum
 
 
-def invert_protocols(protocols: list, wavenumbers, fp, interferogram: Interferogram):
+def invert_idct(wavenumbers, fp, interferogram: Interferogram):
     device = FabryPerotInterferometer(
         transmittance_coefficients=fp.transmittance,
         opds=interferogram.opds,
@@ -35,18 +36,9 @@ def invert_protocols(protocols: list, wavenumbers, fp, interferogram: Interferog
         order=fp.order,
     )
     transmittance_response = device.transmittance_response(wavenumbers=wavenumbers)
-
-    transmittance_response = transmittance_response.rescale(new_max=1., axis=None)
-
-    spectrum_protocols = []
-    for protocol in protocols:
-        spectrum = protocol.option.reconstruct_spectrum(
-            interferogram=interferogram,
-            transmittance_response=transmittance_response,
-        )
-        spectrum_protocols.append(spectrum)
-
-    return spectrum_protocols
+    idct = IDCT(is_mean_center=True)
+    spectrum = idct.reconstruct_spectrum(interferogram=interferogram, transmittance_response=transmittance_response)
+    return spectrum
 
 
 def compute_wavenumbers(opd, wn):
@@ -55,17 +47,6 @@ def compute_wavenumbers(opd, wn):
     wn_step = wn_step_min / wn.num_factor  # oversampling to mimic continuity
     wavenumbers = np.arange(wn.start, wn.stop, wn_step)
     return wavenumbers
-
-
-def import_inversion_protocols():
-    config = load_config()
-    db = config.database()
-    protocols = [
-        SimpleNamespace(option=db.inversion_protocol(inv_protocol_id=0, lambdaa=0.), label="IDCT", color="green"),
-        # SimpleNamespace(option=db.inversion_protocol(inv_protocol_id=1, lambdaa=0.), label="PINV", color="purple"),
-        # SimpleNamespace(option=db.inversion_protocol(inv_protocol_id=4, lambdaa=(10 ** 0.9)), label="LV-L1", color="orange"),
-    ]
-    return protocols
 
 
 def paper_test_modified():
@@ -95,7 +76,6 @@ def paper_test_modified():
     )
     haar_order = 10
     snr_db = None
-    protocols = import_inversion_protocols()
 
     # SIMULATION
 
@@ -113,7 +93,7 @@ def paper_test_modified():
 
     wavenumbers = compute_wavenumbers(opd_info_obj, wn_bounds_obj)
     spectrum_haar = invert_haar(wavenumbers, fp_obj, haar_order, interferogram_sim)
-    spectrum_protocols = invert_protocols(protocols, wavenumbers, fp_obj, interferogram_sim)
+    spectrum_idct = invert_idct(wavenumbers, fp_obj, interferogram_sim)
 
     # VISUALIZATION
 
@@ -126,29 +106,33 @@ def paper_test_modified():
         acq_ind=acq_idx,
         label="Reference",
         color="red",
-        ylim=[-0.2, 1.4],
+        ylim=[-0.1, 1.4],
     )
 
-    interferogram_sim.visualize(axs=axs_ifm, acq_ind=acq_idx, title="Simulated Interferogram " + r"$I(x)$", color="red")
+    interferogram_sim.visualize(
+        axs=axs_ifm,
+        acq_ind=acq_idx,
+        title="Simulated Interferogram",
+        color="red",
+    )
 
     spectrum_ref.visualize(
         axs=axs_rec,
         acq_ind=acq_idx,
         label="Reference",
         color="red",
-        # ylim=[-0.2, 1.4],
+        ylim=[-0.1, 1.4],
     )
 
-    for spectrum_protocol, protocol in zip(spectrum_protocols, protocols):
-        spectrum_protocol = replace(spectrum_protocol, data=(spectrum_protocol.data - 0.0066) / 0.083 * spectrum_ref.data.max())
-        spectrum_protocol.visualize(
-            axs=axs_rec,
-            acq_ind=acq_idx,
-            label=protocol.label,
-            color=protocol.color,
-            linestyle="--",
-            # ylim=[-0.2, 1.4],
-        )
+    spectrum_protocol = replace(spectrum_idct, data=(spectrum_idct.data - 0.0066) / 0.083 * spectrum_ref.data.max())
+    spectrum_protocol.visualize(
+        axs=axs_rec,
+        acq_ind=acq_idx,
+        label="IDCT",
+        color="green",
+        linestyle="--",
+        ylim=[-0.1, 1.4],
+    )
 
     spectrum_haar = replace(spectrum_haar, data=(spectrum_haar.data - 0.0024) / 0.021 * spectrum_ref.data.max())
     spectrum_haar.visualize(
@@ -159,7 +143,7 @@ def paper_test_modified():
         linestyle=":",
         marker="x",
         markevery=40,
-        # ylim=[-0.2, 1.4],
+        ylim=[-0.1, 1.4],
     )
 
     plt.show()
