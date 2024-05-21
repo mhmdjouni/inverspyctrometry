@@ -51,7 +51,6 @@ def paper_test_modified():
     wn_bounds_obj = SimpleNamespace(
         start=0,  # cm-1
         stop=20000.1,  # cm-1
-        num_factor=10,
         unit="1/cm",
     )  # nm
     gauss_params_obj = SimpleNamespace(
@@ -66,15 +65,16 @@ def paper_test_modified():
         order=0,
     )
     haar_order = 10
+    wn_num_factor = 10
     snr_db = None
 
     # SIMULATION
 
-    spectrum_ref = generate_synthetic_spectrum(opd_info_obj, wn_bounds_obj, gauss_params_obj)
+    spectrum_ref = generate_synthetic_spectrum(gauss_params_obj, opd_info_obj, wn_bounds_obj)
 
     # OBSERVATION
 
-    interferogram_sim = generate_interferogram(opd_info_obj, fp_obj, spectrum_ref)
+    interferogram_sim = generate_interferogram(opd_info_obj, fp_obj, spectrum_ref, wn_num_factor)
     interferogram_sim = interferogram_sim.center(new_mean=0., axis=-2)
     interferogram_sim = interferogram_sim.rescale(new_max=1., axis=-2)
     if snr_db is not None:
@@ -82,7 +82,7 @@ def paper_test_modified():
 
     # INVERSION
 
-    wavenumbers = compute_wavenumbers(opd_info_obj, wn_bounds_obj)
+    wavenumbers = compute_wavenumbers(opd_info_obj, wn_bounds_obj, wn_num_factor)
     spectrum_haar = invert_haar(wavenumbers, fp_obj, haar_order, interferogram_sim)
     spectrum_idct = invert_idct(wavenumbers, fp_obj, interferogram_sim)
 

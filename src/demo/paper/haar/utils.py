@@ -1,19 +1,36 @@
 from dataclasses import replace
-from types import SimpleNamespace
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.interpolate import interp1d
 
 from src.common_utils.function_generator import GaussianGenerator
 from src.common_utils.light_wave import Spectrum
 from src.direct_model.interferometer import FabryPerotInterferometer
-from src.inverse_model.inverspectrometer import compute_interferogram_dft, calculate_airy_fourier_coeffs
+from src.inverse_model.inverspectrometer import calculate_airy_fourier_coeffs
 
 
-def generate_synthetic_spectrum(opd, wn, gauss):
+def compute_wavenumbers(opd, wn, wn_num_factor):
     opd_max = opd.num * opd.step
     wn_step_min = 1 / (2 * opd_max)  # Nyquist-Shannon bandwidth
-    wn_step = wn_step_min / wn.num_factor  # oversampling to mimic continuity
+    wn_step = wn_step_min / wn_num_factor  # oversampling to mimic continuity
+    wavenumbers = np.arange(wn.start, wn.stop, wn_step)
+    return wavenumbers
+
+
+def oversample_wavenumbers(wavenumbers, factor):
+    original_points = len(wavenumbers)
+    new_points = original_points * factor
+    original_indices = np.arange(original_points)
+    new_indices = np.linspace(0, original_points - 1, new_points)
+    interp_func = interp1d(original_indices, wavenumbers, kind='linear')
+    oversampled_wavenumbers = interp_func(new_indices)
+    return oversampled_wavenumbers
+
+
+def generate_synthetic_spectrum(gauss, opd, wn):
+    opd_max = opd.num * opd.step
+    wn_step = 1 / (2 * opd_max)  # Nyquist-Shannon bandwidth
 
     wavenumbers = np.arange(wn.start, wn.stop, wn_step)
     gaussian_gen = GaussianGenerator(
@@ -27,9 +44,19 @@ def generate_synthetic_spectrum(opd, wn, gauss):
     return spectrum_ref
 
 
-def generate_interferogram(opd, fp, spectrum_cont):
-    opds = np.arange(0, opd.step * opd.num, opd.step)
+def oversample_spectrum(spectrum_reference, opd_info, wn_continuity_factor):
+    wn_step = np.mean(np.diff(spectrum_reference.wavenumbers))
+    opd_info_max = opd_info.step * (opd_info.num - 1)
+    wn_step_nyquist = 1 / (2 * opd_info_max)
+    wn_step_target = wn_step_nyquist / wn_continuity_factor
+    wn_factor_new = int(np.ceil(wn_step / wn_step_target))
+    wavenumbers_new = oversample_wavenumbers(spectrum_reference.wavenumbers, factor=wn_factor_new)
+    spectrum_continuous = spectrum_reference.interpolate(wavenumbers=wavenumbers_new, kind="slinear")
+    return spectrum_continuous
 
+
+def generate_interferogram(opd_info, fp, spectrum_reference, wn_continuity_factor):
+    opds = np.arange(0, opd_info.step * opd_info.num, opd_info.step)
     device = FabryPerotInterferometer(
         transmittance_coefficients=fp.transmittance,
         opds=opds,
@@ -37,10 +64,12 @@ def generate_interferogram(opd, fp, spectrum_cont):
         reflectance_coefficients=fp.reflectance,
         order=fp.order,
     )
-    interferogram = device.acquire_interferogram(spectrum_cont)
 
-    wn_step = np.mean(np.diff(spectrum_cont.wavenumbers))
-    interferogram = replace(interferogram, data=interferogram.data * wn_step, opds_unit=opd.unit)
+    spectrum_continuous = oversample_spectrum(spectrum_reference, opd_info, wn_continuity_factor)
+    interferogram = device.acquire_interferogram(spectrum_continuous)
+
+    wn_step = np.mean(np.diff(spectrum_continuous.wavenumbers))
+    interferogram = replace(interferogram, data=interferogram.data * wn_step, opds_unit=opd_info.unit)
 
     return interferogram
 
@@ -76,67 +105,3 @@ def assert_haar_check(fp, interferogram_dft, spectrum, haar_order):
     spectrum_transform = replace(spectrum_interp, data=b_matrix @ spectrum_interp.data)
 
     return spectrum_transform, b_matrix
-
-
-def main():
-    opd_info_obj = SimpleNamespace(
-        step=100 * 1e-7,  # 100 nm => cm
-        num=2048,
-        unit="cm",
-    )
-    wn_bounds_obj = SimpleNamespace(
-        start=0.,  # cm-1
-        stop=20000.1,  # cm-1
-        num_factor=10,
-        unit="1/cm",
-    )  # nm
-    gauss_params_obj = SimpleNamespace(
-        coeffs=np.array([1., 0.9, 0.75]),
-        means=np.array([2000, 4250, 6500]),  # cm-1
-        stds=np.array([300, 1125, 400]),  # cm-1
-    )
-    fp_obj = SimpleNamespace(
-        transmittance=np.array([1.]),
-        phase_shift=np.array([0.]),
-        reflectance=np.array([0.7]),
-        order=0,
-    )
-
-    spectrum_ref = generate_synthetic_spectrum(opd_info_obj, wn_bounds_obj, gauss_params_obj)
-
-    interferogram_sim = generate_interferogram(opd_info_obj, fp_obj, spectrum_ref)
-
-    acq_idx = 0
-    fig, axs = plt.subplots(1, 2)
-    axs_spc, axs_ifm = axs
-    spectrum_ref.visualize(axs=axs_spc, acq_ind=acq_idx)
-    interferogram_sim.visualize(axs=axs_ifm, acq_ind=acq_idx)
-
-    interferogram_dft = compute_interferogram_dft(interferogram_sim)
-
-    spectrum_transform, b_matrix = assert_haar_check(fp_obj, interferogram_dft, spectrum_ref, haar_order=10)
-
-    acq_idx = 0
-    fig, axs = plt.subplots(1, 2)
-    axs_ifm, axs_spc = axs
-    interferogram_dft.visualize(axs=axs_ifm, acq_ind=acq_idx, title="Interferogram DFT " + r"[$J_u$]")
-    spectrum_transform.visualize(axs=axs_spc, acq_ind=acq_idx, title="Spectrum transform " + r"$B$[$a_k$]")
-
-    spectrum_rec = replace(interferogram_dft, data=np.linalg.pinv(b_matrix) @ interferogram_dft.data)
-    acq_idx = 0
-    fig, axs = plt.subplots(1, 1)
-    spectrum_rec.visualize(axs=axs, acq_ind=acq_idx, title="Spectrum transform " + r"[$a_k$]")
-
-    plt.show()
-
-
-if __name__ == "__main__":
-    main()
-
-
-def compute_wavenumbers(opd, wn):
-    opd_max = opd.num * opd.step
-    wn_step_min = 1 / (2 * opd_max)  # Nyquist-Shannon bandwidth
-    wn_step = wn_step_min / wn.num_factor  # oversampling to mimic continuity
-    wavenumbers = np.arange(wn.start, wn.stop, wn_step)
-    return wavenumbers
