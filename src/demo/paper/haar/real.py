@@ -9,7 +9,7 @@ from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
 from src.common_utils.utils import calculate_rmse
 from src.demo.paper.haar.utils import generate_synthetic_spectrum, generate_interferogram, compute_wavenumbers, \
-    oversample_wavenumbers, oversample_spectrum, invert_haar, load_spectrum, invert_protocols
+    oversample_wavenumbers, oversample_spectrum, invert_haar, load_spectrum, invert_protocols, Protocol
 from src.direct_model.characterization import Characterization
 from src.direct_model.interferometer import FabryPerotInterferometer
 from src.interface.configuration import load_config
@@ -65,10 +65,10 @@ def invert_haar_real(wavenumbers_central, characterization_id, haar_order, inter
     db = load_config().database()
     characterization = db.characterization(char_id=characterization_id)
     characterization = characterization.sort_opds()
-    # transmittance = np.mean(characterization.transmittance(wavenumbers=wavenumbers_central))[None]
-    reflectance = np.mean(characterization.reflectance(wavenumbers=wavenumbers_central))[None]
+    transmittance = characterization.transmittance(wavenumbers=wavenumbers_central).mean(keepdims=True)
+    reflectance = characterization.reflectance(wavenumbers=wavenumbers_central).mean(keepdims=True)
     fp_obj = SimpleNamespace(
-        transmittance=1.,
+        transmittance=transmittance,
         reflectance=reflectance,
     )
     spectrum = invert_haar(wavenumbers_central, fp_obj, haar_order, interferogram_sim)
@@ -90,39 +90,59 @@ def invert_protocols_real(protocols, wavenumbers, characterization_id, interfero
     return spectrum_protocols
 
 
+@dataclass
+class Options:
+    ifm_types: list[str]  # ["mc451", "mc651", "cc_green"]
+
+
 def main():
+    # Options 0: Test with low, medium, high, and variable reflectivity
+    # Options 1: Test with regular vs irregular sampling in the OPDs
+    # Options 2: Test with [20, 15] dB of noise
+    options_list = [
+        Options(
+            ifm_types=["mc451", "mc651"],
+        ),
+    ]
+
+    options = options_list[0]
+    for ifm_type in options.ifm_types:
+        experiment(ifm_type=ifm_type)
+
+
+def experiment(
+        ifm_type: str
+):
     # OPTIONS
 
-    opts = SimpleNamespace(
-        ifm_type="cc_green",  # "mc451", "mc651", "cc_green"
-        extrap = Extrapolation(
-            case=3,
-            description="Concatenate lowest OPDs but extrapolate the interferogram values using fourier series",
-            opds_resampler="concatenate_missing",
-            extrap_kind="linear",
-            extrap_fill="fourier",
-            transmat_extrap="model",
-        )
+    ifm_type = ifm_type
+    extrap = Extrapolation(
+        case=3,
+        description="Concatenate lowest OPDs but extrapolate the interferogram values using fourier series",
+        opds_resampler="concatenate_missing",
+        extrap_kind="linear",
+        extrap_fill="fourier",
+        transmat_extrap="model",
     )
     char_id = 0
     haar_order = 20
     protocols = [
-        SimpleNamespace(id=0, label="IDCT", color="green"),
-        SimpleNamespace(id=5, label="TSVD", color="pink"),
-        SimpleNamespace(id=6, label="RR", color="orange"),
-        SimpleNamespace(id=10, label="LV-L1", color="purple"),
+        Protocol(id=0, label="IDCT", color="green"),
+        Protocol(id=5, label="TSVD", color="pink"),
+        Protocol(id=6, label="RR", color="orange"),
+        Protocol(id=10, label="LV-L1", color="purple"),
     ]
 
     # OBSERVATION (SIMULATION)
 
     print("\n\nOBSERVATION")
-    interferogram_sim = get_interferogram(opts.ifm_type, opts.extrap)
+    interferogram_sim = get_interferogram(ifm_type, extrap)
     interferogram_sim = interferogram_sim.rescale(new_max=1., axis=-2)
 
     # REFERENCE SPECTRUM
 
     print("\n\nREFERENCE SPECTRUM")
-    spectrum_ref = load_spectrum(option=opts.ifm_type)
+    spectrum_ref = load_spectrum(option=ifm_type)
     spectrum_ref = spectrum_ref.rescale(new_max=1., axis=-2)
 
     # INVERSION
@@ -130,7 +150,7 @@ def main():
     print("\n\nINVERSION")
     wavenumbers = spectrum_ref.wavenumbers
     spectrum_haar = invert_haar_real(wavenumbers, char_id, haar_order, interferogram_sim)
-    spectrum_protocols = invert_protocols_real(protocols, wavenumbers, char_id, interferogram_sim, spectrum_ref, opts.extrap)
+    spectrum_protocols = invert_protocols_real(protocols, wavenumbers, char_id, interferogram_sim, spectrum_ref, extrap)
 
     # METRICS
 

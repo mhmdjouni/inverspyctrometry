@@ -213,3 +213,10 @@ def invert_protocols(protocols: list, wavenumbers, fp, interferogram: Interferog
         spectrum_protocols.append(spectrum_rec_best)
 
     return spectrum_protocols
+
+
+@dataclass(frozen=True)
+class Protocol:
+    id: int
+    label: str
+    color: str

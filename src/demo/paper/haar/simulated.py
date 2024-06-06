@@ -9,7 +9,7 @@ from src.common_utils.custom_vars import Opd
 from src.common_utils.utils import calculate_rmse, polyval_rows
 from src.demo.paper.haar.utils import generate_synthetic_spectrum, generate_interferogram, oversample_spectrum, \
     invert_haar, \
-    load_spectrum, invert_protocols, OPDummy
+    load_spectrum, invert_protocols, OPDummy, Protocol
 from src.interface.configuration import load_config
 
 
@@ -71,13 +71,6 @@ def get_spectrum(spc_type: str):
     )
     spectrum = spectrum.interpolate(wavenumbers=wavenumbers_new, kind="slinear")
     return spectrum
-
-
-@dataclass(frozen=True)
-class Protocol:
-    id: int
-    label: str
-    color: str
 
 
 @dataclass(frozen=True)
