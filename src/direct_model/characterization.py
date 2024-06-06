@@ -20,6 +20,17 @@ class Characterization:
     reflectance_coefficients: np.ndarray[tuple[Opd, Deg], np.dtype[np.float_]]
     order: int
 
+    def sort_opds(self):
+        new_indices = np.argsort(self.opds)
+        char_sorted = replace(
+            self,
+            transmittance_coefficients=self.transmittance_coefficients[new_indices],
+            opds=self.opds[new_indices],
+            phase_shift=self.phase_shift[new_indices],
+            reflectance_coefficients=self.reflectance_coefficients[new_indices],
+        )
+        return char_sorted
+
     def interferometer(self) -> Interferometer:
         interferometer = interferometer_factory(
             option=self.interferometer_type,

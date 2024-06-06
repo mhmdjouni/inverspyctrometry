@@ -9,7 +9,7 @@ from scipy import fft
 from src.common_utils.custom_vars import Wvn
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
-from src.common_utils.utils import generate_wavenumbers_from_opds
+from src.common_utils.utils import generate_wavenumbers_from_opds, polyval_rows
 from src.outputs.visualization import imshow_custom
 
 
@@ -63,10 +63,10 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
             interferogram = interferogram.center(new_mean=0., axis=-2)
 
         interferogram_dft = compute_interferogram_dft(interferogram, norm="ortho")
+
         fp_obj = SimpleNamespace(
-            transmittance=self.transmittance,
-            phase_shift=np.array([0.]),
-            reflectance=self.reflectance,
+            transmittance_coeffs=self.transmittance,
+            reflectance_coeffs=self.reflectance,
             order=0,
         )
         b_matrix = assert_haar_check(fp_obj, interferogram_dft, self.wavenumbers, self.order)
@@ -74,7 +74,7 @@ class FabryPerotInverSpectrometerHaar(InverSpectrometer):
 
         spectrum_rec = spectrum_rec.interpolate(
             wavenumbers=self.wavenumbers,
-            kind="cubic",
+            kind="linear",
             fill_value="extrapolate",
         )
 
@@ -113,9 +113,9 @@ def compute_interferogram_dft(interferogram, norm):
 def calculate_airy_fourier_coeffs(fp, haar_order):
     variable = np.linspace(start=0, stop=1, num=int(1e4), endpoint=False)
 
-    numerator = fp.transmittance ** 2
+    numerator = fp.transmittance_coeffs ** 2
     phase_difference = 2 * np.pi * variable
-    denominator = 1 + fp.reflectance ** 2 - 2 * fp.reflectance * np.cos(phase_difference)
+    denominator = 1 + fp.reflectance_coeffs ** 2 - 2 * fp.reflectance_coeffs * np.cos(phase_difference)
     kernel = numerator / denominator
 
     n_values = np.arange(haar_order + 1)

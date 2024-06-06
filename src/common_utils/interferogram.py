@@ -18,6 +18,11 @@ class Interferogram:
     opds: np.ndarray[tuple[Opd], np.dtype[np.float_]]
     opds_unit: str = "nm"
 
+    def sort_opds(self):
+        new_indices = np.argsort(self.opds)
+        ifm_sorted = replace(self, data=self.data[new_indices], opds=self.opds[new_indices])
+        return ifm_sorted
+
     def visualize(
             self,
             axs,

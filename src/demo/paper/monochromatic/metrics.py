@@ -14,7 +14,7 @@ def main():
 
     reports_folder = config.directory_paths.reports
 
-    experiment_id_options = [1, 2]
+    experiment_id_options = [8]
 
     for experiment_id in experiment_id_options:
         experiment_params = db.experiments[experiment_id]

@@ -6,12 +6,7 @@ from omegaconf import OmegaConf
 from pydantic import BaseModel, DirectoryPath, FilePath, model_validator, field_validator, Field
 
 from src.database.database import DatabaseSchema
-
-
-def resolve_path(path: str) -> str:
-    path_dict = OmegaConf.create({"__root__": path})
-    path_fix = OmegaConf.to_container(path_dict, resolve=True)
-    return path_fix["__root__"]
+from src.outputs.resolver import resolve_path
 
 
 class DirectoryPathSchema(BaseModel):

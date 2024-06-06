@@ -85,7 +85,7 @@ class IDCT(InversionProtocol):
         spectrum_obj = Spectrum(data=spectrum, wavenumbers=wavenumbers)
         spectrum_obj = spectrum_obj.interpolate(
             wavenumbers=transmittance_response.wavenumbers,
-            kind="cubic",
+            kind="linear",
             fill_value="extrapolate",
         )
         return spectrum_obj

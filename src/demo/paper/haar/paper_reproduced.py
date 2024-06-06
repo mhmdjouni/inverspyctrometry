@@ -8,22 +8,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from src.common_utils.interferogram import Interferogram
-from src.demo.paper.haar.utils import generate_synthetic_spectrum, generate_interferogram, compute_wavenumbers
+from src.demo.paper.haar.utils import generate_synthetic_spectrum, generate_interferogram, compute_wavenumbers, \
+    invert_haar
 from src.direct_model.interferometer import FabryPerotInterferometer
-from src.inverse_model.inverspectrometer import FabryPerotInverSpectrometerHaar
 from src.inverse_model.protocols import IDCT
-
-
-def invert_haar(wavenumbers, fp, haar_order, interferogram: Interferogram):
-    haar = FabryPerotInverSpectrometerHaar(
-        transmittance=fp.transmittance,
-        wavenumbers=wavenumbers,
-        reflectance=fp.reflectance,
-        order=haar_order,
-        is_mean_center=True,
-    )
-    spectrum = haar.reconstruct_spectrum(interferogram=interferogram)
-    return spectrum
 
 
 def invert_idct(wavenumbers, fp, interferogram: Interferogram):

@@ -44,6 +44,7 @@ def plot_custom(
         xlim: list = None,
         ylabel: str = None,
         ylim: list = None,
+        x_ticklabel_format: bool = None,
 ):
     axs.plot(
         x_array,
@@ -60,6 +61,9 @@ def plot_custom(
         axs.set_xlim(xlim)
     if ylim is not None:
         axs.set_ylim(ylim)
+
+    if x_ticklabel_format is not None:
+        axs.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
 
     axs.set_title(title)
     axs.set_ylabel(ylabel)

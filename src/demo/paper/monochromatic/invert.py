@@ -146,6 +146,8 @@ def run_one_experiment(
         extrap_case: ExtrapCase,
         acq_idx: int,
 ):
+    # fig, axs = plt.subplots(nrows=1, ncols=1, squeeze=False, figsize=(20, 10))
+
     config = load_config()
     db = config.database()
 
@@ -161,22 +163,21 @@ def run_one_experiment(
             wavenumbers_ifgm = db.dataset_central_wavenumbers(dataset_id=ds_id)
             print(f"Dataset: {db.datasets[ds_id].title.upper()}")
             dataset_dir = experiment_dir / f"invert_{db.datasets[ds_id].title}"
-
-            interferograms_ref = interferograms_ref.rescale(new_max=1, axis=-2)
-            interferograms_extrap = interferograms_ref.extrapolate(
+            interferograms_ref = interferograms_ref.extrapolate(
                 support_resampler=extrap_case.opds_resampler,
                 kind=extrap_case.extrap_kind,
                 fill_value=extrap_case.extrap_fill,
             )
 
-            fig, axs = plt.subplots(nrows=2, ncols=3, squeeze=False, figsize=(20, 10))
-            visualize_ifgm_extraps(
-                axs=axs[0, 0],
-                extrapolated=interferograms_extrap,
-                reference=interferograms_ref,
-                extrap_case=extrap_case,
-                acq_idx=acq_idx,
-            )
+            interferograms_ref = interferograms_ref.rescale(new_max=1, axis=-2)
+
+            # visualize_ifgm_extraps(
+            #     axs=axs[0, 0],
+            #     extrapolated=interferograms_extrap,
+            #     reference=interferograms_ref,
+            #     extrap_case=extrap_case,
+            #     acq_idx=acq_idx,
+            # )
 
             for char_id in experiment_config.interferometer_ids:
                 characterization = db.characterization(char_id=char_id)
@@ -184,18 +185,18 @@ def run_one_experiment(
                 characterization_dir = dataset_dir / f"{db.characterizations[char_id].title}"
 
                 characterization_extrap = characterization.extrapolate_opds(support_resampler=extrap_case.opds_resampler)
-                visualize_char_extraps(
-                    fig=fig,
-                    axs=axs,
-                    extrapolated=characterization_extrap,
-                    reference=characterization,
-                    extrap_case=extrap_case,
-                    wavenumbers=wavenumbers_ifgm,
-                    acq_idx=acq_idx,
-                    opd_idx=0,
-                )
+                # visualize_char_extraps(
+                #     fig=fig,
+                #     axs=axs,
+                #     extrapolated=characterization_extrap,
+                #     reference=characterization,
+                #     extrap_case=extrap_case,
+                #     wavenumbers=wavenumbers_ifgm,
+                #     acq_idx=acq_idx,
+                #     opd_idx=0,
+                # )
 
-                transfer_matrix = characterization.transmittance_response(wavenumbers=wavenumbers_ifgm)
+                transfer_matrix = characterization_extrap.transmittance_response(wavenumbers=wavenumbers_ifgm)
                 transfer_matrix = transfer_matrix.rescale(new_max=1, axis=None)
 
                 for ip_id in experiment_config.inversion_protocol_ids:
@@ -236,22 +237,22 @@ def run_one_experiment(
 
 def main():
     extrap_cases = [
-        ExtrapCase(
-            case=1,
-            description="Concatenate lowest OPDs but set the corresponding interferogram values to zero",
-            opds_resampler="concatenate_missing",
-            extrap_kind="linear",
-            extrap_fill=(0., 0.),
-            transmat_extrap="model"
-        ),
-        ExtrapCase(
-            case=2,
-            description="Concatenate lowest OPDs but extrapolate the interferogram values using conventional methods",
-            opds_resampler="concatenate_missing",
-            extrap_kind="linear",
-            extrap_fill="extrapolate",
-            transmat_extrap="model"
-        ),
+        # ExtrapCase(
+        #     case=1,
+        #     description="Concatenate lowest OPDs but set the corresponding interferogram values to zero",
+        #     opds_resampler="concatenate_missing",
+        #     extrap_kind="linear",
+        #     extrap_fill=(0., 0.),
+        #     transmat_extrap="model"
+        # ),
+        # ExtrapCase(
+        #     case=2,
+        #     description="Concatenate lowest OPDs but extrapolate the interferogram values using conventional methods",
+        #     opds_resampler="concatenate_missing",
+        #     extrap_kind="linear",
+        #     extrap_fill="extrapolate",
+        #     transmat_extrap="model"
+        # ),
         ExtrapCase(
             case=3,
             description="Concatenate lowest OPDs but extrapolate the interferogram values using fourier series",
@@ -262,7 +263,7 @@ def main():
         ),
     ]
 
-    experiment_id_options = [1]  # 1, 2, 8
+    experiment_id_options = [1, 2]
 
     for extrap_case in extrap_cases:
         run_one_experiment(

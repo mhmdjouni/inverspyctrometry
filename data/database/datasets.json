@@ -6,8 +6,8 @@
       "category": "spectrum",
       "device": "N/A",
       "source": "sun",
-      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/solar/data.npy",
-      "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/solar/wavenumbers.npy",
+      "path": "${PROJECT_DIR:}/data/datasets/spectrum/solar/data.npy",
+      "wavenumbers_path": "${PROJECT_DIR:}/data/datasets/spectrum/solar/wavenumbers.npy",
       "wavenumbers_unit": "1/um"
     },
     {
@@ -16,8 +16,8 @@
       "category": "spectrum",
       "device": "shine",
       "source": "colorchecker",
-      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/cc_shine/data.npy",
-      "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/cc_shine/wavenumbers.npy",
+      "path": "${PROJECT_DIR:}/data/datasets/spectrum/cc_shine/data.npy",
+      "wavenumbers_path": "${PROJECT_DIR:}/data/datasets/spectrum/cc_shine/wavenumbers.npy",
       "wavenumbers_unit": "1/um"
     },
     {
@@ -26,8 +26,8 @@
       "category": "spectrum",
       "device": "specim",
       "source": "colorchecker",
-      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/cc_specim/data.npy",
-      "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/spectrum/cc_specim/wavenumbers.npy",
+      "path": "${PROJECT_DIR:}/data/datasets/spectrum/cc_specim/data.npy",
+      "wavenumbers_path": "${PROJECT_DIR:}/data/datasets/spectrum/cc_specim/wavenumbers.npy",
       "wavenumbers_unit": "1/um"
     },
     {
@@ -36,10 +36,10 @@
       "category": "interferogram",
       "device": "imspoc_uv_2",
       "source": "monochromatic",
-      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/interferogram/mc451/data.npy",
-      "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/interferogram/mc451/central_wavenumbers.npy",
+      "path": "${PROJECT_DIR:}/data/datasets/interferogram/mc451/data.npy",
+      "wavenumbers_path": "${PROJECT_DIR:}/data/datasets/interferogram/mc451/central_wavenumbers.npy",
       "wavenumbers_unit": "1/um",
-      "opds_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/characterization/imspoc_uv_2_mc451/opds.npy",
+      "opds_path": "${PROJECT_DIR:}/data/datasets/characterization/imspoc_uv_2/mc451/opds.npy",
       "opds_unit": "um"
     },
     {
@@ -48,10 +48,22 @@
       "category": "interferogram",
       "device": "imspoc_uv_2",
       "source": "monochromatic",
-      "path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/interferogram/mc651/data.npy",
-      "wavenumbers_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/interferogram/mc651/central_wavenumbers.npy",
+      "path": "${PROJECT_DIR:}/data/datasets/interferogram/mc651/data.npy",
+      "wavenumbers_path": "${PROJECT_DIR:}/data/datasets/interferogram/mc651/central_wavenumbers.npy",
       "wavenumbers_unit": "1/um",
-      "opds_path": "/home/jounim/Work/codebase_projects/inverspyctrometry/data/datasets/characterization/imspoc_uv_2_mc651/opds.npy",
+      "opds_path": "${PROJECT_DIR:}/data/datasets/characterization/imspoc_uv_2/mc651/opds.npy",
+      "opds_unit": "um"
+    },
+    {
+      "id": 5,
+      "title": "cc_green",
+      "category": "interferogram",
+      "device": "imspoc_uv_2",
+      "source": "colorchecker_green",
+      "path": "${PROJECT_DIR:}/data/datasets/interferogram/colorchecker_13/data.npy",
+      "wavenumbers_path": "${PROJECT_DIR:}/data/datasets/interferogram/mc451/central_wavenumbers.npy",
+      "wavenumbers_unit": "1/um",
+      "opds_path": "${PROJECT_DIR:}/data/datasets/characterization/imspoc_uv_2/colorchecker_13/opds.npy",
       "opds_unit": "um"
     }
   ]

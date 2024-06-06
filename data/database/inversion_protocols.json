@@ -88,9 +88,9 @@
       "type": "loris_verhoeven",
       "lambdaas_schema": {
         "key": "regularization_parameter",
-        "start": -2,
-        "stop": 1,
-        "num": 100,
+        "start": 0,
+        "stop": 2,
+        "num": 50,
         "space": "logspace"
       },
       "norm_operator": [
@@ -157,7 +157,7 @@
         "l1o",
         []
       ],
-      "linear_operator": "identity",
+      "linear_operator": "dct",
       "nb_iters": 100
     },
     {

@@ -2,11 +2,12 @@ from pathlib import Path
 from typing import Sequence, List, Optional
 
 import numpy as np
-from pydantic import BaseModel, RootModel, FilePath
+from pydantic import BaseModel, RootModel, FilePath, field_validator
 
 from src.common_utils.custom_vars import DatasetCategory
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
+from src.outputs.resolver import resolve_path
 
 
 # TODO: Replace the type hints with Enums
@@ -24,6 +25,12 @@ class DatasetSchema(BaseModel):
     wavenumbers_unit: Optional[str] = None
     opds_path: Optional[FilePath] = None
     opds_unit: Optional[str] = None
+
+    @field_validator(__field="*", mode="before")
+    def resolve_filepaths(cls, filepath: FilePath) -> FilePath:
+        """Takes a field and completes / resolves it based on what was registered in the OmegaConf resolver before"""
+        filepath_resolved = resolve_path(path=filepath)
+        return filepath_resolved
 
     def spectrum(self) -> Spectrum:
         if self.category != DatasetCategory.SPECTRUM:
