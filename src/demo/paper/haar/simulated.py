@@ -20,7 +20,7 @@ def load_opd_info(dataset: str):
             num=2048,
             unit="cm",
         )
-    elif dataset in ["solar", "specim"]:
+    elif dataset in ["solar", "specim", "shine"]:
         opd_info = SimpleNamespace(  # imspoc uv 2
             step=np.round(175 * 1e-3, decimals=3),  # 175 nm => um
             num=319,
@@ -57,7 +57,7 @@ def get_spectrum(spc_type: str):
         )
         opd_info_obj = load_opd_info(dataset="paper")
         spectrum = generate_synthetic_spectrum(gauss_params_obj, opd_info_obj, wn_bounds_obj)
-    elif spc_type in ["solar", "specim"]:
+    elif spc_type in ["solar", "specim", "shine"]:
         spectrum = load_spectrum(spc_type)
     else:
         raise ValueError(f"{spc_type}")
@@ -88,16 +88,17 @@ def load_variable_reflectivity() -> tuple[
     characterization = load_config().database().characterization(char_id=0)
     ifm_idx = 30
     reflectivity_coeffs = characterization.reflectance_coefficients[ifm_idx:ifm_idx+1].mean(axis=-2, keepdims=True)
+    reflectivity_coeffs[0][0] += 0.3
     transmissivity_coeffs = - reflectivity_coeffs
     transmissivity_coeffs[0][0] += 1
 
-    wavenumbers = np.linspace(0.9, 2.9, int(1e4))
+    wavenumbers = np.linspace(0.666, 2.9, int(1e4))
     transmissivity = polyval_rows(coefficients=transmissivity_coeffs, interval=wavenumbers)
     reflectivity = polyval_rows(coefficients=reflectivity_coeffs, interval=wavenumbers)
     plt.plot(wavenumbers, transmissivity[0])
     plt.plot(wavenumbers, reflectivity[0])
     plt.grid()
-    plt.ylim([-0.2, 1.2])
+    # plt.ylim([-0.2, 1.2])
     plt.show()
 
     return transmissivity_coeffs, reflectivity_coeffs
@@ -117,7 +118,7 @@ def load_real_opds() -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
 def main():
     # Options 0: Test with low, medium, high, and variable reflectivity
     # Options 1: Test with regular vs irregular sampling in the OPDs
-    # Options 2: Test with [20, 15] dB of noise
+    # Options 2: Test with [20, 15, 10] dB of noise
     options_list = [
         Options(
             fp_tr=[
@@ -128,7 +129,7 @@ def main():
             ],
             noise=[None],
             opds_sampling="regular",
-            spc_types=["solar", "specim"],
+            spc_types=["shine"],
             protocols=[
                 Protocol(id=0, label="IDCT", color="green"),
                 Protocol(id=1, label="PINV", color="black"),
@@ -153,6 +154,7 @@ def main():
             noise=[
                 20.,
                 15.,
+                10.,
             ],
             opds_sampling="regular",
             spc_types=["solar", "specim"],
@@ -165,7 +167,7 @@ def main():
         ),
     ]
 
-    options = options_list[1]
+    options = options_list[0]
     for noise in options.noise:
         for transmissivity, reflectivity in options.fp_tr:
             for spc_type in options.spc_types:

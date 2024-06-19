@@ -156,6 +156,9 @@ def load_spectrum(option: str):
     if option == "solar":
         spectrum = db.dataset_spectrum(ds_id=0)
         acq_id = 0
+    elif option == "shine":
+        spectrum = db.dataset_spectrum(ds_id=1)
+        acq_id = 13
     elif option in ["specim", "cc_green"]:
         spectrum = db.dataset_spectrum(ds_id=2)
         acq_id = 13
