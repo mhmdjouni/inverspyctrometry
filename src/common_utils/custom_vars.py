@@ -46,6 +46,7 @@ class InterferometerType(str, Enum):
 
 
 class InversionProtocolType(str, Enum):
+    HAAR = "haar"  # Haar method inversion
     IDCT = "idct"  # Inverse Discrete Cosine Transform
     PSEUDO_INVERSE = "pseudo_inverse"
     TSVD = "truncated_svd"  # Truncated Singular Value Decomposition

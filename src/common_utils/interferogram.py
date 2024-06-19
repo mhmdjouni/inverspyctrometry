@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,6 +11,7 @@ from scipy import interpolate
 
 from src.common_utils.custom_vars import Opd, Acq
 from src.common_utils.utils import add_noise, rescale, min_max_normalize, standardize, center, match_stats
+from src.outputs.serialize import numpy_save_list, numpy_load_list
 
 
 @dataclass(frozen=True)
@@ -182,6 +184,31 @@ class Interferogram:
     def load_from_dir(cls, directory: DirectoryPath):
         data = np.load(file=directory / "data.npy")
         opds = np.load(file=directory / "opds.npy")
+        return Interferogram(data=data, opds=opds)
+
+    def save_numpy(
+            self,
+            directories: list[Path],
+            subdirectory: str = "",
+    ):
+        numpy_save_list(
+            filenames=["data.npy", "opds.npy"],
+            arrays=[self.data, self.opds],
+            directories=directories,
+            subdirectory=subdirectory,
+        )
+
+    @classmethod
+    def load_numpy(
+            cls,
+            directory: Path,
+            subdirectory: str = "",
+    ) -> Interferogram:
+        data, opds = numpy_load_list(
+            filenames=["data.npy", "opds.npy"],
+            directory=directory,
+            subdirectory=subdirectory,
+        )
         return Interferogram(data=data, opds=opds)
 
 

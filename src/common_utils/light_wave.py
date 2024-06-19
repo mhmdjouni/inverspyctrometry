@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from pathlib import Path
 from typing import Optional
 
 import numpy as np
@@ -10,6 +11,7 @@ from scipy import interpolate
 from src.common_utils.custom_vars import Wvn, Acq
 from src.common_utils.utils import convert_meter_units, standardize, min_max_normalize, rescale, add_noise, match_stats, \
     calculate_rmse, center
+from src.outputs.serialize import numpy_save_list, numpy_load_list
 from src.outputs.visualization import plot_custom
 
 
@@ -212,6 +214,31 @@ class Spectrum:
             wavenumbers=wavenumbers,
         ).reshape((-1, 1))
         return Spectrum(data=radiance, wavenumbers=wavenumbers)
+
+    def save_numpy(
+            self,
+            directories: list[Path],
+            subdirectory: str = "",
+    ):
+        numpy_save_list(
+            filenames=["data.npy", "wavenumbers.npy"],
+            arrays=[self.data, self.wavenumbers],
+            directories=directories,
+            subdirectory=subdirectory,
+        )
+
+    @classmethod
+    def load_numpy(
+            cls,
+            directory: Path,
+            subdirectory: str = "",
+    ) -> Spectrum:
+        data, wavenumbers = numpy_load_list(
+            filenames=["data.npy", "wavenumbers.npy"],
+            directory=directory,
+            subdirectory=subdirectory,
+        )
+        return Spectrum(data=data, wavenumbers=wavenumbers)
 
 
 def generate_radiance_from_oscillations(

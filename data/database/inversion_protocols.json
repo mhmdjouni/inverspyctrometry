@@ -379,6 +379,26 @@
       ],
       "linear_operator": "identity",
       "nb_iters": 50000
+    },
+    {
+      "id": 19,
+      "title": "haar",
+      "experiment_id": -1,
+      "experiment_description": "",
+      "type": "haar",
+      "lambdaas_schema": {
+        "key": "N/A",
+        "start": 0.0,
+        "stop": 0.0,
+        "num": 1,
+        "space": "N/A"
+      },
+      "norm_operator": [
+        "N/A",
+        []
+      ],
+      "linear_operator": "N/A",
+      "nb_iters": 0
     }
   ]
 }

@@ -193,6 +193,7 @@ def invert_protocols(protocols: list, wavenumbers, fp, interferogram: Interferog
 
     db = load_config().database()
     spectrum_protocols = []
+    argmin_rmses = []
     for protocol in protocols:
         lambdaas = db.inversion_protocol_lambdaas(inv_protocol_id=protocol.id)
         spectrum_rec_all = np.zeros(shape=(lambdaas.size, *spectrum_ref.data.shape))
@@ -214,8 +215,9 @@ def invert_protocols(protocols: list, wavenumbers, fp, interferogram: Interferog
         print(f"{protocol.label}: lmd = {lambdaas[argmin_rmse]:.4f} at idx = {argmin_rmse:.0f}")
         spectrum_rec_best = replace(spectrum_ref, data=spectrum_rec_all[argmin_rmse])
         spectrum_protocols.append(spectrum_rec_best)
+        argmin_rmses.append(argmin_rmse)
 
-    return spectrum_protocols
+    return spectrum_protocols, argmin_rmses
 
 
 @dataclass(frozen=True)
