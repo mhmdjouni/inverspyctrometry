@@ -158,6 +158,43 @@ def compose_subdir(
     return subdir
 
 
+def reconstruction_save_numpy(
+        spectra_rec_best: Spectrum,
+        argmin_rmse: np.ndarray,
+        directories: list[Path],
+        subdirectory: str,
+):
+    spectra_rec_best.save_numpy(
+        directories=directories,
+        subdirectory=subdirectory,
+    )
+    numpy_save_list(
+        filenames=["argmin_rmse.npy"],
+        arrays=[argmin_rmse],
+        directories=directories,
+        subdirectory=subdirectory,
+    )
+
+
+def reconstruction_load_numpy(directory, subdirectory) -> tuple[Spectrum, np.ndarray]:
+    spectra_rec_best = Spectrum.load_numpy(directory=directory, subdirectory=subdirectory)
+    argmin_rmse, = numpy_load_list(
+        filenames=["argmin_rmse.npy"],
+        directory=directory,
+        subdirectory=subdirectory,
+    )
+    return spectra_rec_best, argmin_rmse
+
+
+def metrics_save_numpy(lambdaa_min, rmse_min, directories, subdirectory):
+    numpy_save_list(
+        filenames=["lambdaa_min.npy", "rmse_min.npy"],
+        arrays=[lambdaa_min, rmse_min],
+        directories=directories,
+        subdirectory=subdirectory,
+    )
+
+
 def main():
     # Options 0: Test with low, medium, high, and variable reflectivity
     # Options 1: Test with regular vs irregular sampling in the OPDs
@@ -227,43 +264,6 @@ def main():
                     spc_type=spc_type,
                     protocols=options.protocols,
                 )
-
-
-def reconstruction_save_numpy(
-        spectra_rec_best: Spectrum,
-        argmin_rmse: np.ndarray,
-        directories: list[Path],
-        subdirectory: str,
-):
-    spectra_rec_best.save_numpy(
-        directories=directories,
-        subdirectory=subdirectory,
-    )
-    numpy_save_list(
-        filenames=["argmin_rmse.npy"],
-        arrays=[argmin_rmse],
-        directories=directories,
-        subdirectory=subdirectory,
-    )
-
-
-def reconstruction_load_numpy(directory, subdirectory) -> tuple[Spectrum, np.ndarray]:
-    spectra_rec_best = Spectrum.load_numpy(directory=directory, subdirectory=subdirectory)
-    argmin_rmse, = numpy_load_list(
-        filenames=["argmin_rmse.npy"],
-        directory=directory,
-        subdirectory=subdirectory,
-    )
-    return spectra_rec_best, argmin_rmse
-
-
-def metrics_save_numpy(lambdaa_min, rmse_min, directories, subdirectory):
-    numpy_save_list(
-        filenames=["lambdaa_min.npy", "rmse_min.npy"],
-        arrays=[lambdaa_min, rmse_min],
-        directories=directories,
-        subdirectory=subdirectory,
-    )
 
 
 def experiment(
