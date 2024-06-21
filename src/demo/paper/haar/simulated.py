@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Optional
@@ -9,12 +9,13 @@ from matplotlib import pyplot as plt
 from src.common_utils.custom_vars import Opd
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
-from src.common_utils.utils import calculate_rmse, polyval_rows
+from src.common_utils.utils import calculate_rmse, polyval_rows, numpy_to_latex
 from src.demo.paper.haar.utils import generate_synthetic_spectrum, generate_interferogram, oversample_spectrum, \
     invert_haar, \
     load_spectrum, invert_protocols, OPDummy, Protocol
 from src.interface.configuration import load_config
 from src.outputs.serialize import numpy_save_list, numpy_load_list
+from src.outputs.visualization import plot_custom, RcParamsOptions, SubplotsOptions, savefig_dir_list
 
 
 def load_opd_info(dataset: str):
@@ -85,6 +86,7 @@ class Options:
     opds_sampling: str
     spc_types: list[str]
     protocols: list[Protocol]
+    visualization: dict
 
 
 def load_variable_reflectivity() -> tuple[
@@ -96,15 +98,6 @@ def load_variable_reflectivity() -> tuple[
     reflectivity_coeffs[0][0] += 0.3
     transmissivity_coeffs = - reflectivity_coeffs
     transmissivity_coeffs[0][0] += 1
-
-    wavenumbers = np.linspace(0.666, 2.9, int(1e4))
-    transmissivity = polyval_rows(coefficients=transmissivity_coeffs, interval=wavenumbers)
-    reflectivity = polyval_rows(coefficients=reflectivity_coeffs, interval=wavenumbers)
-    plt.plot(wavenumbers, transmissivity[0])
-    plt.plot(wavenumbers, reflectivity[0])
-    plt.grid()
-    # plt.ylim([-0.2, 1.2])
-    plt.show()
 
     return "fp_0_var_r", transmissivity_coeffs, reflectivity_coeffs
 
@@ -120,13 +113,15 @@ def load_real_opds() -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
     return opds
 
 
-def compose_save_dir(
+def compose_dir(
         report_type: str,
         experiment_name: str,
-        save_dir_init: str = None,
+        save_dir_init: str | Path = None,
 ):
-    if save_dir_init is None:
+    if save_dir_init is None or save_dir_init == "reports":
         save_dir = load_config().directory_paths.reports
+    elif save_dir_init == "paper":
+        save_dir = load_config().directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
     else:
         save_dir = save_dir_init
 
@@ -144,6 +139,7 @@ def compose_subdir(
         noise_level: Optional[float],
         protocol_name: Optional[str],
         subdir_init: Optional[str] = None,
+        subdir_post: Optional[str] = None,
 ):
     if subdir_init is None:
         subdir = "."
@@ -155,6 +151,8 @@ def compose_subdir(
         subdir += f"/{int(noise_level)}_db"
     if protocol_name is not None:
         subdir += f"/{protocol_name}"
+    if subdir_post is not None:
+        subdir += f"/{subdir_post}"
     return subdir
 
 
@@ -213,8 +211,10 @@ def main():
             spc_types=["solar", "specim", "shine"],
             protocols=[
                 Protocol(id=0, label="IDCT", color="green"),
+                Protocol(id=19, label="HAAR", color="red"),
                 Protocol(id=1, label="PINV", color="black"),
             ],
+            visualization={}
         ),
         Options(
             experiment_name="simulated/irregular_sampling",
@@ -226,8 +226,10 @@ def main():
             spc_types=["solar", "specim", "shine"],
             protocols=[
                 Protocol(id=0, label="IDCT", color="green"),
-                Protocol(id=1, label="PINV", color="purple"),
+                Protocol(id=19, label="HAAR", color="red"),
+                Protocol(id=1, label="PINV", color="black"),
             ],
+            visualization={}
         ),
         Options(
             experiment_name="simulated/noise_levels",
@@ -237,36 +239,176 @@ def main():
             noise=[
                 20.,
                 15.,
-                10.,
             ],
             opds_sampling="regular",
             spc_types=["solar", "specim", "shine"],
             protocols=[
                 Protocol(id=0, label="IDCT", color="green"),
-                Protocol(id=2, label="TSVD", color="C3"),
+                Protocol(id=19, label="HAAR", color="red"),
+                Protocol(id=2, label="TSVD", color="purple"),
                 Protocol(id=3, label="RR", color="orange"),
                 Protocol(id=4, label="LV-L1", color="black"),
             ],
+            visualization={}
         ),
     ]
 
-    options = options_list[0]
+    options = options_list[2]
+    # visualize_reflectivity(
+    #     fp_params=options.fp_tr,
+    #     experiment_name=options.experiment_name,
+    # )
+
     for noise in options.noise:
-        for device_name, transmissivity, reflectivity in options.fp_tr:
+        for device_name, transmissivity_coeffs, reflectivity_coeffs in options.fp_tr:
             for spc_type in options.spc_types:
-                experiment(
-                    name=options.experiment_name,
+                # experiment_run(
+                #     name=options.experiment_name,
+                #     device_name=device_name,
+                #     transmissivity=transmissivity_coeffs,
+                #     reflectivity=reflectivity_coeffs,
+                #     noise=noise,
+                #     opds_sampling=options.opds_sampling,
+                #     spc_type=spc_type,
+                #     protocols=options.protocols,
+                # )
+
+                visualize_reconstruction(
+                    experiment_name=options.experiment_name,
+                    dataset_name=spc_type,
                     device_name=device_name,
-                    transmissivity=transmissivity,
-                    reflectivity=reflectivity,
-                    noise=noise,
-                    opds_sampling=options.opds_sampling,
-                    spc_type=spc_type,
+                    noise_level=noise,
                     protocols=options.protocols,
+                    options=options.visualization,
                 )
 
+                pass
 
-def experiment(
+    print_metrics_full_table(options=options)
+
+
+def print_metrics_full_table(options: Options):
+    metrics_table_array, header, row_labels = metrics_full_table(options=options)
+    experiment_dir = compose_dir(report_type="metrics", experiment_name=options.experiment_name)
+    numpy_save_list(
+        filenames=["metrics_table_array.npy"],
+        arrays=[metrics_table_array],
+        directories=[experiment_dir],
+        subdirectory="",
+    )
+
+    metrics_table_latex = numpy_to_latex(
+        array=metrics_table_array,
+        row_labels=row_labels,
+        header=header,
+        index=True,
+        na_rep="-",
+        float_format="%.3f",
+    )
+    print(metrics_table_latex)
+
+
+def metrics_full_table(options: Options):
+    config = load_config()
+
+    nb_dss = len(options.spc_types)
+    nb_ifms = len(options.fp_tr)
+    nb_nls = len(options.noise)
+    nb_ips = len(options.protocols)
+    full_table = np.zeros(shape=(nb_dss * nb_ips, nb_ifms * nb_nls * 2))
+
+    index = []
+    protocol_label_mapper = {
+        "idct": "\\gls{idct}",
+        "haar": "Haar \\cite{al-saeed-2016-fourier-trans}",
+        "tsvd": "\\gls{tsvd} \\cite{GoluHO99:jmaa}",
+        "rr": "\\gls{rr} \\cite{Hans90:jssc}",
+        "lv": "\\gls{lv}",
+        "lv-l1": "\\gls{lv}",
+    }
+    for _ in options.spc_types:
+        for protocol in options.protocols:
+            gls_str = "& " + f"{protocol_label_mapper[protocol.label.lower()]}"
+            index.append(gls_str)
+
+    header = []
+    for _ in options.fp_tr:
+        for _ in options.noise:
+            header.append("lambda")
+            header.append("rmse")
+
+    for i_ds, dataset_name in enumerate(options.spc_types):
+        for i_ifm, ifm_params in enumerate(options.fp_tr):
+            for i_nl, noise in enumerate(options.noise):
+                for i_ip, protocol in enumerate(options.protocols):
+                    metrics_dir = compose_dir(
+                        report_type="metrics", experiment_name=options.experiment_name, save_dir_init=None,
+                    )
+                    inverter_subdir = compose_subdir(
+                        dataset_name=dataset_name,
+                        device_name=ifm_params[0],
+                        noise_level=noise,
+                        protocol_name=protocol.label.lower(),
+                    )
+
+                    lambdaa_min, rmse_min = numpy_load_list(
+                        filenames=["lambdaa_min.npy", "rmse_min.npy"],
+                        directory=metrics_dir,
+                        subdirectory=inverter_subdir,
+                    )
+                    if lambdaa_min == 0:
+                        lambdaa_min = np.nan
+
+                    full_table[i_ip + nb_ips*i_ds, 2*i_nl + 2*nb_nls*i_ifm] = lambdaa_min
+                    full_table[i_ip + nb_ips*i_ds, 2*i_nl + 2*nb_nls*i_ifm + 1] = rmse_min
+
+    return full_table, header, index
+
+
+def visualize_reflectivity(
+        fp_params: list[tuple[str, np.ndarray, np.ndarray]],
+        experiment_name: str,
+):
+    rc_params = RcParamsOptions(fontsize=17)
+    subplots_options = SubplotsOptions(figsize=(8, 4.8))
+    plt.rcParams['font.size'] = str(rc_params.fontsize)
+    fig_tr, axs_tr = plt.subplots(**asdict(subplots_options))
+    wavenumbers = np.linspace(0.66, 2.9, int(1e4))
+    for i_refl, fp_param in enumerate(fp_params):
+        reflectivity_coeffs = fp_param[2]
+        reflectivity = polyval_rows(coefficients=reflectivity_coeffs, interval=wavenumbers)
+        mathcal_r = r"$\mathcal{R}$"
+        if reflectivity_coeffs.size == 1:
+            label = f"{mathcal_r}={reflectivity_coeffs[0, 0]:.2f}"
+        else:
+            label = f"Variable {mathcal_r}"
+        plot_custom(
+            axs=axs_tr[0, 0],
+            x_array=wavenumbers,
+            array=reflectivity[0],
+            label=label,
+            color=f"C{i_refl}",
+            linewidth=2,
+            title=r"Fabry-Perot $\infty$-wave model",
+            ylabel="Intensity",
+            xlabel=r"Wavenumbers $\sigma$ [1/um]",
+            ylim=[-0.1, 0.9],
+        )
+        axs_tr[0, 0].legend(bbox_to_anchor=(1.0, 1.0), loc='upper left')
+    savefig_dir_list(
+        fig=fig_tr,
+        filename="reflectivity.pdf",
+        directories_list=[
+            compose_dir(report_type="figures", experiment_name=experiment_name, save_dir_init="reports"),
+            compose_dir(report_type="paper_figures", experiment_name=experiment_name, save_dir_init="paper"),
+        ],
+        subdirectory="",
+        fmt="pdf",
+        bbox_inches="tight",
+    )
+
+
+def experiment_run(
         name: str,
         device_name: str,
         transmissivity: np.ndarray,
@@ -307,7 +449,7 @@ def experiment(
     spectrum_ref = spectrum_ref.rescale(new_max=1., axis=-2)
 
     directories = [
-        compose_save_dir(report_type="oversampling", experiment_name=name)
+        compose_dir(report_type="oversampling", experiment_name=name)
     ]
     subdirectory = compose_subdir(
         dataset_name=options.spc_type,
@@ -323,7 +465,7 @@ def experiment(
     # OBSERVATION (SIMULATION)
 
     print("\n\nOBSERVATION")
-    directory = compose_save_dir(report_type="oversampling", experiment_name=name)
+    directory = compose_dir(report_type="oversampling", experiment_name=name)
     subdirectory = compose_subdir(
         dataset_name=options.spc_type,
         device_name=device_name,
@@ -334,15 +476,12 @@ def experiment(
         directory=directory,
         subdirectory=subdirectory,
     )
-    fig, axs = plt.subplots(1, 1)
-    spectrum_ref.visualize(axs=axs, acq_ind=0)
-    plt.show()
 
     interferogram_sim = generate_interferogram(opds, fp_obj, spectrum_ref, wn_num_factor)
     interferogram_sim = interferogram_sim.rescale(new_max=1., axis=-2)
 
     directories = [
-        compose_save_dir(report_type="simulation", experiment_name=name)
+        compose_dir(report_type="simulation", experiment_name=name)
     ]
     subdirectory = compose_subdir(
         dataset_name=options.spc_type,
@@ -358,7 +497,7 @@ def experiment(
     # INVERSION
 
     print("\n\nINVERSION")
-    directory = compose_save_dir(report_type="simulation", experiment_name=name)
+    directory = compose_dir(report_type="simulation", experiment_name=name)
     subdirectory = compose_subdir(
         dataset_name=options.spc_type,
         device_name=device_name,
@@ -369,9 +508,6 @@ def experiment(
         directory=directory,
         subdirectory=subdirectory,
     )
-    fig, axs = plt.subplots(1, 1)
-    interferogram_sim.visualize(axs=axs, acq_ind=0)
-    plt.show()
 
     if snr_db is not None:
         np.random.seed(0)
@@ -381,10 +517,9 @@ def experiment(
     spectrum_protocols, argmin_rmses = invert_protocols(protocols, wavenumbers, fp_obj, interferogram_sim, spectrum_ref=spectrum_ref)
     spectrum_protocols.insert(1, spectrum_haar)
     argmin_rmses.insert(1, 0)
-    protocols.insert(1, Protocol(id=19, label="HAAR", color="blue"))
 
     directories = [
-        compose_save_dir(report_type="reconstruction", experiment_name=name)
+        compose_dir(report_type="reconstruction", experiment_name=name)
     ]
     for spectrum_protocol, protocol, argmin_rmse in zip(spectrum_protocols, protocols, argmin_rmses):
         subdirectory = compose_subdir(
@@ -403,9 +538,9 @@ def experiment(
     # METRICS
 
     print("\n\nMETRICS")
-    directory = compose_save_dir(report_type="reconstruction", experiment_name=name)
+    directory = compose_dir(report_type="reconstruction", experiment_name=name)
     directories = [
-        compose_save_dir(report_type="metrics", experiment_name=name)
+        compose_dir(report_type="metrics", experiment_name=name)
     ]
     for protocol in protocols:
         subdirectory = compose_subdir(
@@ -443,61 +578,85 @@ def experiment(
             subdirectory=subdirectory,
         )
 
+
+def visualize_reconstruction(
+        experiment_name: str,
+        dataset_name: str,
+        device_name: str,
+        noise_level: float,
+        protocols: list[Protocol],
+        options: dict,
+):
     # VISUALIZATION
 
     print("\n\nVISUALIZATION")
     acq_idx = 0
-    fig, axs = plt.subplots(1, 3, figsize=(20, 5))
-    axs_spc, axs_ifm, axs_rec = axs
-    spc_ylim = [-0.1, 1.4]
+    rc_params = RcParamsOptions(fontsize=17)
+    plt.rcParams['font.size'] = str(rc_params.fontsize)
+    subplots_options = SubplotsOptions()
+    fig_rec, axs_rec = plt.subplots(**asdict(subplots_options))
+    spc_ylim = [-0.2, 1.2]
 
-    spectrum_ref.visualize(
-        axs=axs_spc,
+    spectrum_oversampled = Spectrum.load_numpy(
+        directory=compose_dir(report_type="oversampling", experiment_name=experiment_name),
+        subdirectory=compose_subdir(
+            dataset_name=dataset_name,
+            device_name=device_name,
+            noise_level=None,
+            protocol_name=None,
+        )
+    )
+    spectrum_oversampled.visualize(
+        axs=axs_rec[0, 0],
         acq_ind=acq_idx,
         label="Reference",
-        color="red",
+        color="C0",
         ylim=spc_ylim,
+        linewidth=3,
     )
-
-    interferogram_sim.visualize(
-        axs=axs_ifm,
-        acq_ind=acq_idx,
-        title="Simulated Interferogram",
-        color="red",
-    )
-
-    spectrum_ref.visualize(
-        axs=axs_rec,
-        acq_ind=acq_idx,
-        label="Reference",
-        color="red",
-        ylim=spc_ylim,
-    )
-
-    for spectrum_protocol, protocol in zip(spectrum_protocols, protocols):
-        spectrum_protocol, _ = spectrum_protocol.match_stats(reference=spectrum_ref)
-        spectrum_protocol.visualize(
-            axs=axs_rec,
+    for protocol in protocols:
+        directory = compose_dir(report_type="reconstruction", experiment_name=experiment_name)
+        subdirectory = compose_subdir(
+            dataset_name=dataset_name,
+            device_name=device_name,
+            noise_level=noise_level,
+            protocol_name=protocol.label.lower(),
+        )
+        spectra_rec_best = Spectrum.load_numpy(
+            directory=directory,
+            subdirectory=subdirectory,
+        )
+        spectra_rec_best, _ = spectra_rec_best.match_stats(reference=spectrum_oversampled)
+        spectra_rec_best.visualize(
+            axs=axs_rec[0, 0],
             acq_ind=acq_idx,
             label=protocol.label,
             color=protocol.color,
             linestyle="--",
             ylim=spc_ylim,
+            title="",
+            ylabel="Normalized Intensity",
         )
 
-    spectrum_haar, _ = spectrum_haar.match_stats(reference=spectrum_ref, axis=-2)
-    spectrum_haar.visualize(
-        axs=axs_rec,
-        acq_ind=acq_idx,
-        label="HAAR",
-        color="blue",
-        linestyle=":",
-        marker="x",
-        markevery=40,
-        ylim=spc_ylim,
-    )
+    # plt.show()
 
-    plt.show()
+    savefig_dir_list(
+        fig=fig_rec,
+        filename=f"acquisition_{acq_idx:03}.pdf",
+        directories_list=[
+            compose_dir(report_type="figures", experiment_name=experiment_name, save_dir_init="reports"),
+            compose_dir(report_type="paper_figures", experiment_name=experiment_name, save_dir_init="paper"),
+        ],
+        subdirectory=compose_subdir(
+            dataset_name=dataset_name,
+            device_name=device_name,
+            noise_level=noise_level,
+            protocol_name=None,
+            subdir_post="spectrum_comparison",
+        ),
+        fmt="pdf",
+        bbox_inches="tight",
+    )
 
 
 if __name__ == "__main__":

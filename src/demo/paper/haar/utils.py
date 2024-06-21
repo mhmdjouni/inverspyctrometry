@@ -121,14 +121,7 @@ def assert_haar_check(fp, interferogram_dft, spectrum, haar_order):
                     if n*k+i == mu:
                         b_matrix[mu, k] += a_cap[n] / n
 
-    # spectrum_downsamp = replace(spectrum, data=spectrum.data[::20], wavenumbers=spectrum.wavenumbers[::20])
     spectrum_interp = spectrum.interpolate(wavenumbers=interferogram_dft.wavenumbers, kind="cubic")
-
-    # fig, axs = plt.subplots()
-    # spectrum_interp.visualize(axs=axs, acq_ind=0, color="C0", label="interpolated")
-    # spectrum_downsamp.visualize(axs=axs, acq_ind=0, color="C1", label="downsampled")
-    # spectrum.visualize(axs=axs, acq_ind=0, color="C2", label="reference")
-    # plt.show()
 
     spectrum_transform = replace(spectrum_interp, data=b_matrix @ spectrum_interp.data)
 
@@ -187,35 +180,33 @@ def invert_protocols(protocols: list, wavenumbers, fp, interferogram: Interferog
     transmittance_response = device.transmittance_response(wavenumbers=wavenumbers)
     transmittance_response = transmittance_response.rescale(new_max=1., axis=None)
 
-    fig, axs = plt.subplots()
-    transmittance_response.visualize(fig=fig, axs=axs, aspect="auto")
-    plt.show()
-
     db = load_config().database()
     spectrum_protocols = []
     argmin_rmses = []
     for protocol in protocols:
-        lambdaas = db.inversion_protocol_lambdaas(inv_protocol_id=protocol.id)
-        spectrum_rec_all = np.zeros(shape=(lambdaas.size, *spectrum_ref.data.shape))
-        for i_lmd, lambdaa in enumerate(lambdaas):
-            inverter = db.inversion_protocol(inv_protocol_id=protocol.id, lambdaa=lambdaa)
-            spectra_rec = inverter.reconstruct_spectrum(
-                interferogram=interferogram, transmittance_response=transmittance_response
-            )
-            spectrum_rec_all[i_lmd] = spectra_rec.data
+        if protocol.label != "HAAR":
+            lambdaas = db.inversion_protocol_lambdaas(inv_protocol_id=protocol.id)
+            spectrum_rec_all = np.zeros(shape=(lambdaas.size, *spectrum_ref.data.shape))
+            for i_lmd, lambdaa in enumerate(lambdaas):
+                inverter = db.inversion_protocol(inv_protocol_id=protocol.id, lambdaa=lambdaa)
+                spectra_rec = inverter.reconstruct_spectrum(
+                    interferogram=interferogram, transmittance_response=transmittance_response
+                )
+                spectrum_rec_all[i_lmd] = spectra_rec.data
 
-        rmse_lambdaas = calculate_rmse(
-            array=spectrum_rec_all,
-            reference=spectrum_ref.data,
-            is_match_axis=-2,
-            is_match_stats=True,
-            is_rescale_reference=True,
-        )
-        argmin_rmse = np.argmin(rmse_lambdaas)
-        print(f"{protocol.label}: lmd = {lambdaas[argmin_rmse]:.4f} at idx = {argmin_rmse:.0f}")
-        spectrum_rec_best = replace(spectrum_ref, data=spectrum_rec_all[argmin_rmse])
-        spectrum_protocols.append(spectrum_rec_best)
-        argmin_rmses.append(argmin_rmse)
+            rmse_lambdaas = calculate_rmse(
+                array=spectrum_rec_all,
+                reference=spectrum_ref.data,
+                is_match_axis=-2,
+                is_match_stats=True,
+                is_rescale_reference=True,
+            )
+            argmin_rmse = np.argmin(rmse_lambdaas)
+            print(f"{protocol.label}: lmd = {lambdaas[argmin_rmse]:.4f} at idx = {argmin_rmse:.0f}")
+            spectrum_rec_best = replace(spectrum_ref, data=spectrum_rec_all[argmin_rmse])
+
+            spectrum_protocols.append(spectrum_rec_best)
+            argmin_rmses.append(argmin_rmse)
 
     return spectrum_protocols, argmin_rmses
 
