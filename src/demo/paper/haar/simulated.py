@@ -125,7 +125,7 @@ def compose_dir(
     else:
         save_dir = save_dir_init
 
-    if report_type in ["oversampling", "simulation", "reconstruction", "metrics", "figures"]:
+    if report_type in ["oversampling", "simulation", "extrapolation", "reconstruction", "metrics", "figures"]:
         return save_dir / experiment_name / report_type
     elif report_type == "paper_figures":
         return save_dir / "figures" / experiment_name
@@ -262,16 +262,16 @@ def main():
     for noise in options.noise:
         for device_name, transmissivity_coeffs, reflectivity_coeffs in options.fp_tr:
             for spc_type in options.spc_types:
-                # experiment_run(
-                #     name=options.experiment_name,
-                #     device_name=device_name,
-                #     transmissivity=transmissivity_coeffs,
-                #     reflectivity=reflectivity_coeffs,
-                #     noise=noise,
-                #     opds_sampling=options.opds_sampling,
-                #     spc_type=spc_type,
-                #     protocols=options.protocols,
-                # )
+                experiment_run(
+                    name=options.experiment_name,
+                    device_name=device_name,
+                    transmissivity=transmissivity_coeffs,
+                    reflectivity=reflectivity_coeffs,
+                    noise=noise,
+                    opds_sampling=options.opds_sampling,
+                    spc_type=spc_type,
+                    protocols=options.protocols,
+                )
 
                 visualize_reconstruction(
                     experiment_name=options.experiment_name,

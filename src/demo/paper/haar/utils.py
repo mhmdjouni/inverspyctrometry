@@ -7,7 +7,7 @@ from scipy.interpolate import interp1d
 from src.common_utils.function_generator import GaussianGenerator
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
-from src.common_utils.utils import calculate_rmse, polyval_rows
+from src.common_utils.utils import calculate_rmse, polyval_rows, match_stats
 from src.direct_model.interferometer import FabryPerotInterferometer
 from src.interface.configuration import load_config
 from src.inverse_model.inverspectrometer import calculate_airy_fourier_coeffs, FabryPerotInverSpectrometerHaar
@@ -148,24 +148,24 @@ def load_spectrum(option: str):
     db = config.database()
     if option == "solar":
         spectrum = db.dataset_spectrum(ds_id=0)
-        acq_id = 0
+        # acq_id = 0
     elif option == "shine":
         spectrum = db.dataset_spectrum(ds_id=1)
-        acq_id = 13
+        # acq_id = 13
     elif option in ["specim", "cc_green"]:
         spectrum = db.dataset_spectrum(ds_id=2)
-        acq_id = 13
+        # acq_id = 13
     elif option == "mc451":
         central_wavenumbers = db.dataset_central_wavenumbers(dataset_id=3)
         spectrum = Spectrum(data=np.eye(central_wavenumbers.size), wavenumbers=central_wavenumbers)
-        acq_id = 200
+        # acq_id = 200
     elif option == "mc651":
         central_wavenumbers = db.dataset_central_wavenumbers(dataset_id=4)
         spectrum = Spectrum(data=np.eye(central_wavenumbers.size), wavenumbers=central_wavenumbers)
-        acq_id = 300
+        # acq_id = 300
     else:
         raise ValueError(f"Option {option} is not supported.")
-    spectrum = replace(spectrum, data=spectrum.data[:, acq_id:acq_id + 1])
+    # spectrum = replace(spectrum, data=spectrum.data[:, acq_id:acq_id + 1])
     return spectrum
 
 
@@ -179,6 +179,9 @@ def invert_protocols(protocols: list, wavenumbers, fp, interferogram: Interferog
     )
     transmittance_response = device.transmittance_response(wavenumbers=wavenumbers)
     transmittance_response = transmittance_response.rescale(new_max=1., axis=None)
+    fig, axs = plt.subplots()
+    transmittance_response.visualize(fig, axs)
+    plt.show()
 
     db = load_config().database()
     spectrum_protocols = []

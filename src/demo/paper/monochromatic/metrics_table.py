@@ -5,7 +5,7 @@ from src.outputs.serialize import numpy_save_list
 
 
 def main():
-    experiment_id = 1
+    experiment_id = 2
 
     metrics_table_array, header, row_labels = metrics_full_table(experiment_id=experiment_id)
     experiment_dir = experiment_dir_convention(dir_type="metrics", experiment_id=experiment_id)
