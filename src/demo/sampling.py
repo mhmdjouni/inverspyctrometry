@@ -1,11 +1,11 @@
-from dataclasses import replace
+from dataclasses import replace, dataclass
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from src.common_utils.custom_vars import InterferometerType
 from src.common_utils.transmittance_response import TransmittanceResponse
-from src.direct_model.interferometer import FabryPerotInterferometer, interferometer_factory
+from src.direct_model.interferometer import interferometer_factory
 
 
 def calculate_opd(l: int, opd_step: float) -> float:
@@ -13,7 +13,7 @@ def calculate_opd(l: int, opd_step: float) -> float:
 
 
 def calculate_wn(k: int, wn_step: float) -> float:
-    return (k + 1/2) * wn_step
+    return (k + 1 / 2) * wn_step
 
 
 def calculate_wn_step(wn_num: int, opd_step: float) -> float:
@@ -47,7 +47,7 @@ def crop_limits(array, min_lim=None, max_lim=None):
     return array
 
 
-def estimate_harmonic_order(device_type: InterferometerType, reflectance: float, override: int = -1) -> int:
+def estimate_harmonic_order(device_type: InterferometerType, reflectance: float) -> int:
     if device_type == InterferometerType.MICHELSON:
         return 2
     elif device_type == InterferometerType.FABRY_PEROT:
@@ -82,10 +82,11 @@ def orthogonalize(
     return replace(transmat, data=matrix)
 
 
-def main():
-    device_type = InterferometerType.FABRY_PEROT
-    reflectance_scalar = 0.2
-
+def main_per_case(
+        device_type: InterferometerType,
+        reflectance_scalar: float,
+        opd_idx: int,
+):
     opds = np.arange(0, 51) * 0.2
     harmonic_order = estimate_harmonic_order(device_type=device_type, reflectance=reflectance_scalar)
     wn_num = opds.size * (harmonic_order - 1)
@@ -114,14 +115,35 @@ def main():
     transmat = device.transmittance_response(wavenumbers=wavenumbers)
     transmat_ortho = orthogonalize(device_type, transmat, reflectance_scalar)
 
-    opd_idx = 10
     fig, axes = plt.subplots(nrows=2, ncols=2)
-    # transmat.visualize(fig=fig, axs=axes[0, 0], aspect=transmat.data.shape[1] / transmat.data.shape[0])
     transmat.visualize(fig=fig, axs=axes[0, 0], aspect="auto", x_ticks_decimals=1, y_ticks_decimals=0)
     transmat_ortho.visualize_singular_values(axs=axes[0, 1])
     transmat.visualize_opd_response(axs=axes[1, 0], opd_idx=opd_idx)
     transmat.visualize_dct(axs=axes[1, 1], opd_idx=opd_idx)
     plt.show()
+
+
+@dataclass(frozen=True)
+class Case:
+    device_type: InterferometerType
+    reflectance_scalar: float
+
+
+def main():
+    cases = [
+        Case(InterferometerType.MICHELSON, 0.2),
+        Case(InterferometerType.FABRY_PEROT, 0.2),
+        Case(InterferometerType.FABRY_PEROT, 0.5),
+        Case(InterferometerType.FABRY_PEROT, 0.8),
+    ]
+    opd_idx = 10
+
+    for case in cases:
+        main_per_case(
+            device_type=case.device_type,
+            reflectance_scalar=case.reflectance_scalar,
+            opd_idx=opd_idx,
+        )
 
 
 if __name__ == "__main__":
