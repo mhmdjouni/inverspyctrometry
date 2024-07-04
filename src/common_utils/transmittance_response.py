@@ -59,9 +59,8 @@ class TransmittanceResponse:
         transfer_matrix_out = self.interpolate_opds(opds=opds, kind=kind, fill_value=fill_value)
         return transfer_matrix_out
 
-    def compute_singular_values(self):
-        zero_mean_opd_responses = self.data - np.mean(self.data, axis=1, keepdims=True)
-        sing_vals = np.linalg.svd(a=zero_mean_opd_responses, full_matrices=False, compute_uv=False)
+    def singular_values(self):
+        sing_vals = np.linalg.svd(a=self.data, full_matrices=False, compute_uv=False)
         return sing_vals
 
     def compute_dct(self, opd_idx: int = -1):
@@ -150,9 +149,10 @@ class TransmittanceResponse:
             self,
             axs,
             title: str = None,
+            ylim: tuple = None,
             linewidth: float = 1.5,
     ):
-        singular_values = self.compute_singular_values()
+        singular_values = self.singular_values()
         axs.plot(singular_values, linewidth=linewidth)
         if title is None:
             title = "Singular Values"
@@ -160,6 +160,8 @@ class TransmittanceResponse:
         axs.set_ylabel("Amplitude")
         axs.set_xlabel(r"Singular Value index")
         axs.grid(True)
+        if ylim is not None:
+            axs.set_ylim(ylim)
 
     def visualize_dct(
             self,
