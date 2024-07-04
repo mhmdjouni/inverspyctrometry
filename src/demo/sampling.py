@@ -3,8 +3,9 @@ from dataclasses import replace
 import matplotlib.pyplot as plt
 import numpy as np
 
+from src.common_utils.custom_vars import InterferometerType
 from src.common_utils.transmittance_response import TransmittanceResponse
-from src.direct_model.interferometer import FabryPerotInterferometer
+from src.direct_model.interferometer import FabryPerotInterferometer, interferometer_factory
 
 
 def calculate_opd(l: int, opd_step: float) -> float:
@@ -46,8 +47,10 @@ def crop_limits(array, min_lim=None, max_lim=None):
     return array
 
 
-def estimate_harmonic_order(reflectance: float, override: int = -1) -> int:
-    if override == -1:
+def estimate_harmonic_order(device_type: InterferometerType, reflectance: float, override: int = -1) -> int:
+    if device_type == InterferometerType.MICHELSON:
+        return 2
+    elif device_type == InterferometerType.FABRY_PEROT:
         reflectivity_order_mapper = {
             0.001: 2,
             0.01: 3,
@@ -61,22 +64,30 @@ def estimate_harmonic_order(reflectance: float, override: int = -1) -> int:
         }
         return reflectivity_order_mapper[reflectance]
     else:
-        return override
+        raise ValueError(f"Option {device_type} is not supported.")
 
 
-def orthogonalize(transmat: TransmittanceResponse, reflectance: float) -> TransmittanceResponse:
+def orthogonalize(
+        device_type: InterferometerType,
+        transmat: TransmittanceResponse,
+        reflectance: float,
+) -> TransmittanceResponse:
     matrix: np.ndarray = transmat.data
-    matrix = matrix / ((1-reflectance)/(1+reflectance)) - 1
+    if device_type == InterferometerType.MICHELSON:
+        matrix = (matrix / (2 * (1 - reflectance)) - 1) * 2
+    elif device_type == InterferometerType.FABRY_PEROT:
+        matrix = matrix / ((1 - reflectance) / (1 + reflectance)) - 1
     matrix /= np.sqrt(2 * matrix.shape[0])
     matrix[0] /= np.sqrt(2)
     return replace(transmat, data=matrix)
 
 
 def main():
+    device_type = InterferometerType.FABRY_PEROT
     reflectance_scalar = 0.2
-    harmonic_order = estimate_harmonic_order(reflectance=reflectance_scalar, override=-1)
 
     opds = np.arange(0, 51) * 0.2
+    harmonic_order = estimate_harmonic_order(device_type=device_type, reflectance=reflectance_scalar)
     wn_num = opds.size * (harmonic_order - 1)
     wn_step = calculate_wn_step(wn_num, np.mean(np.diff(opds)))
     wn_min = calculate_wn(0, wn_step)
@@ -92,15 +103,16 @@ def main():
 
     reflectance = np.array([reflectance_scalar])
     transmittance = 1. - reflectance
-    fp = FabryPerotInterferometer(
+    device = interferometer_factory(
+        option=device_type,
         transmittance_coefficients=transmittance,
         opds=opds,
         phase_shift=np.array([0.]),
         reflectance_coefficients=reflectance,
         order=0,
     )
-    transmat = fp.transmittance_response(wavenumbers=wavenumbers)
-    transmat_ortho = orthogonalize(transmat, reflectance_scalar)
+    transmat = device.transmittance_response(wavenumbers=wavenumbers)
+    transmat_ortho = orthogonalize(device_type, transmat, reflectance_scalar)
 
     opd_idx = 10
     fig, axes = plt.subplots(nrows=2, ncols=2)
