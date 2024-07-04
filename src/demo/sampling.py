@@ -73,7 +73,7 @@ def orthogonalize(transmat: TransmittanceResponse, reflectance: float) -> Transm
 
 
 def main():
-    reflectance_scalar = 0.8
+    reflectance_scalar = 0.2
     harmonic_order = estimate_harmonic_order(reflectance=reflectance_scalar, override=-1)
 
     opds = np.arange(0, 51) * 0.2
@@ -100,13 +100,13 @@ def main():
         order=0,
     )
     transmat = fp.transmittance_response(wavenumbers=wavenumbers)
-    transmat = orthogonalize(transmat, reflectance_scalar)
+    transmat_ortho = orthogonalize(transmat, reflectance_scalar)
 
     opd_idx = 10
     fig, axes = plt.subplots(nrows=2, ncols=2)
     # transmat.visualize(fig=fig, axs=axes[0, 0], aspect=transmat.data.shape[1] / transmat.data.shape[0])
     transmat.visualize(fig=fig, axs=axes[0, 0], aspect="auto", x_ticks_decimals=1, y_ticks_decimals=0)
-    transmat.visualize_singular_values(axs=axes[0, 1])
+    transmat_ortho.visualize_singular_values(axs=axes[0, 1])
     transmat.visualize_opd_response(axs=axes[1, 0], opd_idx=opd_idx)
     transmat.visualize_dct(axs=axes[1, 1], opd_idx=opd_idx)
     plt.show()

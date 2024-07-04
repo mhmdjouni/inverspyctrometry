@@ -160,7 +160,10 @@ class TransmittanceResponse:
         axs.set_ylabel("Amplitude")
         axs.set_xlabel(r"Singular Value index")
         axs.grid(True)
-        if ylim is not None:
+        if ylim is None:
+            offset = singular_values[0] * 0.1
+            axs.set_ylim([-offset, singular_values[0]+offset])
+        else:
             axs.set_ylim(ylim)
 
     def visualize_dct(
