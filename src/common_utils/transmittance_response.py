@@ -8,6 +8,7 @@ from scipy import fft, interpolate
 
 from src.common_utils.custom_vars import Opd, Wvn
 from src.common_utils.utils import rescale
+from src.outputs.visualization import plot_custom
 
 
 @dataclass(frozen=True)
@@ -59,7 +60,7 @@ class TransmittanceResponse:
         transfer_matrix_out = self.interpolate_opds(opds=opds, kind=kind, fill_value=fill_value)
         return transfer_matrix_out
 
-    def singular_values(self):
+    def singular_values(self) -> np.ndarray[tuple[int], np.dtype[np.float_]]:
         sing_vals = np.linalg.svd(a=self.data, full_matrices=False, compute_uv=False)
         return sing_vals
 
@@ -151,20 +152,36 @@ class TransmittanceResponse:
             title: str = None,
             ylim: tuple = None,
             linewidth: float = 1.5,
+            marker: str = "",
+            markevery: int = 1,
     ):
         singular_values = self.singular_values()
         axs.plot(singular_values, linewidth=linewidth)
         if title is None:
             title = "Singular Values"
-        axs.set_title(title)
-        axs.set_ylabel("Amplitude")
-        axs.set_xlabel(r"Singular Value index")
-        axs.grid(True)
         if ylim is None:
             offset = singular_values[0] * 0.1
             axs.set_ylim([-offset, singular_values[0]+offset])
         else:
             axs.set_ylim(ylim)
+
+        plot_custom(
+            axs=axs,
+            x_array=np.arange(singular_values.size),
+            array=singular_values,
+            linewidth=linewidth,
+            title=title,
+            ylabel="Amplitude",
+            xlabel=r"Singular Value index",
+            ylim=ylim,
+            marker=marker,
+            markevery=markevery,
+        )
+
+    def condition_number(self) -> float:
+        singular_values = self.singular_values()
+        cn = singular_values[0] / singular_values[-1]
+        return float(cn)
 
     def visualize_dct(
             self,
