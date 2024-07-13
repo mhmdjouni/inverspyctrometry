@@ -94,7 +94,7 @@ class Interferometer(ABC):
         pass
 
     @abstractmethod
-    def harmonic_order(self) -> int:
+    def harmonic_order(self, threshold: float = 0.001) -> int:
         pass
 
     @property
@@ -126,7 +126,7 @@ class MichelsonInterferometer(Interferometer):
     ) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
         return 1 - self.transmittance(wavenumbers=wavenumbers)
 
-    def harmonic_order(self) -> int:
+    def harmonic_order(self, threshold: float = 0.001) -> int:
         return 2
 
 
@@ -174,22 +174,20 @@ class FabryPerotInterferometer(Interferometer):
     ) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
         return self.coeffs_to_polynomials(coefficients=self.reflectance_coefficients, wavenumbers=wavenumbers)
 
-    def harmonic_order(self) -> int:
-        reflectance = self.reflectance(wavenumbers=wavenumbers)
-        transmittance = self.transmittance(wavenumbers=wavenumbers)
-        if is_correct_transmittance:
-            transmittance = transmittance * (1 - reflectance) * (1 + reflectance)
-        else:
-            transmittance = transmittance ** 2
-        phase_difference = self.phase_difference(wavenumbers=wavenumbers)
-
-        quotient = 1 / (1 - reflectance ** 2)
-        n_values = np.arange(1, self.order)
-        reflectance_factors = reflectance[None, :] ** n_values[:, None, None]
-        cosine_factors = np.cos(n_values[:, None, None] * phase_difference[None, :])
-        series_sum = 1 + 2 * np.sum(reflectance_factors * cosine_factors, axis=0)
-        transmittance_response = transmittance * quotient * series_sum
-        return 0
+    def harmonic_order(self, threshold: float = 0.001) -> int:
+        """
+        Number of coefficients until we have C_{N} / C_1 < 0.001
+          (We choose 0.001 because it looks like the closest threshold to 2-wave)
+          In other words, where:
+            R^{N-1} < 0.001
+            (N-1) * log(R) < log(0.001)
+            N < log(0.001) / log(R) + 1
+            N = ceil(N)
+        """
+        reflectance = self.reflectance(np.array([1])).mean()
+        order_float = np.log(threshold) / np.log(reflectance) + 1
+        order = np.ceil(order_float)
+        return order
 
 
 def simulate_interferogram(
