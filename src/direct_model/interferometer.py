@@ -93,6 +93,14 @@ class Interferometer(ABC):
     ) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
         pass
 
+    @abstractmethod
+    def harmonic_order(self) -> int:
+        pass
+
+    @property
+    def average_opd_step(self) -> float:
+        return np.mean(np.diff(self.opds))
+
 
 @dataclass(frozen=True)
 class MichelsonInterferometer(Interferometer):
@@ -117,6 +125,9 @@ class MichelsonInterferometer(Interferometer):
             wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
     ) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
         return 1 - self.transmittance(wavenumbers=wavenumbers)
+
+    def harmonic_order(self) -> int:
+        return 2
 
 
 @dataclass(frozen=True)
@@ -162,6 +173,23 @@ class FabryPerotInterferometer(Interferometer):
             wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
     ) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
         return self.coeffs_to_polynomials(coefficients=self.reflectance_coefficients, wavenumbers=wavenumbers)
+
+    def harmonic_order(self) -> int:
+        reflectance = self.reflectance(wavenumbers=wavenumbers)
+        transmittance = self.transmittance(wavenumbers=wavenumbers)
+        if is_correct_transmittance:
+            transmittance = transmittance * (1 - reflectance) * (1 + reflectance)
+        else:
+            transmittance = transmittance ** 2
+        phase_difference = self.phase_difference(wavenumbers=wavenumbers)
+
+        quotient = 1 / (1 - reflectance ** 2)
+        n_values = np.arange(1, self.order)
+        reflectance_factors = reflectance[None, :] ** n_values[:, None, None]
+        cosine_factors = np.cos(n_values[:, None, None] * phase_difference[None, :])
+        series_sum = 1 + 2 * np.sum(reflectance_factors * cosine_factors, axis=0)
+        transmittance_response = transmittance * quotient * series_sum
+        return 0
 
 
 def simulate_interferogram(

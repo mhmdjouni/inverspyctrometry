@@ -121,6 +121,7 @@ def main_per_case(
         reflectance_coefficients=reflectance,
         order=0,
     )
+
     transmat = device.transmittance_response(wavenumbers=wavenumbers)
     transmat_compensated = compensate(device_type, transmat, reflectance_scalar)
 
