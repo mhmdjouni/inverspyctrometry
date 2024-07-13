@@ -1,47 +1,79 @@
-from dataclasses import replace, dataclass, asdict
+from __future__ import annotations
 
-import matplotlib.pyplot as plt
+from dataclasses import dataclass, replace
+from typing import Optional
+
 import numpy as np
+from pydantic import BaseModel
 
-from src.common_utils.custom_vars import InterferometerType
+from src.common_utils.custom_vars import InterferometerType, Wvn
 from src.common_utils.transmittance_response import TransmittanceResponse
-from src.direct_model.interferometer import interferometer_factory
-from src.interface.configuration import load_config
-from src.outputs.visualization import SubplotsOptions, RcParamsOptions, savefig_dir_list
+from src.direct_model.interferometer import interferometer_factory, Interferometer
 
 
-def calculate_opd(l: int, opd_step: float) -> float:
-    return l * opd_step
+class OPDSchema(BaseModel):
+    num: int
+    step: float
+
+    def as_array(self) -> np.ndarray:
+        return np.arange(0, self.num) * 0.2
 
 
-def calculate_wn(k: int, wn_step: float) -> float:
+class DeviceSchema(BaseModel):
+    type: InterferometerType
+    reflectance_scalar: float
+    opds: OPDSchema
+
+    def create(self) -> Interferometer:
+        reflectance = np.array([self.reflectance_scalar])
+        transmittance = 1. - reflectance
+        return interferometer_factory(
+            option=self.type,
+            transmittance_coefficients=transmittance,
+            opds=self.opds.as_array(),
+            phase_shift=np.array([0.]),
+            reflectance_coefficients=reflectance,
+            order=0,
+        )
+
+
+class SpectralRangeSchema(BaseModel):
+    min: float
+    max: float
+
+
+class SamplingOptionsSchema(BaseModel):
+    device: DeviceSchema
+    spectral_range: SpectralRangeSchema
+
+    def create_experiment(self) -> SamplingExperiment:
+        device = self.device.create()
+        return SamplingExperiment(
+            device_type=self.device.type,
+            device=device,
+            spectral_range=self.spectral_range,
+        )
+
+
+def dct_wn_sample(k: int, wn_step: float) -> float:
+    """
+    Calculate sigma_k = (k + 1/2) * sigma_step
+      where k in [0, ..., K-1]
+    """
     return (k + 1 / 2) * wn_step
 
 
-def calculate_wn_step(wn_num: int, opd_step: float) -> float:
+def dct_wn_step(wn_num: int, opd_step: float) -> float:
+    """
+    Calculate sigma_step = 1 / (2 * K * delta_step)
+    """
     return 1 / (2 * wn_num * opd_step)
 
 
-def print_info(array: np.ndarray, unit: str):
-    print(
-        f"\tInterval: [{array.min():.4f}, {array.max():7.4f}]."
-        f" Step size: {np.mean(np.diff(array)):.4f}."
-        f" No. samples: {array.size}."
-        f" Unit: {unit}."
-    )
+def crop_interval(array: np.ndarray, min_lim: float = None, max_lim: float = None):
+    if np.any(np.diff(array) < 0):
+        raise ValueError("The array should be sorted in ascending order before cropping its limits.")
 
-
-def print_info_opds_wns(opds, wns, opd_unit="um", wn_unit="1/um"):
-    print("OPD Information:")
-    print_info(opds, opd_unit)
-
-    print("Wavenumber Information:")
-    print_info(wns, wn_unit)
-
-    print()
-
-
-def crop_limits(array, min_lim=None, max_lim=None):
     if min_lim is not None:
         array = array[array >= min_lim]
     if max_lim is not None:
@@ -49,91 +81,56 @@ def crop_limits(array, min_lim=None, max_lim=None):
     return array
 
 
-def estimate_harmonic_order(device_type: InterferometerType, reflectance: float) -> int:
-    if device_type == InterferometerType.MICHELSON:
-        return 2
-    elif device_type == InterferometerType.FABRY_PEROT:
-        reflectivity_order_mapper = {
-            0.001: 2,
-            0.01: 3,
-            0.05: 3,
-            0.1: 4,
-            0.2: 5,
-            0.4: 8,
-            0.5: 10,
-            0.7: 19,
-            0.8: 27,
-        }
-        return reflectivity_order_mapper[reflectance]
-    else:
-        raise ValueError(f"Option {device_type} is not supported.")
+@dataclass
+class SamplingExperiment:
+    device_type: InterferometerType
+    device: Interferometer
+    spectral_range: SpectralRangeSchema
+
+    def wavenumbers(self) -> np.ndarray[tuple[Wvn], np.dtype[np.float_]]:
+        wn_num = int(self.device.opds.size * (self.device.harmonic_order() - 1))
+        wn_step = dct_wn_step(wn_num, self.device.average_opd_step)
+        wn_min = dct_wn_sample(k=0, wn_step=wn_step)
+        wn_max = dct_wn_sample(k=wn_num - 1, wn_step=wn_step)
+        wavenumbers = np.linspace(start=wn_min, stop=wn_max, num=wn_num, endpoint=True)
+        wavenumbers = crop_interval(
+            array=wavenumbers,
+            min_lim=self.spectral_range.min,
+            max_lim=self.spectral_range.max,
+        )
+        return wavenumbers
+
+    def transfer_matrix(self):
+        return self.device.transmittance_response(wavenumbers=self.wavenumbers())
 
 
-def compensate(
+def dct_orthogonalize(
+        transfer_matrix: TransmittanceResponse,
         device_type: InterferometerType,
-        transmat: TransmittanceResponse,
         reflectance: float,
 ) -> TransmittanceResponse:
-    matrix: np.ndarray = transmat.data
+    """This function compensates for the gains in each device then applies the operations that orthogonalize a DCT type-II matrix"""
+    matrix = transfer_matrix.data
     if device_type == InterferometerType.MICHELSON:
         matrix = matrix - 2 * (1 - reflectance)
     elif device_type == InterferometerType.FABRY_PEROT:
         matrix = matrix / ((1 - reflectance) / (1 + reflectance)) - 1
     matrix /= np.sqrt(2 * matrix.shape[0])
     matrix[0] /= np.sqrt(2)
-    return replace(transmat, data=matrix)
+    return replace(transfer_matrix, data=matrix)
 
 
-def main_per_case(
-        exp_title: str,
-        device_type: InterferometerType,
-        reflectance_scalar: float,
-        opd_idx: int,
-        is_show: bool,
-        override_harmonic_order: int,
+def visualize_all(
+        fig,
+        axs,
+        transfer_matrix: TransmittanceResponse,
+        opd_idx: Optional[int],
+        linewidth: float,
+        dct_orthogonalize_kwargs: Optional[dict],
 ):
-    # PROCESS
-    opds = np.arange(0, 51) * 0.2
-    if override_harmonic_order < 2:
-        harmonic_order = estimate_harmonic_order(device_type=device_type, reflectance=reflectance_scalar)
-    else:
-        harmonic_order = override_harmonic_order
-    wn_num = opds.size * (harmonic_order - 1)
-    wn_step = calculate_wn_step(wn_num, np.mean(np.diff(opds)))
-    wn_min = calculate_wn(0, wn_step)
-    wn_max = calculate_wn(wn_num - 1, wn_step)
-    wavenumbers = np.linspace(wn_min, wn_max, wn_num, endpoint=True)
-
-    opd_unit = "um"
-    wn_unit = "1/um"
-    # print_info_opds_wns(opds, wavenumbers, opd_unit, wn_unit)
-
-    wavenumbers = crop_limits(wavenumbers, min_lim=1., max_lim=2.5)
-    # print_info_opds_wns(opds, wavenumbers, opd_unit, wn_unit)
-
-    reflectance = np.array([reflectance_scalar])
-    transmittance = 1. - reflectance
-    device = interferometer_factory(
-        option=device_type,
-        transmittance_coefficients=transmittance,
-        opds=opds,
-        phase_shift=np.array([0.]),
-        reflectance_coefficients=reflectance,
-        order=0,
-    )
-
-    transmat = device.transmittance_response(wavenumbers=wavenumbers)
-    transmat_compensated = compensate(device_type, transmat, reflectance_scalar)
-
-    # VISUALIZE
-    rc_params = RcParamsOptions(fontsize=21)
-    subplots_opts = SubplotsOptions(figsize=(6.4, 4.8))
-    plt.rcParams['font.size'] = str(rc_params.fontsize)
-
-    figs, axes = zip(*[plt.subplots(**asdict(subplots_opts)) for _ in range(4)])
-    transmat.visualize(
-        fig=figs[0],
-        axs=axes[0][0, 0],
+    transfer_matrix.visualize(
+        fig=fig,
+        axs=axs[0, 0],
         title="",
         is_colorbar=True,
         x_ticks_num=5,
@@ -141,123 +138,55 @@ def main_per_case(
         y_ticks_decimals=0,
         aspect="auto",
     )
-    condition_number = transmat_compensated.condition_number()
+
+    transfer_matrix_ortho = dct_orthogonalize(
+        transfer_matrix=transfer_matrix,
+        **dct_orthogonalize_kwargs,
+    )
+    condition_number = transfer_matrix_ortho.condition_number()
     condition_number_str = f"{condition_number:.0f}" if condition_number < 1e10 else r"$\infty$"
-    print(f"\n{exp_title}\nCondition number: {condition_number_str}")
-    transmat_compensated.visualize_singular_values(
-        axs=axes[1][0, 0],
+    transfer_matrix_ortho.visualize_singular_values(
+        axs=axs[0, 1],
         title=f"Condition number = {condition_number_str}",
-        linewidth=3,
+        linewidth=linewidth,
         marker="o",
         markevery=5,
     )
-    transmat.visualize_opd_response(
-        axs=axes[2][0, 0],
+
+    transfer_matrix.visualize_opd_response(
+        axs=axs[1, 0],
         opd_idx=opd_idx,
         title=None,
         show_full_title=False,
-        linewidth=3,
+        linewidth=linewidth,
     )
-    transmat.visualize_dct(
-        axs=axes[3][0, 0],
+
+    transfer_matrix.visualize_dct(
+        axs=axs[1, 1],
         opd_idx=opd_idx,
         title=None,
         show_full_title=False,
-        linewidth=3,
+        linewidth=linewidth,
     )
 
-    if is_show:
-        plt.show()
-
-    # SAVE
-    filenames = [
-        "transfer_matrix.pdf",
-        "singular_values.pdf",
-        "opd_response.pdf",
-        "opd_dct.pdf",
-    ]
-    project_dir = load_config().directory_paths.project
-    paper_dir = project_dir.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
-    figures_dir_list = [
-        paper_dir / "figures" / "direct_model",
-    ]
-    save_subdir = f"{exp_title}/transfer_matrices"
-    for filename, fig in zip(filenames, figs):
-        savefig_dir_list(
-            fig=fig,
-            filename=filename,
-            directories_list=figures_dir_list,
-            subdirectory=save_subdir,
-        )
+    return fig, axs
 
 
-def visualize_together(
-        transmat,
-        transmat_compensated,
-        opd_idx,
+def plot_harmonic_orders(
+        fig,
+        axs,
+        reflectivity_range: tuple = (0.0005, 0.85),
+        threshold: float = 0.001
 ):
-    fig, axes = plt.subplots(nrows=2, ncols=2)
-    transmat.visualize(fig=fig, axs=axes[0, 0], aspect="auto", x_ticks_decimals=1, y_ticks_decimals=0)
-    transmat_compensated.visualize_singular_values(axs=axes[0, 1])
-    transmat.visualize_opd_response(axs=axes[1, 0], opd_idx=opd_idx)
-    transmat.visualize_dct(axs=axes[1, 1], opd_idx=opd_idx)
-    plt.show()
-
-
-@dataclass(frozen=True)
-class Case:
-    exp_title: str
-    device_type: InterferometerType
-    reflectance_scalar: float
-    override_harmonic_order: int
-
-
-def main():
-    cases = [
-        Case(
-            exp_title="mich",
-            device_type=InterferometerType.MICHELSON,
-            reflectance_scalar=0.5,
-            override_harmonic_order=0,
-        ),
-        Case(
-            exp_title="mich_oversampled",
-            device_type=InterferometerType.MICHELSON,
-            reflectance_scalar=0.5,
-            override_harmonic_order=5,
-        ),
-        Case(
-            exp_title="fp_0_low_r",
-            device_type=InterferometerType.FABRY_PEROT,
-            reflectance_scalar=0.2,
-            override_harmonic_order=0,
-        ),
-        Case(
-            exp_title="fp_0_med_r",
-            device_type=InterferometerType.FABRY_PEROT,
-            reflectance_scalar=0.5,
-            override_harmonic_order=0,
-        ),
-        Case(
-            exp_title="fp_0_high_r",
-            device_type=InterferometerType.FABRY_PEROT,
-            reflectance_scalar=0.8,
-            override_harmonic_order=0,
-        ),
-    ]
-    opd_idx = 10
-    is_show = False
-
-    for case in cases:
-        main_per_case(
-            exp_title=case.exp_title,
-            device_type=case.device_type,
-            reflectance_scalar=case.reflectance_scalar,
-            override_harmonic_order=case.override_harmonic_order,
-            opd_idx=opd_idx,
-            is_show=is_show,
-        )
-
-
-if __name__ == "__main__":
-    main()
+    reflectivity = np.arange(
+        start=reflectivity_range[0],
+        stop=reflectivity_range[1],
+        step=0.0005,
+    )
+    order_float = np.log(threshold) / np.log(reflectivity) + 1
+    order = np.ceil(order_float)
+    axs.plot(reflectivity, order)
+    axs.grid()
+    axs.set_xlabel("Reflectivity")
+    axs.set_ylabel("Harmonic Order")
+    return fig, axs
