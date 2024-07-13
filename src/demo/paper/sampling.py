@@ -3,8 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Optional
 
+import matplotlib.pyplot as plt
 import numpy as np
 from pydantic import BaseModel
+from tqdm import tqdm
 
 from src.common_utils.custom_vars import InterferometerType, Wvn
 from src.common_utils.transmittance_response import TransmittanceResponse
@@ -175,8 +177,8 @@ def visualize_all(
 def plot_harmonic_orders(
         fig,
         axs,
+        threshold: float = 0.001,
         reflectivity_range: tuple = (0.0005, 0.85),
-        threshold: float = 0.001
 ):
     reflectivity = np.arange(
         start=reflectivity_range[0],
@@ -189,4 +191,41 @@ def plot_harmonic_orders(
     axs.grid()
     axs.set_xlabel("Reflectivity")
     axs.set_ylabel("Harmonic Order")
+    return fig, axs
+
+
+def plot_condition_numbers(
+        fig,
+        axs,
+        opd_schema: dict,
+        reflectivity_range: tuple = (0.0005, 0.85, 0.01),
+):
+    reflectivities = np.arange(*reflectivity_range)
+
+    condition_numbers = np.zeros_like(a=reflectivities)
+    for i_rfl, reflectivity in tqdm(enumerate(reflectivities)):
+        sampling_options_schema = {
+            "device": {
+                "type": InterferometerType.FABRY_PEROT,
+                "reflectance_scalar": reflectivity,
+                "opds": opd_schema,
+            },
+            "spectral_range": {
+                "min": 1.,
+                "max": 2.5,
+            },
+        }
+        options = SamplingOptionsSchema(**sampling_options_schema)
+        experiment = options.create_experiment()
+        transfer_matrix_ortho = dct_orthogonalize(
+            transfer_matrix=experiment.transfer_matrix(),
+            device_type=options.device.type,
+            reflectance=reflectivity,
+        )
+        condition_numbers[i_rfl] = transfer_matrix_ortho.condition_number()
+
+    axs.plot(reflectivities, condition_numbers)
+    axs.grid()
+    axs.set_xlabel("Reflectivity")
+    axs.set_ylabel("Condition number")
     return fig, axs
