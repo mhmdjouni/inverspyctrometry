@@ -16,8 +16,8 @@ class TransmittanceResponse:
     data: np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]] | np.ndarray
     wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]]
     opds: np.ndarray[tuple[Opd], np.dtype[np.float_]] | np.ndarray
-    wavenumbers_unit: str = r"cm$^{-1}$"
-    opds_unit: str = "nm"
+    wavenumbers_unit: str = r"um$^{-1}$"
+    opds_unit: str = "um"
 
     def rescale(self, new_max: float = 1., axis: int = None) -> TransmittanceResponse:
         rescaled_data = rescale(array=self.data, new_max=new_max, axis=axis)
