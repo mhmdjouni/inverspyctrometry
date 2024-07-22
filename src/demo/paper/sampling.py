@@ -335,7 +335,7 @@ def main_transfer_matrices():
             "spectral_range": {
                 "min": 1.,
                 "max": 2.5,
-                "override_harmonic_order": 3,
+                "override_harmonic_order": None,
             },
         },
         {
@@ -389,7 +389,7 @@ def main_transfer_matrices():
     ]
     visualization_schema = {
         "opd_idx": 10,
-        "is_show": False,
+        "is_show": True,
     }
 
     for sampling_options_schema in sampling_options_schema_list:
@@ -411,26 +411,26 @@ def main_transfer_matrices():
             visualization_schema["is_show"],
         )
 
-        # SAVE
-        filenames = [
-            "transfer_matrix.pdf",
-            "singular_values.pdf",
-            "opd_response.pdf",
-            "opd_dct.pdf",
-        ]
-        project_dir = load_config().directory_paths.project
-        paper_dir = project_dir.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
-        figures_dir_list = [
-            paper_dir / "figures" / "direct_model",
-        ]
-        save_subdir = f"{experiment.experiment_title}/transfer_matrices"
-        for filename, fig in zip(filenames, figs):
-            savefig_dir_list(
-                fig=fig,
-                filename=filename,
-                directories_list=figures_dir_list,
-                subdirectory=save_subdir,
-            )
+        # # SAVE
+        # filenames = [
+        #     "transfer_matrix.pdf",
+        #     "singular_values.pdf",
+        #     "opd_response.pdf",
+        #     "opd_dct.pdf",
+        # ]
+        # project_dir = load_config().directory_paths.project
+        # paper_dir = project_dir.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
+        # figures_dir_list = [
+        #     paper_dir / "figures" / "direct_model",
+        # ]
+        # save_subdir = f"{experiment.experiment_title}/transfer_matrices"
+        # for filename, fig in zip(filenames, figs):
+        #     savefig_dir_list(
+        #         fig=fig,
+        #         filename=filename,
+        #         directories_list=figures_dir_list,
+        #         subdirectory=save_subdir,
+        #     )
 
 
 def main():

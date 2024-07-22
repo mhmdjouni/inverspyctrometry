@@ -194,6 +194,15 @@ def metrics_save_numpy(lambdaa_min, rmse_min, directories, subdirectory):
 
 
 def main():
+    opds = load_real_opds()
+    opds_step = np.diff(opds)
+    print(opds_step)
+    mean = np.mean(opds_step)
+    std = np.std(opds_step)
+    print(f"{mean:.2f}\n{std:.2f}")
+
+
+def main_tests():
     # Options 0: Test with low, medium, high, and variable reflectivity
     # Options 1: Test with regular vs irregular sampling in the OPDs
     # Options 2: Test with [20, 15, 10] dB of noise
