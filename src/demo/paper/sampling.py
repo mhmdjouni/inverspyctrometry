@@ -115,6 +115,33 @@ class SamplingExperiment:
     def transfer_matrix(self) -> TransmittanceResponse:
         return self.device.transmittance_response(wavenumbers=self.wavenumbers())
 
+    def transfer_matrix_decomposition(self) -> list[TransmittanceResponse]:
+        if self.device_type == InterferometerType.MICHELSON:
+            decomposition_list = [self.transfer_matrix()]
+
+        elif self.device_type == InterferometerType.FABRY_PEROT:
+            wavenumbers = self.wavenumbers()
+            transmittance = self.device.transmittance(wavenumbers=wavenumbers)
+            reflectance = self.device.reflectance(wavenumbers=wavenumbers)
+            phase_difference = self.device.phase_difference(wavenumbers=wavenumbers)
+            quotient = transmittance ** 2 / (1 - reflectance ** 2)
+
+            harmonic_numbers = np.arange(self.device.harmonic_order())
+            coefficients = 2 * quotient[None, :] * reflectance[None, :] ** harmonic_numbers[:, None, None]
+            coefficients[0] = coefficients[0] / 2
+            cosines = np.cos(harmonic_numbers[:, None, None] * phase_difference[None, :])
+            decomposition = coefficients * cosines
+
+            decomposition_list = [
+                TransmittanceResponse(data=component, wavenumbers=wavenumbers, opds=self.device.opds)
+                for component in decomposition
+            ]
+
+        else:
+            raise ValueError(f"Device option {self.device} is not supported yet.")
+
+        return decomposition_list
+
 
 def dct_orthogonalize(
         transfer_matrix: TransmittanceResponse,
@@ -335,7 +362,7 @@ def main_transfer_matrices():
             "spectral_range": {
                 "min": 1.,
                 "max": 2.5,
-                "override_harmonic_order": None,
+                "override_harmonic_order": 3,
             },
         },
         {
