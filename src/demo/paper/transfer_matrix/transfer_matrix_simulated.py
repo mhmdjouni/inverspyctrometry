@@ -1,10 +1,9 @@
 from dataclasses import asdict
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 from src.common_utils.custom_vars import InterferometerType
-from src.demo.paper.sampling import dct_orthogonalize, visualize_separate, SamplingOptionsSchema
+from src.demo.paper.transfer_matrix.sampling import visualize_separate, SamplingOptionsSchema
 from src.interface.configuration import load_config
 from src.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_dir_list
 

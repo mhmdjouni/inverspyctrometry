@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from src.common_utils.custom_vars import InterferometerType
-from src.demo.paper.sampling import SamplingOptionsSchema, dct_orthogonalize
+from src.demo.paper.transfer_matrix.sampling import SamplingOptionsSchema, dct_orthogonalize
 
 
 def main():

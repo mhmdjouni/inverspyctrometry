@@ -1,16 +1,8 @@
-from dataclasses import replace
-
 import matplotlib.pyplot as plt
 import numpy as np
 
 from src.common_utils.transmittance_response import TransmittanceResponse
-from src.demo.paper.sampling import dct_orthogonalize
-
-
-def orthogonalize(matrix: np.ndarray) -> np.ndarray:
-    matrix_ortho = matrix / np.sqrt(2 * matrix.shape[0])
-    matrix_ortho[0] /= np.sqrt(2)
-    return matrix_ortho
+from src.demo.paper.transfer_matrix.sampling import dct_orthogonalize
 
 
 def main():

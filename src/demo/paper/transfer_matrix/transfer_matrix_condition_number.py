@@ -2,7 +2,7 @@ from dataclasses import asdict
 
 from matplotlib import pyplot as plt
 
-from src.demo.paper.sampling import plot_condition_numbers
+from src.demo.paper.transfer_matrix.sampling import plot_condition_numbers
 from src.interface.configuration import load_config
 from src.outputs.visualization import savefig_dir_list, SubplotsOptions, RcParamsOptions
 
