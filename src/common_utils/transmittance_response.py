@@ -190,10 +190,12 @@ class TransmittanceResponse:
             title: str = None,
             show_full_title: bool = True,
             linewidth: float = 1.5,
+            ylim: tuple | list = None,
     ):
         dct = self.compute_dct(opd_idx)
         x_axis = np.mean(np.diff(a=self.opds)) * np.arange(dct.shape[0])
-        axs.plot(x_axis, dct, linewidth=linewidth)
+        # axs.plot(x_axis, dct, linewidth=linewidth)
+        axs.stem(x_axis, dct, linefmt='-', markerfmt='.')
         if title is None:
             if show_full_title:
                 if opd_idx == -1:
@@ -210,4 +212,6 @@ class TransmittanceResponse:
         axs.set_title(title)
         axs.set_ylabel("Amplitude")
         axs.set_xlabel(rf"Fourier Oscillations $\delta$ [{self.opds_unit}]")
+        if ylim is not None:
+            axs.set_ylim(ylim)
         axs.grid(True)

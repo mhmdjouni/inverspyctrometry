@@ -1,6 +1,7 @@
 from dataclasses import asdict
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from src.common_utils.custom_vars import InterferometerType
 from src.demo.paper.sampling import dct_orthogonalize, visualize_separate, SamplingOptionsSchema
@@ -89,6 +90,7 @@ def main():
             "reflectance": reflectivity,
             "airy_gain": airy_gain,
         }
+        alpha = experiment.alpha()
 
         rc_params = RcParamsOptions(fontsize=21)
         subplots_opts = SubplotsOptions(figsize=(6.4, 4.8))
@@ -104,6 +106,7 @@ def main():
             x_ticks_decimals=1,
             y_ticks_decimals=0,
             markevery=5,
+            alpha=alpha,
         )
 
         # SAVE

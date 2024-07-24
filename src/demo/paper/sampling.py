@@ -121,6 +121,12 @@ class SamplingExperiment:
     def reflectance(self) -> np.ndarray:
         return self.device.reflectance(wavenumbers=self.wavenumbers())
 
+    def alpha(self) -> float:
+        omega_range = self.spectral_range.max - self.spectral_range.min
+        wavenumber_nyquist = 1 / (2 * np.mean(np.diff(self.device.opds)))
+        alpha = omega_range / wavenumber_nyquist
+        return alpha
+
     def transfer_matrix_decomposition(self) -> list[TransmittanceResponse]:
         if self.device_type == InterferometerType.MICHELSON:
             decomposition_list = [self.transfer_matrix()]
@@ -290,6 +296,7 @@ def visualize_separate(
         x_ticks_decimals: int = 1,
         y_ticks_decimals: int = 0,
         markevery: int = 5,
+        alpha: float = -1,
 ):
     transfer_matrix.visualize(
         fig=figs[0],
@@ -315,6 +322,9 @@ def visualize_separate(
         marker="o",
         markevery=markevery,
     )
+    if 0 < alpha <= 1:
+        sv_drop_position = int(np.ceil(alpha * (np.min(transfer_matrix.data.shape) - 1)))
+        axes[1][0, 0].axvline(x=sv_drop_position, color='r', linestyle='--')
 
     transfer_matrix.visualize_opd_response(
         axs=axes[2][0, 0],
