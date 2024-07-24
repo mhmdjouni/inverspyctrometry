@@ -2,7 +2,7 @@ from dataclasses import asdict
 
 import matplotlib.pyplot as plt
 
-from src.demo.paper.transfer_matrix.sampling import visualize_separate
+from src.demo.paper.transfer_matrix.utils import visualize_separate
 from src.interface.configuration import load_config
 from src.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_dir_list
 

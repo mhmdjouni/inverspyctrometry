@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 from src.common_utils.custom_vars import InterferometerType
-from src.demo.paper.transfer_matrix.sampling import SamplingOptionsSchema
+from src.demo.paper.transfer_matrix.utils import SamplingOptionsSchema
 
 
 def main():

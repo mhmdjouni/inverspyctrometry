@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from src.common_utils.transmittance_response import TransmittanceResponse
-from src.demo.paper.transfer_matrix.sampling import dct_orthogonalize
+from src.demo.paper.transfer_matrix.utils import dct_orthogonalize
 
 
 def main():
