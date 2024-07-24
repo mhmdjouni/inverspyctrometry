@@ -115,6 +115,12 @@ class SamplingExperiment:
     def transfer_matrix(self) -> TransmittanceResponse:
         return self.device.transmittance_response(wavenumbers=self.wavenumbers())
 
+    def transmittance(self) -> np.ndarray:
+        return self.device.transmittance(wavenumbers=self.wavenumbers())
+
+    def reflectance(self) -> np.ndarray:
+        return self.device.reflectance(wavenumbers=self.wavenumbers())
+
     def transfer_matrix_decomposition(self) -> list[TransmittanceResponse]:
         if self.device_type == InterferometerType.MICHELSON:
             decomposition_list = [self.transfer_matrix()]
@@ -147,13 +153,17 @@ def dct_orthogonalize(
         transfer_matrix: TransmittanceResponse,
         device_type: InterferometerType,
         reflectance: float,
+        airy_gain: float = None,
 ) -> TransmittanceResponse:
     """This function compensates for the gains in each device then applies the operations that orthogonalize a DCT type-II matrix"""
     matrix = transfer_matrix.data
     if device_type == InterferometerType.MICHELSON:
         matrix = matrix - 2 * (1 - reflectance)
     elif device_type == InterferometerType.FABRY_PEROT:
-        matrix = matrix / ((1 - reflectance) / (1 + reflectance)) - 1
+        if airy_gain is None:
+            airy_gain = (1 - reflectance) ** 2
+        quotient = airy_gain / (1 - reflectance ** 2)
+        matrix = matrix / quotient - 1
     matrix /= np.sqrt(2 * matrix.shape[0])
     matrix[0] /= np.sqrt(2)
     return replace(transfer_matrix, data=matrix)
@@ -242,6 +252,7 @@ def plot_condition_numbers(
     condition_numbers = np.zeros_like(a=reflectivities)
     for i_rfl, reflectivity in tqdm(enumerate(reflectivities)):
         sampling_options_schema = {
+            "experiment_title": "fp_0_condition_number",
             "device": {
                 "type": InterferometerType.FABRY_PEROT,
                 "reflectance_scalar": reflectivity,
@@ -250,6 +261,7 @@ def plot_condition_numbers(
             "spectral_range": {
                 "min": 1.,
                 "max": 2.5,
+                "override_harmonic_order": None,
             },
         }
         options = SamplingOptionsSchema(**sampling_options_schema)
@@ -268,46 +280,25 @@ def plot_condition_numbers(
     return fig, axs
 
 
-def main_condition_number():
-    opd_schema = {"num": 51, "step": 0.175}
-
-    rc_params = RcParamsOptions(fontsize=21)
-    subplots_opts = SubplotsOptions(figsize=(8, 5))
-    plt.rcParams['font.size'] = str(rc_params.fontsize)
-    fig, axs = plt.subplots(**asdict(subplots_opts))
-    fig, axs = plot_condition_numbers(
-        fig,
-        axs[0, 0],
-        opd_schema=opd_schema,
-        reflectivity_range=(0.4, 0.9, 0.01),
-    )
-    plt.show()
-
-    # SAVE
-    filename = "condition_number_reflectivity.pdf"
-    project_dir = load_config().directory_paths.project
-    paper_dir = project_dir.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
-    figures_dir_list = [
-        paper_dir / "figures" / "direct_model",
-    ]
-    save_subdir = ""
-    savefig_dir_list(
-        fig=fig,
-        filename=filename,
-        directories_list=figures_dir_list,
-        subdirectory=save_subdir,
-    )
-
-
-def visualize_separate(figs, axes, transfer_matrix, dct_orthogonalize_kwargs, opd_idx, is_show):
+def visualize_separate(
+        figs,
+        axes,
+        transfer_matrix,
+        dct_orthogonalize_kwargs,
+        opd_idx,
+        is_show,
+        x_ticks_decimals: int = 1,
+        y_ticks_decimals: int = 0,
+        markevery: int = 5,
+):
     transfer_matrix.visualize(
         fig=figs[0],
         axs=axes[0][0, 0],
         title="",
         is_colorbar=True,
         x_ticks_num=5,
-        x_ticks_decimals=1,
-        y_ticks_decimals=0,
+        x_ticks_decimals=x_ticks_decimals,
+        y_ticks_decimals=y_ticks_decimals,
         aspect="auto",
     )
 
@@ -322,7 +313,7 @@ def visualize_separate(figs, axes, transfer_matrix, dct_orthogonalize_kwargs, op
         title=f"Condition number = {condition_number_str}",
         linewidth=3,
         marker="o",
-        markevery=5,
+        markevery=markevery,
     )
 
     transfer_matrix.visualize_opd_response(
@@ -347,121 +338,8 @@ def visualize_separate(figs, axes, transfer_matrix, dct_orthogonalize_kwargs, op
     return figs, axes
 
 
-def main_transfer_matrices():
-    sampling_options_schema_list = [
-        {
-            "experiment_title": "mich_oversampled",
-            "device": {
-                "type": InterferometerType.MICHELSON,
-                "reflectance_scalar": 0.5,
-                "opds": {
-                    "num": 51,
-                    "step": 0.2,
-                },
-            },
-            "spectral_range": {
-                "min": 1.,
-                "max": 2.5,
-                "override_harmonic_order": 3,
-            },
-        },
-        {
-            "experiment_title": "fp_0_low_r",
-            "device": {
-                "type": InterferometerType.FABRY_PEROT,
-                "reflectance_scalar": 0.2,
-                "opds": {
-                    "num": 51,
-                    "step": 0.2,
-                },
-            },
-            "spectral_range": {
-                "min": 1.,
-                "max": 2.5,
-                "override_harmonic_order": None,
-            },
-        },
-        {
-            "experiment_title": "fp_0_med_r",
-            "device": {
-                "type": InterferometerType.FABRY_PEROT,
-                "reflectance_scalar": 0.5,
-                "opds": {
-                    "num": 51,
-                    "step": 0.2,
-                },
-            },
-            "spectral_range": {
-                "min": 1.,
-                "max": 2.5,
-                "override_harmonic_order": None,
-            },
-        },
-        {
-            "experiment_title": "fp_0_high_r",
-            "device": {
-                "type": InterferometerType.FABRY_PEROT,
-                "reflectance_scalar": 0.8,
-                "opds": {
-                    "num": 51,
-                    "step": 0.2,
-                },
-            },
-            "spectral_range": {
-                "min": 1.,
-                "max": 2.5,
-                "override_harmonic_order": None,
-            },
-        },
-    ]
-    visualization_schema = {
-        "opd_idx": 10,
-        "is_show": True,
-    }
-
-    for sampling_options_schema in sampling_options_schema_list:
-        options = SamplingOptionsSchema(**sampling_options_schema)
-        experiment = options.create_experiment()
-        transfer_matrix = experiment.transfer_matrix()
-
-        rc_params = RcParamsOptions(fontsize=21)
-        subplots_opts = SubplotsOptions(figsize=(6.4, 4.8))
-        plt.rcParams['font.size'] = str(rc_params.fontsize)
-        figs, axes = zip(*[plt.subplots(**asdict(subplots_opts)) for _ in range(4)])
-        dct_orthogonalize_kwargs = {"device_type": options.device.type, "reflectance": options.device.reflectance_scalar}
-        figs, axes = visualize_separate(
-            figs,
-            axes,
-            transfer_matrix,
-            dct_orthogonalize_kwargs,
-            visualization_schema["opd_idx"],
-            visualization_schema["is_show"],
-        )
-
-        # # SAVE
-        # filenames = [
-        #     "transfer_matrix.pdf",
-        #     "singular_values.pdf",
-        #     "opd_response.pdf",
-        #     "opd_dct.pdf",
-        # ]
-        # project_dir = load_config().directory_paths.project
-        # paper_dir = project_dir.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
-        # figures_dir_list = [
-        #     paper_dir / "figures" / "direct_model",
-        # ]
-        # save_subdir = f"{experiment.experiment_title}/transfer_matrices"
-        # for filename, fig in zip(filenames, figs):
-        #     savefig_dir_list(
-        #         fig=fig,
-        #         filename=filename,
-        #         directories_list=figures_dir_list,
-        #         subdirectory=save_subdir,
-        #     )
-
-
 def main():
-    main_transfer_matrices()
+    pass
 
 
 if __name__ == "__main__":

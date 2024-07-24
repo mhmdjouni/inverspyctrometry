@@ -26,7 +26,7 @@ class SubplotsOptions:
     ncols: int = 1
     squeeze: bool = False
     figsize: tuple = (6.4, 4.8)
-    tight_layout: bool = False
+    tight_layout: bool = True
 
 
 def plot_custom(
