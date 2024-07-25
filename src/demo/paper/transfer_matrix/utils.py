@@ -20,7 +20,7 @@ class OPDSchema(BaseModel):
     step: float
 
     def as_array(self) -> np.ndarray:
-        return np.arange(0, self.num) * 0.2
+        return np.arange(0, self.num) * self.step
 
 
 class DeviceSchema(BaseModel):
@@ -289,14 +289,16 @@ def plot_condition_numbers(
 def visualize_separate(
         figs,
         axes,
-        transfer_matrix,
-        dct_orthogonalize_kwargs,
+        transfer_matrix: TransmittanceResponse,
+        dct_orthogonalize_kwargs: dict,
         opd_idx,
         is_show,
         x_ticks_decimals: int = 1,
         y_ticks_decimals: int = 0,
         markevery: int = 5,
         alpha: float = -1,
+        vmin: float = None,
+        vmax: float = None,
 ):
     transfer_matrix.visualize(
         fig=figs[0],
@@ -307,6 +309,8 @@ def visualize_separate(
         x_ticks_decimals=x_ticks_decimals,
         y_ticks_decimals=y_ticks_decimals,
         aspect="auto",
+        vmin=vmin,
+        vmax=vmax,
     )
 
     transfer_matrix_ortho = dct_orthogonalize(

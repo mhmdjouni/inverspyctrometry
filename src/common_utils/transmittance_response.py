@@ -64,8 +64,12 @@ class TransmittanceResponse:
         sing_vals = np.linalg.svd(a=self.data, full_matrices=False, compute_uv=False)
         return sing_vals
 
-    def compute_dct(self, opd_idx: int = -1):
-        zero_mean_opd_responses = self.data - np.mean(self.data, axis=1, keepdims=True)
+    def compute_dct(self, opd_idx: int = -1, is_rows: bool = True):
+        if is_rows:
+            data = self.data
+        else:
+            data = self.data.T
+        zero_mean_opd_responses = data - np.mean(data, axis=1, keepdims=True)
         if opd_idx == -1:
             array = np.sum(zero_mean_opd_responses, axis=0)
         else:
@@ -191,8 +195,9 @@ class TransmittanceResponse:
             show_full_title: bool = True,
             linewidth: float = 1.5,
             ylim: tuple | list = None,
+            is_rows: bool = True,
     ):
-        dct = self.compute_dct(opd_idx)
+        dct = self.compute_dct(opd_idx=opd_idx, is_rows=is_rows)
         x_axis = np.mean(np.diff(a=self.opds)) * np.arange(dct.shape[0])
         # axs.plot(x_axis, dct, linewidth=linewidth)
         axs.stem(x_axis, dct, linefmt='-', markerfmt='.')
