@@ -19,7 +19,7 @@ from src.outputs.visualization import plot_custom
 class Spectrum:
     data: np.ndarray[tuple[Wvn, Acq], np.dtype[np.float_]]
     wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]]
-    wavenumbers_unit: str = "1/cm"
+    wavenumbers_unit: str = r"um$^{-1}$"
 
     def visualize(
             self,

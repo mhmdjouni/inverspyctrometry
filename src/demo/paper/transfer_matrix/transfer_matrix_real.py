@@ -8,10 +8,13 @@ from src.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_
 
 
 def main():
+    char_id = 0
+
     config = load_config()
     db = config.database()
-    characterization = db.characterization(char_id=0)
-    wavenumbers = db.characterization_wavenumbers(char_id=0)
+    characterization = db.characterization(char_id=char_id)
+
+    wavenumbers = db.characterization_wavenumbers(char_id=char_id)
     transmittance = characterization.transmittance(wavenumbers=wavenumbers)
     reflectivity = characterization.reflectance(wavenumbers=wavenumbers)
     airy_gain = transmittance * (1 - reflectivity) * (1 + reflectivity)
@@ -38,6 +41,8 @@ def main():
         x_ticks_decimals=2,
         y_ticks_decimals=2,
         markevery=30,
+        vmin=0,
+        vmax=2e10,
     )
 
     # SAVE

@@ -18,7 +18,7 @@ from src.outputs.serialize import numpy_save_list, numpy_load_list
 class Interferogram:
     data: np.ndarray[tuple[Opd, Acq], np.dtype[np.float_]]
     opds: np.ndarray[tuple[Opd], np.dtype[np.float_]]
-    opds_unit: str = "nm"
+    opds_unit: str = "um"
 
     def sort_opds(self):
         new_indices = np.argsort(self.opds)

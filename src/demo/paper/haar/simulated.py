@@ -193,7 +193,7 @@ def metrics_save_numpy(lambdaa_min, rmse_min, directories, subdirectory):
     )
 
 
-def main():
+def main_opd_irregular_sampling():
     opds = load_real_opds()
     opds_step = np.diff(opds)
     print(opds_step)
@@ -202,7 +202,22 @@ def main():
     print(f"{mean:.2f}\n{std:.2f}")
 
 
-def main_tests():
+def main_reflectivity_levels():
+    experiment_name = "simulated/reflectivity_levels"
+    options = [
+        np.array([[0.2]]),
+        np.array([[0.4]]),
+        np.array([[0.7]]),
+        load_variable_reflectivity()[2],
+    ]
+
+    visualize_reflectivity(
+        options=options,
+        experiment_name=experiment_name,
+    )
+
+
+def main_experiments():
     # Options 0: Test with low, medium, high, and variable reflectivity
     # Options 1: Test with regular vs irregular sampling in the OPDs
     # Options 2: Test with [20, 15, 10] dB of noise
@@ -217,7 +232,7 @@ def main_tests():
             ],
             noise=[None],
             opds_sampling="regular",
-            spc_types=["solar", "specim", "shine"],
+            spc_types=["solar", "specim"],
             protocols=[
                 Protocol(id=0, label="IDCT", color="green"),
                 Protocol(id=19, label="HAAR", color="red"),
@@ -263,10 +278,6 @@ def main_tests():
     ]
 
     options = options_list[2]
-    # visualize_reflectivity(
-    #     fp_params=options.fp_tr,
-    #     experiment_name=options.experiment_name,
-    # )
 
     for noise in options.noise:
         for device_name, transmissivity_coeffs, reflectivity_coeffs in options.fp_tr:
@@ -375,16 +386,15 @@ def metrics_full_table(options: Options):
 
 
 def visualize_reflectivity(
-        fp_params: list[tuple[str, np.ndarray, np.ndarray]],
+        options: list[np.ndarray],
         experiment_name: str,
 ):
     rc_params = RcParamsOptions(fontsize=17)
-    subplots_options = SubplotsOptions(figsize=(8, 4.8))
+    subplots_options = SubplotsOptions(figsize=(9, 4.4))
     plt.rcParams['font.size'] = str(rc_params.fontsize)
     fig_tr, axs_tr = plt.subplots(**asdict(subplots_options))
-    wavenumbers = np.linspace(0.66, 2.9, int(1e4))
-    for i_refl, fp_param in enumerate(fp_params):
-        reflectivity_coeffs = fp_param[2]
+    wavenumbers = np.linspace(0.7, 2.9, int(1e4))
+    for i_refl, reflectivity_coeffs in enumerate(options):
         reflectivity = polyval_rows(coefficients=reflectivity_coeffs, interval=wavenumbers)
         mathcal_r = r"$\mathcal{R}$"
         if reflectivity_coeffs.size == 1:
@@ -398,12 +408,14 @@ def visualize_reflectivity(
             label=label,
             color=f"C{i_refl}",
             linewidth=2,
-            title=r"Fabry-Perot $\infty$-wave model",
             ylabel="Intensity",
-            xlabel=r"Wavenumbers $\sigma$ [1/um]",
+            xlabel=r"Wavenumbers $\sigma$ [um$^{-1}$]",
             ylim=[-0.1, 0.9],
         )
         axs_tr[0, 0].legend(bbox_to_anchor=(1.0, 1.0), loc='upper left')
+
+    plt.show()
+
     savefig_dir_list(
         fig=fig_tr,
         filename="reflectivity.pdf",
@@ -669,4 +681,4 @@ def visualize_reconstruction(
 
 
 if __name__ == "__main__":
-    main()
+    main_reflectivity_levels()
