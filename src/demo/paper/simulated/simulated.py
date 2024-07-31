@@ -9,13 +9,13 @@ from matplotlib import pyplot as plt
 from src.common_utils.custom_vars import Opd
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
-from src.common_utils.utils import calculate_rmse, polyval_rows, numpy_to_latex
+from src.common_utils.utils import calculate_rmse, numpy_to_latex
 from src.demo.paper.simulated.utils import generate_synthetic_spectrum, generate_interferogram, oversample_spectrum, \
     invert_haar, \
     load_spectrum, invert_protocols, OPDummy, Protocol
 from src.interface.configuration import load_config
 from src.outputs.serialize import numpy_save_list, numpy_load_list
-from src.outputs.visualization import plot_custom, RcParamsOptions, SubplotsOptions, savefig_dir_list
+from src.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_dir_list
 
 
 def load_opd_info(dataset: str):
@@ -202,21 +202,6 @@ def main_opd_irregular_sampling():
     print(f"{mean:.2f}\n{std:.2f}")
 
 
-def main_reflectivity_levels():
-    experiment_name = "simulated/reflectivity_levels"
-    options = [
-        np.array([[0.2]]),
-        np.array([[0.4]]),
-        np.array([[0.7]]),
-        load_variable_reflectivity()[2],
-    ]
-
-    visualize_reflectivity(
-        options=options,
-        experiment_name=experiment_name,
-    )
-
-
 def main_experiments():
     # Options 0: Test with low, medium, high, and variable reflectivity
     # Options 1: Test with regular vs irregular sampling in the OPDs
@@ -329,8 +314,6 @@ def print_metrics_full_table(options: Options):
 
 
 def metrics_full_table(options: Options):
-    config = load_config()
-
     nb_dss = len(options.spc_types)
     nb_ifms = len(options.fp_tr)
     nb_nls = len(options.noise)
@@ -383,50 +366,6 @@ def metrics_full_table(options: Options):
                     full_table[i_ip + nb_ips*i_ds, 2*i_nl + 2*nb_nls*i_ifm + 1] = rmse_min
 
     return full_table, header, index
-
-
-def visualize_reflectivity(
-        options: list[np.ndarray],
-        experiment_name: str,
-):
-    rc_params = RcParamsOptions(fontsize=17)
-    subplots_options = SubplotsOptions(figsize=(9, 4.4))
-    plt.rcParams['font.size'] = str(rc_params.fontsize)
-    fig_tr, axs_tr = plt.subplots(**asdict(subplots_options))
-    wavenumbers = np.linspace(0.7, 2.9, int(1e4))
-    for i_refl, reflectivity_coeffs in enumerate(options):
-        reflectivity = polyval_rows(coefficients=reflectivity_coeffs, interval=wavenumbers)
-        mathcal_r = r"$\mathcal{R}$"
-        if reflectivity_coeffs.size == 1:
-            label = f"{mathcal_r}={reflectivity_coeffs[0, 0]:.2f}"
-        else:
-            label = f"Variable {mathcal_r}"
-        plot_custom(
-            axs=axs_tr[0, 0],
-            x_array=wavenumbers,
-            array=reflectivity[0],
-            label=label,
-            color=f"C{i_refl}",
-            linewidth=2,
-            ylabel="Intensity",
-            xlabel=r"Wavenumbers $\sigma$ [um$^{-1}$]",
-            ylim=[-0.1, 0.9],
-        )
-        axs_tr[0, 0].legend(bbox_to_anchor=(1.0, 1.0), loc='upper left')
-
-    plt.show()
-
-    savefig_dir_list(
-        fig=fig_tr,
-        filename="reflectivity.pdf",
-        directories_list=[
-            compose_dir(report_type="figures", experiment_name=experiment_name, save_dir_init="reports"),
-            compose_dir(report_type="paper_figures", experiment_name=experiment_name, save_dir_init="paper"),
-        ],
-        subdirectory="",
-        fmt="pdf",
-        bbox_inches="tight",
-    )
 
 
 def experiment_run(
@@ -681,4 +620,4 @@ def visualize_reconstruction(
 
 
 if __name__ == "__main__":
-    main_reflectivity_levels()
+    main_experiments()
