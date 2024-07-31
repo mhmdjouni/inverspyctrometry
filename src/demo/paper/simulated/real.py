@@ -8,9 +8,9 @@ from scipy.interpolate import interp1d
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
 from src.common_utils.utils import calculate_rmse, match_stats
-from src.demo.paper.haar.simulated import compose_dir, compose_subdir, reconstruction_save_numpy, \
+from src.demo.paper.simulated.simulated import compose_dir, compose_subdir, reconstruction_save_numpy, \
     reconstruction_load_numpy, metrics_save_numpy
-from src.demo.paper.haar.utils import generate_synthetic_spectrum, generate_interferogram, compute_wavenumbers, \
+from src.demo.paper.simulated.utils import generate_synthetic_spectrum, generate_interferogram, compute_wavenumbers, \
     oversample_wavenumbers, oversample_spectrum, invert_haar, load_spectrum, invert_protocols, Protocol
 from src.demo.paper.monochromatic.utils import calculate_rmcw
 from src.direct_model.characterization import Characterization

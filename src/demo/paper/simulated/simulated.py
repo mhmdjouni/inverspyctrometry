@@ -10,7 +10,7 @@ from src.common_utils.custom_vars import Opd
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
 from src.common_utils.utils import calculate_rmse, polyval_rows, numpy_to_latex
-from src.demo.paper.haar.utils import generate_synthetic_spectrum, generate_interferogram, oversample_spectrum, \
+from src.demo.paper.simulated.utils import generate_synthetic_spectrum, generate_interferogram, oversample_spectrum, \
     invert_haar, \
     load_spectrum, invert_protocols, OPDummy, Protocol
 from src.interface.configuration import load_config

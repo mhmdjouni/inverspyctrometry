@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from src.common_utils.interferogram import Interferogram
-from src.demo.paper.haar.utils import generate_synthetic_spectrum, generate_interferogram, compute_wavenumbers, \
+from src.demo.paper.simulated.utils import generate_synthetic_spectrum, generate_interferogram, compute_wavenumbers, \
     invert_haar
 from src.direct_model.interferometer import FabryPerotInterferometer
 from src.inverse_model.protocols import IDCT
