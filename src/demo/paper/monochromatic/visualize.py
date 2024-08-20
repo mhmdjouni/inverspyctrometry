@@ -464,7 +464,7 @@ def visualize_matching_intensity(
 
                 plt.rcParams['font.size'] = str(rc_params.fontsize)
 
-                plot_options["title"] = f"Nb. MCW = {rmcw[best_idx]}"
+                plot_options["title"] = f"No. of MCW = {rmcw[best_idx]}"
                 fig, axes = plt.subplots(**asdict(subplots_options))
                 visualize_matching_central_wavenumbers(
                     spectra=spectra_rec,
@@ -600,10 +600,9 @@ def visualization_inputs_factory(experiment_id: int, option: VisualizationOption
             "subplots_options": SubplotsOptions(),
             "rc_params": RcParamsOptions(fontsize=17),
             "plot_options": {
-                "title": "Acquisition Maxima",
                 "linestyle": "-",
                 "xlim": [0.85, 3.],
-                "ylabel": "Intensity",
+                "ylabel": "Normalized Intensity",
                 "ylim": [-0.1, 1.1],
             },
         }
@@ -621,12 +620,12 @@ def visualize_options(experiment_id: int, options: list[VisualizationOptions]):
 
 def main():
     visualization_options = [
-        VisualizationOptions.DATASETS,
-        VisualizationOptions.TRANSFER_MATRICES,
-        VisualizationOptions.INTERFEROGRAM_MATRICES,
-        VisualizationOptions.SPECTRUM_MATRICES,
-        VisualizationOptions.INTERFEROGRAM_COMPARISON,
-        VisualizationOptions.SPECTRUM_COMPARISON,
+        # VisualizationOptions.DATASETS,
+        # VisualizationOptions.TRANSFER_MATRICES,
+        # VisualizationOptions.INTERFEROGRAM_MATRICES,
+        # VisualizationOptions.SPECTRUM_MATRICES,
+        # VisualizationOptions.INTERFEROGRAM_COMPARISON,
+        # VisualizationOptions.SPECTRUM_COMPARISON,
         VisualizationOptions.MATCHING_CENTRAL_WAVENUMBERS_INTENSITY,
     ]
 

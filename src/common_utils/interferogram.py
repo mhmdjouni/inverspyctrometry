@@ -68,28 +68,31 @@ class Interferogram:
             fig: Figure,
             axs,
             title: str = None,
+            aspect: str | float = 1.,
             vmin: float = None,
             vmax: float = None,
             is_colorbar: bool = True,
+            y_ticks_num: int = 6,
+            y_ticks_decimals: int = 2,
     ):
         imshow = axs.imshow(
             self.data,
-            aspect='auto',
             vmin=vmin,
             vmax=vmax,
         )
         if is_colorbar:
             fig.colorbar(imshow, ax=axs)
 
-        opd_ticks = np.linspace(start=0, stop=self.opds.size - 1, num=6, dtype=int)
-        opd_labels = np.around(a=self.opds[opd_ticks], decimals=2)
+        opd_ticks = np.linspace(start=0, stop=self.opds.size - 1, num=y_ticks_num, dtype=int)
+        opd_labels = np.around(a=self.opds[opd_ticks], decimals=y_ticks_decimals)
         axs.set_yticks(ticks=opd_ticks, labels=opd_labels)
 
         if title is None:
-            title = "Interferogram Acquisitions"
+            title = "Transmittance Response"
         axs.set_title(title)
+        axs.set_aspect(aspect)
         axs.set_ylabel(rf"OPDs $\delta$ [{self.opds_unit}]")
-        axs.set_xlabel(r"Acquisitions index $n \in \{1, \dots, N\}$")
+        axs.set_xlabel(r"Acquisition index $m\in\{0,..,M-1\}$")
 
     def add_noise(self, snr_db) -> Interferogram:
         noisy_data = add_noise(array=self.data, snr_db=snr_db)

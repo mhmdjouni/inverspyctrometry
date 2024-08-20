@@ -170,7 +170,6 @@ def run_one_experiment(
             )
 
             interferograms_ref = interferograms_ref.rescale(new_max=1, axis=-2)
-
             # visualize_ifgm_extraps(
             #     axs=axs[0, 0],
             #     extrapolated=interferograms_extrap,
@@ -184,11 +183,11 @@ def run_one_experiment(
                 print(f"\tCharacterization: {db.characterizations[char_id].title.upper()}")
                 characterization_dir = dataset_dir / f"{db.characterizations[char_id].title}"
 
-                characterization_extrap = characterization.extrapolate_opds(support_resampler=extrap_case.opds_resampler)
+                characterization = characterization.extrapolate_opds(support_resampler=extrap_case.opds_resampler)
                 # visualize_char_extraps(
                 #     fig=fig,
                 #     axs=axs,
-                #     extrapolated=characterization_extrap,
+                #     extrapolated=characterization,
                 #     reference=characterization,
                 #     extrap_case=extrap_case,
                 #     wavenumbers=wavenumbers_ifgm,
@@ -196,7 +195,7 @@ def run_one_experiment(
                 #     opd_idx=0,
                 # )
 
-                transfer_matrix = characterization_extrap.transmittance_response(wavenumbers=wavenumbers_ifgm)
+                transfer_matrix = characterization.transmittance_response(wavenumbers=wavenumbers_ifgm)
                 transfer_matrix = transfer_matrix.rescale(new_max=1, axis=None)
 
                 for ip_id in experiment_config.inversion_protocol_ids:

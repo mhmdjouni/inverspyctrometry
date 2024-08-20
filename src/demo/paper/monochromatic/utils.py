@@ -17,10 +17,10 @@ def print_metrics(nb_tabs, category, best_idx, lambdaa, rmse_full, rmse_diagonal
     print(
         f"{tabs}"
         f"{category}: {best_idx:6},\t"
-        f"Lambda: {lambdaa:7.4f},\t"
-        f"RMSE: {rmse_full:.4f},\t"
-        f"RMSE_DIAG: {rmse_diagonal:.4f},\t"
-        f"RMCW: {rmcw:3}/{wavenumbers_size:3} ({rmcw / wavenumbers_size:6.4f})"
+        f"Lambda: {lambdaa:7.3f},\t"
+        f"RMSE: {rmse_full:.3f},\t"
+        f"RMSE_DIAG: {rmse_diagonal:.3f},\t"
+        f"RMCW: {rmcw:3}/{wavenumbers_size:3} ({rmcw / wavenumbers_size:6.3f})"
     )
 
 
@@ -105,7 +105,7 @@ def visualize_matching_central_wavenumbers(
     if xlabel is None:
         xlabel = rf"Associated Central Wavenumbers [{spectra.wavenumbers_unit}]"
     if ylabel is None:
-        ylabel = "Acquisition Intensity"
+        ylabel = "Intensity"
     if xlim is not None:
         axs.set_ylim(xlim)
     if ylim is not None:

@@ -41,10 +41,7 @@
         -1
       ],
       "inversion_protocol_ids": [
-        0,
-        1,
-        5,
-        6
+        0, 1, 5, 6, 9, 12
       ],
       "description": "Inverts dataset MC-451 using its own characterization."
     },
@@ -62,10 +59,7 @@
         -1
       ],
       "inversion_protocol_ids": [
-        0,
-        1,
-        5,
-        6
+        0, 1, 5, 6, 15, 18
       ],
       "description": "Inverts dataset MC-651 using the characterization of dataset MC-451."
     },

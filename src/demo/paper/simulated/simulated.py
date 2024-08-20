@@ -232,7 +232,7 @@ def main_experiments():
             ],
             noise=[None],
             opds_sampling="irregular",
-            spc_types=["solar", "specim", "shine"],
+            spc_types=["solar", "specim"],
             protocols=[
                 Protocol(id=0, label="IDCT", color="green"),
                 Protocol(id=19, label="HAAR", color="red"),
@@ -250,7 +250,7 @@ def main_experiments():
                 15.,
             ],
             opds_sampling="regular",
-            spc_types=["solar", "specim", "shine"],
+            spc_types=["solar", "specim"],
             protocols=[
                 Protocol(id=0, label="IDCT", color="green"),
                 Protocol(id=19, label="HAAR", color="red"),
@@ -262,21 +262,21 @@ def main_experiments():
         ),
     ]
 
-    options = options_list[2]
+    options = options_list[1]
 
     for noise in options.noise:
         for device_name, transmissivity_coeffs, reflectivity_coeffs in options.fp_tr:
             for spc_type in options.spc_types:
-                experiment_run(
-                    name=options.experiment_name,
-                    device_name=device_name,
-                    transmissivity=transmissivity_coeffs,
-                    reflectivity=reflectivity_coeffs,
-                    noise=noise,
-                    opds_sampling=options.opds_sampling,
-                    spc_type=spc_type,
-                    protocols=options.protocols,
-                )
+                # experiment_run(
+                #     name=options.experiment_name,
+                #     device_name=device_name,
+                #     transmissivity=transmissivity_coeffs,
+                #     reflectivity=reflectivity_coeffs,
+                #     noise=noise,
+                #     opds_sampling=options.opds_sampling,
+                #     spc_type=spc_type,
+                #     protocols=options.protocols,
+                # )
 
                 visualize_reconstruction(
                     experiment_name=options.experiment_name,
@@ -322,12 +322,13 @@ def metrics_full_table(options: Options):
 
     index = []
     protocol_label_mapper = {
-        "idct": "\\gls{idct}",
+        "idct": "\\glsfmtshort{idct}",
         "haar": "Haar \\cite{al-saeed-2016-fourier-trans}",
-        "tsvd": "\\gls{tsvd} \\cite{GoluHO99:jmaa}",
-        "rr": "\\gls{rr} \\cite{Hans90:jssc}",
-        "lv": "\\gls{lv}",
-        "lv-l1": "\\gls{lv}",
+        "pinv": "\\glsfmtshort{pinv}",
+        "tsvd": "\\glsfmtshort{tsvd} \\cite{GoluHO99:jmaa}",
+        "rr": "\\glsfmtshort{rr} \\cite{Hans90:jssc}",
+        "lv": "\\glsfmtshort{lv}",
+        "lv-l1": "\\glsfmtshort{lv}",
     }
     for _ in options.spc_types:
         for protocol in options.protocols:

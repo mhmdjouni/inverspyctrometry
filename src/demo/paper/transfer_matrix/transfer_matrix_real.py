@@ -27,8 +27,8 @@ def main():
     }
 
     # VISUALIZE
-    rc_params = RcParamsOptions(fontsize=21)
-    subplots_opts = SubplotsOptions(figsize=(6.4, 4.8))
+    rc_params = RcParamsOptions(fontsize=20)
+    subplots_opts = SubplotsOptions(figsize=(7.5, 4.8))
     plt.rcParams['font.size'] = str(rc_params.fontsize)
     figs, axes = zip(*[plt.subplots(**asdict(subplots_opts)) for _ in range(4)])
     figs, axes = visualize_separate(
