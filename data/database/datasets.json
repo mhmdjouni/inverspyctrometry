@@ -8,27 +8,27 @@
       "source": "sun",
       "path": "${PROJECT_DIR:}/data/datasets/spectrum/solar/data.npy",
       "wavenumbers_path": "${PROJECT_DIR:}/data/datasets/spectrum/solar/wavenumbers.npy",
-      "wavenumbers_unit": "1/um"
+      "wavenumbers_unit": "um$^{-1}$"
     },
     {
       "id": 1,
-      "title": "cc_shine",
-      "category": "spectrum",
-      "device": "shine",
-      "source": "colorchecker",
-      "path": "${PROJECT_DIR:}/data/datasets/spectrum/cc_shine/data.npy",
-      "wavenumbers_path": "${PROJECT_DIR:}/data/datasets/spectrum/cc_shine/wavenumbers.npy",
-      "wavenumbers_unit": "1/um"
-    },
-    {
-      "id": 2,
       "title": "cc_specim",
       "category": "spectrum",
       "device": "specim",
       "source": "colorchecker",
       "path": "${PROJECT_DIR:}/data/datasets/spectrum/cc_specim/data.npy",
       "wavenumbers_path": "${PROJECT_DIR:}/data/datasets/spectrum/cc_specim/wavenumbers.npy",
-      "wavenumbers_unit": "1/um"
+      "wavenumbers_unit": "um$^{-1}$"
+    },
+    {
+      "id": 2,
+      "title": "cc_shine",
+      "category": "spectrum",
+      "device": "shine",
+      "source": "colorchecker",
+      "path": "${PROJECT_DIR:}/data/datasets/spectrum/cc_shine/data.npy",
+      "wavenumbers_path": "${PROJECT_DIR:}/data/datasets/spectrum/cc_shine/wavenumbers.npy",
+      "wavenumbers_unit": "um$^{-1}$"
     },
     {
       "id": 3,
@@ -38,7 +38,7 @@
       "source": "monochromatic",
       "path": "${PROJECT_DIR:}/data/datasets/interferogram/mc451/data.npy",
       "wavenumbers_path": "${PROJECT_DIR:}/data/datasets/interferogram/mc451/central_wavenumbers.npy",
-      "wavenumbers_unit": "1/um",
+      "wavenumbers_unit": "um$^{-1}$",
       "opds_path": "${PROJECT_DIR:}/data/datasets/characterization/imspoc_uv_2/mc451/opds.npy",
       "opds_unit": "um"
     },
@@ -50,7 +50,7 @@
       "source": "monochromatic",
       "path": "${PROJECT_DIR:}/data/datasets/interferogram/mc651/data.npy",
       "wavenumbers_path": "${PROJECT_DIR:}/data/datasets/interferogram/mc651/central_wavenumbers.npy",
-      "wavenumbers_unit": "1/um",
+      "wavenumbers_unit": "um$^{-1}$",
       "opds_path": "${PROJECT_DIR:}/data/datasets/characterization/imspoc_uv_2/mc651/opds.npy",
       "opds_unit": "um"
     },
@@ -62,7 +62,7 @@
       "source": "colorchecker_green",
       "path": "${PROJECT_DIR:}/data/datasets/interferogram/colorchecker_13/data.npy",
       "wavenumbers_path": "${PROJECT_DIR:}/data/datasets/interferogram/mc451/central_wavenumbers.npy",
-      "wavenumbers_unit": "1/um",
+      "wavenumbers_unit": "um$^{-1}$",
       "opds_path": "${PROJECT_DIR:}/data/datasets/characterization/imspoc_uv_2/colorchecker_13/opds.npy",
       "opds_unit": "um"
     }

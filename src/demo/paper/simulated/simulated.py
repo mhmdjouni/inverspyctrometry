@@ -92,7 +92,7 @@ class Options:
 def load_variable_reflectivity() -> tuple[
     str, np.ndarray[tuple[int], np.dtype[np.float_]], np.ndarray[tuple[int], np.dtype[np.float_]]
 ]:
-    characterization = load_config().database().characterization(char_id=0)
+    characterization = load_config().database().characterization(characterization_id=0)
     ifm_idx = 30
     reflectivity_coeffs = characterization.reflectance_coefficients[ifm_idx:ifm_idx+1].mean(axis=-2, keepdims=True)
     reflectivity_coeffs[0][0] += 0.3
@@ -103,7 +103,7 @@ def load_variable_reflectivity() -> tuple[
 
 
 def load_real_opds() -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
-    opds = load_config().database().characterization(char_id=0).opds
+    opds = load_config().database().characterization(characterization_id=0).opds
 
     opds = np.sort(opds)
     opd_mean_step = np.mean(np.diff(opds))

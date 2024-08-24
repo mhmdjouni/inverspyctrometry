@@ -55,7 +55,7 @@ def simulate(
     wavenumbers_cont = wavenumbers_cont[valid_indices]
     spectra_cont = spectra_ref.interpolate(wavenumbers=wavenumbers_cont)
 
-    interferometer = db.interferometer(ifm_id=interferometer_id)
+    interferometer = db.interferometer(interferometer_id=interferometer_id)
     interferograms = interferometer.acquire_interferogram(spectrum=spectra_cont)
 
     simulation_dir = experiment_dir_convention(
@@ -122,7 +122,7 @@ def invert_haar(
     interferograms_noisy = interferograms_ref.add_noise(snr_db=snr_db)
 
     # Load the transfer matrix / Knowledge of the acquisition (direct) model
-    interferometer = db.interferometer(ifm_id=interferometer_id)
+    interferometer = db.interferometer(interferometer_id=interferometer_id)
     spectra_ref = db.dataset_spectrum(ds_id=dataset_id)
 
     haar_inv = FabryPerotInverSpectrometerHaar(
@@ -210,7 +210,7 @@ def invert(
     interferograms_noisy = interferograms_ref.add_noise(snr_db=snr_db)
 
     # Load the transfer matrix / Knowledge of the acquisition (direct) model
-    interferometer = db.interferometer(ifm_id=interferometer_id)
+    interferometer = db.interferometer(interferometer_id=interferometer_id)
     spectra_ref = db.dataset_spectrum(ds_id=dataset_id)
     transfer_matrix = interferometer.transmittance_response(wavenumbers=spectra_ref.wavenumbers)
     transfer_matrix = transfer_matrix.rescale(new_max=1, axis=None)

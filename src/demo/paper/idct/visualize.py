@@ -145,7 +145,7 @@ def visualize_reflectance(
     for i_ifm, interferometer_id in enumerate(experiment_config.interferometer_ids):
         print(f"\tInterferometer: {db.interferometers[interferometer_id].title.upper()}")
 
-        array = db.interferometer(ifm_id=interferometer_id).reflectance(wavenumbers=wavenumbers)[0]
+        array = db.interferometer(interferometer_id=interferometer_id).reflectance(wavenumbers=wavenumbers)[0]
 
         # TODO: Visualization options either in database or in schema or in
         if experiment_id == 3:

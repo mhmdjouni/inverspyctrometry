@@ -13,7 +13,7 @@ def main():
         interferometer_schema = db.interferometers[interferometer_id]
         pprint(interferometer_schema)
 
-        interferometer = db.interferometer(ifm_id=interferometer_id)
+        interferometer = db.interferometer(interferometer_id=interferometer_id)
         pprint(interferometer.transmittance_coefficients)
         pprint(interferometer.opds)
 

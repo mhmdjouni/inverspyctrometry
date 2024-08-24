@@ -75,7 +75,7 @@ def visualize_transfer_matrices(
         dataset_wavenumbers = db.dataset_central_wavenumbers(dataset_id=ds_id)
         dataset_subdir = f"invert_{db.datasets[ds_id].title}"
         for char_id in experiment_config.interferometer_ids:
-            characterization = db.characterization(char_id=char_id)
+            characterization = db.characterization(characterization_id=char_id)
             characterization_subdir = f"{dataset_subdir}/{db.characterizations[char_id].title}"
             transfer_matrix = characterization.transmittance_response(wavenumbers=dataset_wavenumbers)
             transfer_matrix_subdir = f"{characterization_subdir}/transfer_matrix"
@@ -147,7 +147,7 @@ def visualize_interferogram_matrices(
         central_wavenumbers = db.dataset_central_wavenumbers(dataset_id=ds_id)
         dataset_subdir = f"invert_{db.datasets[ds_id].title}"
         for char_id in experiment_config.interferometer_ids:
-            characterization = db.characterization(char_id=char_id)
+            characterization = db.characterization(characterization_id=char_id)
             characterization_subdir = f"{dataset_subdir}/{db.characterizations[char_id].title}"
             save_subdir = f"{characterization_subdir}/interferogram_matrices"
             transfer_matrix = characterization.transmittance_response(wavenumbers=central_wavenumbers)
@@ -287,7 +287,7 @@ def visualize_interferogram_comparison(
         dataset_subdir = f"invert_{db.datasets[ds_id].title}"
 
         for char_id in experiment_config.interferometer_ids:
-            characterization = db.characterization(char_id=char_id)
+            characterization = db.characterization(characterization_id=char_id)
             transfer_matrix = characterization.transmittance_response(wavenumbers=dataset_wavenumbers)
             characterization_subdir = f"{dataset_subdir}/{db.characterizations[char_id].title}"
             save_subdir = f"{characterization_subdir}/interferogram_comparison"

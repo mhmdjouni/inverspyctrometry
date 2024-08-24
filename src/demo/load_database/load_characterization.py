@@ -14,7 +14,7 @@ def main():
     characterization_schema = db.characterizations[characterization_id]
     pprint(dict(characterization_schema))
 
-    characterization = db.characterization(char_id=characterization_id)
+    characterization = db.characterization(characterization_id=characterization_id)
 
     ds_id = db.characterizations[characterization_id].source_dataset_id
     interferograms = db.dataset_interferogram(ds_id=ds_id)

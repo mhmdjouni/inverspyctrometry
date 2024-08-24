@@ -29,7 +29,7 @@ def invert_core(
     )
 
     spectra_ref = db.dataset_spectrum(ds_id=dataset_id)
-    interferometer = db.interferometer(ifm_id=interferometer_id)
+    interferometer = db.interferometer(interferometer_id=interferometer_id)
 
     interferograms_ref = interferometer.acquire_interferogram(spectrum=spectra_ref)
     interferograms_ref = interferograms_ref.rescale(new_max=1, axis=-2)

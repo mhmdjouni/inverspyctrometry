@@ -30,7 +30,7 @@ def main():
             print(f"\tInterferometer: {db.interferometers[ifm_id].title.upper()}")
             interferometer_subdir = f"{dataset_subdir}/{db.interferometers[ifm_id].title}"
 
-            interferometer = db.interferometer(ifm_id=ifm_id)
+            interferometer = db.interferometer(interferometer_id=ifm_id)
 
             transfer_matrix = interferometer.transmittance_response(wavenumbers=spectra_ref.wavenumbers)
             interferograms_ref = simulate_interferogram(transmittance_response=transfer_matrix, spectrum=spectra_ref)

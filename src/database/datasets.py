@@ -32,12 +32,20 @@ class DatasetSchema(BaseModel):
         filepath_resolved = resolve_path(path=filepath)
         return filepath_resolved
 
+    def load(self) -> Spectrum | Interferogram:
+        if self.category == DatasetCategory.SPECTRUM:
+            return self.spectrum()
+        elif self.category == DatasetCategory.INTERFEROGRAM:
+            return self.interferogram()
+        else:
+            raise ValueError(f"Requested dataset (id={self.id}) category is not supported.")
+
     def spectrum(self) -> Spectrum:
         if self.category != DatasetCategory.SPECTRUM:
-            raise ValueError(f"The selected dataset id={self.id} does not refer to a spectral dataset.")
+            raise ValueError(f"Requested dataset id={self.id} does not refer to a Spectrum dataset.")
         data = np.load(file=self.path)
         wavenumbers = np.load(file=self.wavenumbers_path)
-        wavenumbers_unit = self.wavenumbers_unit
+        wavenumbers_unit = rf"{self.wavenumbers_unit}"
         return Spectrum(
             data=data,
             wavenumbers=wavenumbers,
@@ -46,7 +54,7 @@ class DatasetSchema(BaseModel):
 
     def interferogram(self) -> Interferogram:
         if self.category != DatasetCategory.INTERFEROGRAM:
-            raise ValueError(f"The selected dataset id={self.id} does not refer to an interferogram dataset.")
+            raise ValueError(f"Requested dataset id={self.id} does not refer to an Interferogram dataset.")
         data = np.load(file=self.path)
         opds = np.load(file=self.opds_path)
         opds_unit = self.opds_unit

@@ -65,7 +65,7 @@ def main():
     )
     interferogram_ref = interferogram_ref.rescale(new_max=1., axis=-2)
 
-    characterization = db.characterization(char_id=exp.char_id)
+    characterization = db.characterization(characterization_id=exp.char_id)
     characterization = characterization.extrapolate_opds(support_resampler=extrap_opts.opds_resampler)
     # wavenumbers = db.characterization_wavenumbers(char_id=exp.char_id)
     wavenumbers = spectrum_ref.wavenumbers

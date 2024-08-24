@@ -68,7 +68,7 @@ def get_interferogram(ifm_type: str, extrap: Extrapolation):
 
 def invert_haar_real(wavenumbers_central, characterization_id, haar_order, interferogram_sim):
     db = load_config().database()
-    characterization = db.characterization(char_id=characterization_id)
+    characterization = db.characterization(characterization_id=characterization_id)
     characterization = characterization.sort_opds()
     transmittance = characterization.transmittance(wavenumbers=wavenumbers_central).mean(keepdims=True)
     reflectance = characterization.reflectance(wavenumbers=wavenumbers_central).mean(keepdims=True)
@@ -82,7 +82,7 @@ def invert_haar_real(wavenumbers_central, characterization_id, haar_order, inter
 
 def invert_protocols_real(protocols, wavenumbers, characterization_id, interferogram, spectrum_ref, extrap: Extrapolation):
     db = load_config().database()
-    characterization = db.characterization(char_id=characterization_id)
+    characterization = db.characterization(characterization_id=characterization_id)
     # characterization = characterization.sort_opds()
     if extrap is not None:
         characterization = characterization.extrapolate_opds(support_resampler=extrap.opds_resampler)

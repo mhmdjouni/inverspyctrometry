@@ -33,7 +33,7 @@ def main():
         print(f"Dataset: {db.datasets[ds_id].title.upper()}")
 
         for ifm_id in experiment_params.interferometer_ids:
-            interferometer = db.interferometer(ifm_id=ifm_id)
+            interferometer = db.interferometer(interferometer_id=ifm_id)
             print(f"\tInterferometer: {db.interferometers[ifm_id].title.upper()}")
 
             transfer_matrix = interferometer.transmittance_response(wavenumbers=spectra_ref.wavenumbers)

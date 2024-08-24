@@ -27,7 +27,7 @@ def main():
         spectra_ref = Spectrum(data=np.eye(wavenumbers_ifgm.size), wavenumbers=wavenumbers_ifgm)
 
         for char_id in experiment_params.interferometer_ids:
-            characterization = db.characterization(char_id=char_id)
+            characterization = db.characterization(characterization_id=char_id)
             print(f"\tCharacterization: {db.characterizations[char_id].title.upper()}")
 
             transfer_matrix = characterization.transmittance_response(wavenumbers=wavenumbers_ifgm)

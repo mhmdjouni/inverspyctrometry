@@ -12,7 +12,7 @@ def main():
 
     config = load_config()
     db = config.database()
-    characterization = db.characterization(char_id=char_id)
+    characterization = db.characterization(characterization_id=char_id)
 
     wavenumbers = db.characterization_wavenumbers(char_id=char_id)
     transmittance = characterization.transmittance(wavenumbers=wavenumbers)

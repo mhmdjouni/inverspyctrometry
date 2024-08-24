@@ -50,7 +50,7 @@ def visualize_transfer_matrix(
 
     # Load
     spectra_ref = db.dataset_spectrum(ds_id=dataset_id)
-    interferometer = db.interferometer(ifm_id=interferometer_id)
+    interferometer = db.interferometer(interferometer_id=interferometer_id)
     transfer_matrix = interferometer.transmittance_response(wavenumbers=spectra_ref.wavenumbers)
 
     # Visualize

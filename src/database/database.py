@@ -1,7 +1,7 @@
 import numpy as np
 from pydantic import BaseModel
 
-from src.common_utils.custom_vars import Wvn
+from src.common_utils.custom_vars import Wvn, DatasetCategory
 from src.common_utils.interferogram import Interferogram
 from src.common_utils.light_wave import Spectrum
 from src.database.characterizations import CharacterizationSchema
@@ -22,8 +22,8 @@ class DatabaseSchema(BaseModel):
     inversion_protocols: list[InversionProtocolSchema]
     noise_levels: list[float]
 
-    def characterization(self, char_id: int) -> Characterization:
-        return self.characterizations[char_id].characterization()
+    def characterization(self, characterization_id: int) -> Characterization:
+        return self.characterizations[characterization_id].characterization()
 
     def characterization_wavenumbers(self, char_id: int) -> np.ndarray[tuple[Wvn], np.dtype[np.float_]]:
         char_ds_id = self.characterizations[char_id].source_dataset_id
@@ -32,8 +32,12 @@ class DatabaseSchema(BaseModel):
 
     def characterization_dataset(self, char_id: int) -> Interferogram:
         dataset_id = self.characterizations[char_id].source_dataset_id
-        interferograms = self.dataset_interferogram(ds_id=dataset_id)
+        interferograms = self.dataset(dataset_id=dataset_id)
         return interferograms
+
+    def dataset(self, dataset_id: int) -> Spectrum | Interferogram:
+        dataset = self.datasets[dataset_id].load()
+        return dataset
 
     def dataset_spectrum(self, ds_id: int) -> Spectrum:
         spectrum = self.datasets[ds_id].spectrum()
@@ -47,8 +51,8 @@ class DatabaseSchema(BaseModel):
         central_wavenumbers = np.load(self.datasets[dataset_id].wavenumbers_path)
         return central_wavenumbers
 
-    def interferometer(self, ifm_id: int) -> Interferometer:
-        interferometer = self.interferometers[ifm_id].interferometer()
+    def interferometer(self, interferometer_id: int) -> Interferometer:
+        interferometer = self.interferometers[interferometer_id].interferometer()
         return interferometer
 
     def inversion_protocol_list(self, inv_protocol_id: int) -> list[InversionProtocol]:

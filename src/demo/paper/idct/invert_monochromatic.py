@@ -35,7 +35,7 @@ def main():
         spectra_ref.visualize_matrix(fig=fig, axs=axs[0, 0])
 
         for char_id in experiment_params.interferometer_ids:
-            characterization = db.characterization(char_id=char_id)
+            characterization = db.characterization(characterization_id=char_id)
             char_ds_id = db.characterizations[char_id].source_dataset_id
             wavenumbers_char = np.load(db.datasets[char_ds_id].wavenumbers_path)
             print(f"\tCharacterization: {db.characterizations[char_id].title.upper()}")

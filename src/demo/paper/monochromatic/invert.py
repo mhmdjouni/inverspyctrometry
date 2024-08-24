@@ -179,7 +179,7 @@ def run_one_experiment(
             # )
 
             for char_id in experiment_config.interferometer_ids:
-                characterization = db.characterization(char_id=char_id)
+                characterization = db.characterization(characterization_id=char_id)
                 print(f"\tCharacterization: {db.characterizations[char_id].title.upper()}")
                 characterization_dir = dataset_dir / f"{db.characterizations[char_id].title}"
 
