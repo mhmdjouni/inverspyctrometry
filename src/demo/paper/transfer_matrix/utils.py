@@ -21,6 +21,15 @@ class OPDSchema(BaseModel):
         return np.arange(0, self.num) * self.step
 
 
+class ReflectivityRangeSchema(BaseModel):
+    start: float
+    stop: float
+    step: float
+
+    def as_array(self) -> np.ndarray:
+        return np.arange(start=self.start, stop=self.stop, step=self.step)
+
+
 class DeviceSchema(BaseModel):
     type: InterferometerType
     reflectance_scalar: float
@@ -197,9 +206,9 @@ def plot_condition_numbers(
         fig,
         axs,
         opd_schema: dict,
-        reflectivity_range: tuple = (0.0005, 0.85, 0.01),
+        reflectivity_range: dict,
 ):
-    reflectivities = np.arange(*reflectivity_range)
+    reflectivities = ReflectivityRangeSchema(**reflectivity_range).as_array()
 
     condition_numbers = np.zeros_like(a=reflectivities)
     for i_rfl, reflectivity in tqdm(enumerate(reflectivities)):
