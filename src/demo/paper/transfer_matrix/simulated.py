@@ -8,8 +8,10 @@ from src.interface.configuration import load_config
 from src.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_dir_list
 
 
-def main():
-    sampling_options_schema_list = [
+def load_paper_options_list():
+    """Loads a list of schemas"""
+
+    options_schema_list = [
         {
             "experiment_title": "mich_oversampled",
             "device": {
@@ -75,6 +77,11 @@ def main():
             },
         },
     ]
+    return options_schema_list
+
+
+def main():
+    sampling_options_schema_list = load_paper_options_list()
 
     for sampling_options_schema in sampling_options_schema_list:
         options = SamplingOptionsSchema(**sampling_options_schema)

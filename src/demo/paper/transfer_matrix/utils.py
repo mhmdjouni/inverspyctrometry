@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, replace, asdict
+from dataclasses import dataclass, replace
 from typing import Optional
 
 import matplotlib.pyplot as plt
@@ -11,8 +11,6 @@ from tqdm import tqdm
 from src.common_utils.custom_vars import InterferometerType, Wvn
 from src.common_utils.transmittance_response import TransmittanceResponse
 from src.direct_model.interferometer import interferometer_factory, Interferometer
-from src.interface.configuration import load_config
-from src.outputs.visualization import savefig_dir_list, SubplotsOptions, RcParamsOptions
 
 
 class OPDSchema(BaseModel):
@@ -175,58 +173,6 @@ def dct_orthogonalize(
     return replace(transfer_matrix, data=matrix)
 
 
-def visualize_all(
-        fig,
-        axs,
-        transfer_matrix: TransmittanceResponse,
-        opd_idx: Optional[int],
-        linewidth: float,
-        dct_orthogonalize_kwargs: Optional[dict],
-):
-    transfer_matrix.visualize(
-        fig=fig,
-        axs=axs[0, 0],
-        title="",
-        is_colorbar=True,
-        x_ticks_num=5,
-        x_ticks_decimals=1,
-        y_ticks_decimals=0,
-        aspect="auto",
-    )
-
-    transfer_matrix_ortho = dct_orthogonalize(
-        transfer_matrix=transfer_matrix,
-        **dct_orthogonalize_kwargs,
-    )
-    condition_number = transfer_matrix_ortho.condition_number()
-    condition_number_str = f"{condition_number:.0f}" if condition_number < 1e10 else r"$\infty$"
-    transfer_matrix_ortho.visualize_singular_values(
-        axs=axs[0, 1],
-        title=f"Condition number = {condition_number_str}",
-        linewidth=linewidth,
-        marker="o",
-        markevery=5,
-    )
-
-    transfer_matrix.visualize_opd_response(
-        axs=axs[1, 0],
-        opd_idx=opd_idx,
-        title=None,
-        show_full_title=False,
-        linewidth=linewidth,
-    )
-
-    transfer_matrix.visualize_dct(
-        axs=axs[1, 1],
-        opd_idx=opd_idx,
-        title=None,
-        show_full_title=False,
-        linewidth=linewidth,
-    )
-
-    return fig, axs
-
-
 def plot_harmonic_orders(
         fig,
         axs,
@@ -283,6 +229,72 @@ def plot_condition_numbers(
     axs.grid()
     axs.set_xlabel("Reflectivity")
     axs.set_ylabel("Condition number")
+    return fig, axs
+
+
+def visualize_together(
+        fig,
+        axs,
+        transfer_matrix: TransmittanceResponse,
+        dct_orthogonalize_kwargs: dict,
+        opd_idx,
+        is_show,
+        x_ticks_decimals: int = 1,
+        y_ticks_decimals: int = 0,
+        markevery: int = 5,
+        alpha: float = -1,
+        vmin: float = None,
+        vmax: float = None,
+):
+    transfer_matrix.visualize(
+        fig=fig,
+        axs=axs[0, 0],
+        title="",
+        is_colorbar=True,
+        x_ticks_num=5,
+        x_ticks_decimals=x_ticks_decimals,
+        y_ticks_decimals=y_ticks_decimals,
+        aspect="auto",
+        vmin=vmin,
+        vmax=vmax,
+    )
+
+    transfer_matrix_ortho = dct_orthogonalize(
+        transfer_matrix=transfer_matrix,
+        **dct_orthogonalize_kwargs,
+    )
+    condition_number = transfer_matrix_ortho.condition_number()
+    condition_number_str = f"{condition_number:.0f}" if condition_number < 1e10 else r"$\infty$"
+    transfer_matrix_ortho.visualize_singular_values(
+        axs=axs[0, 1],
+        title=f"Condition number = {condition_number_str}",
+        linewidth=3,
+        marker="o",
+        markevery=markevery,
+    )
+    if 0 < alpha <= 1:
+        sv_drop_position = int(np.ceil(alpha * (np.min(transfer_matrix.data.shape) - 1)))
+        axs[0, 1].axvline(x=sv_drop_position, color='r', linestyle='--')
+
+    transfer_matrix.visualize_opd_response(
+        axs=axs[1, 0],
+        opd_idx=opd_idx,
+        title=None,
+        show_full_title=False,
+        linewidth=3,
+    )
+
+    transfer_matrix.visualize_dct(
+        axs=axs[1, 1],
+        opd_idx=opd_idx,
+        title=None,
+        show_full_title=False,
+        linewidth=3,
+    )
+
+    if is_show:
+        plt.show()
+
     return fig, axs
 
 
