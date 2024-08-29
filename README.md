@@ -1,0 +1,3 @@
+# InversPyctrometry: Reconstruction of Spectra from Interferograms in Multiple-beam Interference
+
+Documentation is still in progress...
