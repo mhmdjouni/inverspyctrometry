@@ -9,7 +9,7 @@ from src.common_utils.interferogram import Interferogram
 from src.common_utils.transmittance_response import TransmittanceResponse
 from src.common_utils.utils import generate_sampled_opds, generate_wavenumbers_from_opds
 from src.direct_model.interferometer import interferometer_factory
-from src.inverse_model.inverspectrometer import MichelsonInverSpectrometer
+from src.inverse_model.analytical_inverter import MichelsonInverter
 from src.inverse_model.operators import CTVOperator, NormOperator, LinearOperator
 from src.inverse_model.protocols import inversion_protocol_factory, InversionProtocol
 
@@ -83,7 +83,7 @@ def main():
     )
 
     # Michelson reconstruction using IDCT
-    inverspectrometer_michelson = MichelsonInverSpectrometer(transmittance=np.array([transmittance_cst]))
+    inverspectrometer_michelson = MichelsonInverter(transmittance=np.array([transmittance_cst]))
     spectrum_mich = inverspectrometer_michelson.reconstruct_spectrum(interferogram=interferogram)
     fig, axs = plt.subplots(nrows=1, ncols=2, squeeze=False)
     interferogram.visualize(axs=axs[0, 0], acq_ind=acq_ind)

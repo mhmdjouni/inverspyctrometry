@@ -18,7 +18,7 @@ from src.outputs.visualization import imshow_custom
 
 
 @dataclass(frozen=True)
-class InverSpectrometer(ABC):
+class AnalyticalInverter(ABC):
     transmittance: np.ndarray[tuple[Wvn], np.dtype[np.float_]]
     wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]]
 
@@ -30,7 +30,7 @@ class InverSpectrometer(ABC):
         pass
 
 
-class MichelsonInverSpectrometer(InverSpectrometer):
+class MichelsonInverter(AnalyticalInverter):
 
     def reconstruct_spectrum(
             self,
@@ -47,7 +47,7 @@ class MichelsonInverSpectrometer(InverSpectrometer):
 
 
 @dataclass(frozen=True)
-class FabryPerotInverSpectrometerHaar(InverSpectrometer):
+class HaarInverter(AnalyticalInverter):
     """
     This method is based on expanding the DFT of the interferogram and the spectrum by a Haar or box function.
     """
@@ -126,7 +126,7 @@ def calculate_airy_fourier_coeffs(fp, haar_order):
     coefficients[0] /= 2
     # coefficients = np.sum(integrands * variable_differential, axis=-1)
 
-    print(coefficients)
+    # print(coefficients)
     return coefficients
 
 

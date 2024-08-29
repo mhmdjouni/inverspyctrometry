@@ -94,7 +94,7 @@ def load_variable_reflectivity() -> tuple[
 ]:
     characterization = load_config().database().characterization(characterization_id=0)
     ifm_idx = 30
-    reflectivity_coeffs = characterization.reflectance_coefficients[ifm_idx:ifm_idx+1].mean(axis=-2, keepdims=True)
+    reflectivity_coeffs = characterization.reflectance_coefficients[ifm_idx:ifm_idx + 1].mean(axis=-2, keepdims=True)
     reflectivity_coeffs[0][0] += 0.3
     transmissivity_coeffs = - reflectivity_coeffs
     transmissivity_coeffs[0][0] += 1
@@ -262,30 +262,30 @@ def main_experiments():
         ),
     ]
 
-    options = options_list[1]
+    options = options_list[0]
 
     for noise in options.noise:
         for device_name, transmissivity_coeffs, reflectivity_coeffs in options.fp_tr:
             for spc_type in options.spc_types:
-                # experiment_run(
-                #     name=options.experiment_name,
-                #     device_name=device_name,
-                #     transmissivity=transmissivity_coeffs,
-                #     reflectivity=reflectivity_coeffs,
-                #     noise=noise,
-                #     opds_sampling=options.opds_sampling,
-                #     spc_type=spc_type,
-                #     protocols=options.protocols,
-                # )
-
-                visualize_reconstruction(
-                    experiment_name=options.experiment_name,
-                    dataset_name=spc_type,
+                experiment_run(
+                    name=options.experiment_name,
                     device_name=device_name,
-                    noise_level=noise,
+                    transmissivity=transmissivity_coeffs,
+                    reflectivity=reflectivity_coeffs,
+                    noise=noise,
+                    opds_sampling=options.opds_sampling,
+                    spc_type=spc_type,
                     protocols=options.protocols,
-                    options=options.visualization,
                 )
+
+                # visualize_reconstruction(
+                #     experiment_name=options.experiment_name,
+                #     dataset_name=spc_type,
+                #     device_name=device_name,
+                #     noise_level=noise,
+                #     protocols=options.protocols,
+                #     options=options.visualization,
+                # )
 
                 pass
 
@@ -363,8 +363,8 @@ def metrics_full_table(options: Options):
                     if lambdaa_min == 0:
                         lambdaa_min = np.nan
 
-                    full_table[i_ip + nb_ips*i_ds, 2*i_nl + 2*nb_nls*i_ifm] = lambdaa_min
-                    full_table[i_ip + nb_ips*i_ds, 2*i_nl + 2*nb_nls*i_ifm + 1] = rmse_min
+                    full_table[i_ip + nb_ips * i_ds, 2 * i_nl + 2 * nb_nls * i_ifm] = lambdaa_min
+                    full_table[i_ip + nb_ips * i_ds, 2 * i_nl + 2 * nb_nls * i_ifm + 1] = rmse_min
 
     return full_table, header, index
 
@@ -475,7 +475,8 @@ def experiment_run(
         interferogram_sim = interferogram_sim.add_noise(snr_db=snr_db)
     wavenumbers = spectrum_ref.wavenumbers
     spectrum_haar = invert_haar(wavenumbers, fp_obj, haar_order, interferogram_sim)
-    spectrum_protocols, argmin_rmses = invert_protocols(protocols, wavenumbers, fp_obj, interferogram_sim, spectrum_ref=spectrum_ref)
+    spectrum_protocols, argmin_rmses = invert_protocols(protocols, wavenumbers, fp_obj, interferogram_sim,
+                                                        spectrum_ref=spectrum_ref)
     spectrum_protocols.insert(1, spectrum_haar)
     argmin_rmses.insert(1, 0)
 

@@ -10,7 +10,7 @@ from src.common_utils.light_wave import Spectrum
 from src.common_utils.utils import calculate_rmse, polyval_rows, match_stats
 from src.direct_model.interferometer import FabryPerotInterferometer
 from src.interface.configuration import load_config
-from src.inverse_model.inverspectrometer import calculate_airy_fourier_coeffs, FabryPerotInverSpectrometerHaar
+from src.inverse_model.analytical_inverter import calculate_airy_fourier_coeffs, HaarInverter
 
 
 def compute_wavenumbers(opd, wn, wn_num_factor):
@@ -132,7 +132,7 @@ def invert_haar(wavenumbers, fp, haar_order, interferogram: Interferogram):
     transmissivity = polyval_rows(coefficients=fp.transmittance, interval=wavenumbers).mean(axis=-1)
     reflectivity = polyval_rows(coefficients=fp.reflectance, interval=wavenumbers).mean(axis=-1)
 
-    haar = FabryPerotInverSpectrometerHaar(
+    haar = HaarInverter(
         transmittance=transmissivity,
         wavenumbers=wavenumbers,
         reflectance=reflectivity,
@@ -149,11 +149,8 @@ def load_spectrum(option: str):
     if option == "solar":
         spectrum = db.dataset_spectrum(ds_id=0)
         # acq_id = 0
-    elif option == "shine":
-        spectrum = db.dataset_spectrum(ds_id=1)
-        # acq_id = 13
     elif option in ["specim", "cc_green"]:
-        spectrum = db.dataset_spectrum(ds_id=2)
+        spectrum = db.dataset_spectrum(ds_id=1)
         # acq_id = 13
     elif option == "mc451":
         central_wavenumbers = db.dataset_central_wavenumbers(dataset_id=3)

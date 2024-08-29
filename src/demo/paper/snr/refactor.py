@@ -8,7 +8,7 @@ from src.common_utils.interferogram import Interferogram
 from src.common_utils.utils import calculate_rmse
 from src.demo.paper.snr.utils import experiment_dir_convention, experiment_subdir_convention
 from src.interface.configuration import load_config
-from src.inverse_model.inverspectrometer import FabryPerotInverSpectrometerHaar
+from src.inverse_model.analytical_inverter import HaarInverter
 from src.outputs.serialize import numpy_save_list, numpy_load_list
 
 
@@ -125,7 +125,7 @@ def invert_haar(
     interferometer = db.interferometer(interferometer_id=interferometer_id)
     spectra_ref = db.dataset_spectrum(ds_id=dataset_id)
 
-    haar_inv = FabryPerotInverSpectrometerHaar(
+    haar_inv = HaarInverter(
         transmittance=interferometer.transmittance_coefficients[0],
         wavenumbers=spectra_ref.wavenumbers,
         reflectance=interferometer.reflectance_coefficients[0],

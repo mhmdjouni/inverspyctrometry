@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from scipy.interpolate import interp1d
 
 from src.common_utils.custom_vars import Opd, Wvn, Acq, Deg
 
@@ -212,3 +213,13 @@ def convert_zero_to_infty_latex(order: int) -> str:
         return r"$\infty$"
     else:
         return f"{order:.0f}"
+
+
+def oversample(array: np.ndarray, factor: int):
+    original_points = len(array)
+    new_points = original_points * factor
+    original_indices = np.arange(original_points)
+    new_indices = np.linspace(0, original_points - 1, new_points)
+    interp_func = interp1d(original_indices, array, kind='linear')
+    oversampled_array = interp_func(new_indices)
+    return oversampled_array
