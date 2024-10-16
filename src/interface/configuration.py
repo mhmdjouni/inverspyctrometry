@@ -23,7 +23,7 @@ class DirectoryPathSchema(BaseModel):
         OmegaConf.register_new_resolver(name="PROJECT_DIR", resolver=resolver_func, replace=True)
         return values
 
-    @field_validator(__field="*", mode="before")
+    @field_validator("*", mode="before")
     def resolve_dir(cls, directory: DirectoryPath) -> DirectoryPath:
         """Takes a field and completes / resolves it based on what was registered in the OmegaConf resolver before"""
         directory_resolved = resolve_path(path=directory)
@@ -54,7 +54,7 @@ class DatabasePathSchema(BaseModel):
     noise_levels: FilePath
     experiments: FilePath
 
-    @field_validator(__field="*", mode="before")
+    @field_validator("*", mode="before")
     def resolve_filepaths(cls, filepath: FilePath) -> FilePath:
         """Takes a field and completes / resolves it based on what was registered in the OmegaConf resolver before"""
         filepath_resolved = resolve_path(path=filepath)

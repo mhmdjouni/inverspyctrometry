@@ -15,7 +15,7 @@ class LorisVerhoevenIteration:
     domain_transform: LinearOperator
     prox_functional: ProximalOperator
     regularization_parameter: float
-    interferogram: np.ndarray[tuple[Opd, Acq], np.dtype[np.float_]]
+    interferogram: np.ndarray[tuple[Opd, Acq], np.dtype[np.float64]]
     is_compute_cost: bool = False
 
     tau: float = field(init=False)

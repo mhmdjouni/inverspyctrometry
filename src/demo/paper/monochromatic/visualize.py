@@ -623,7 +623,7 @@ def main():
         # VisualizationOptions.DATASETS,
         # VisualizationOptions.TRANSFER_MATRICES,
         # VisualizationOptions.INTERFEROGRAM_MATRICES,
-        # VisualizationOptions.SPECTRUM_MATRICES,
+        VisualizationOptions.SPECTRUM_MATRICES,
         # VisualizationOptions.INTERFEROGRAM_COMPARISON,
         # VisualizationOptions.SPECTRUM_COMPARISON,
         VisualizationOptions.MATCHING_CENTRAL_WAVENUMBERS_INTENSITY,

@@ -16,7 +16,7 @@ class LambdaasSchema(BaseModel):
     num: int
     space: RegularizationParameterListSpace
 
-    def as_array(self) -> np.ndarray[tuple[int], np.dtype[np.float_]]:
+    def as_array(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
         if self.space == RegularizationParameterListSpace.LINSPACE:
             lambdaas = np.linspace(start=self.start, stop=self.stop, num=self.num)
         elif self.space == RegularizationParameterListSpace.LOGSPACE:

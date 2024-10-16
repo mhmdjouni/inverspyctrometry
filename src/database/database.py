@@ -25,7 +25,7 @@ class DatabaseSchema(BaseModel):
     def characterization(self, characterization_id: int) -> Characterization:
         return self.characterizations[characterization_id].characterization()
 
-    def characterization_wavenumbers(self, char_id: int) -> np.ndarray[tuple[Wvn], np.dtype[np.float_]]:
+    def characterization_wavenumbers(self, char_id: int) -> np.ndarray[tuple[Wvn], np.dtype[np.float64]]:
         char_ds_id = self.characterizations[char_id].source_dataset_id
         wavenumbers = np.load(self.datasets[char_ds_id].wavenumbers_path)
         return wavenumbers
@@ -47,7 +47,7 @@ class DatabaseSchema(BaseModel):
         interferogram = self.datasets[ds_id].interferogram()
         return interferogram
 
-    def dataset_central_wavenumbers(self, dataset_id: int) -> np.ndarray[tuple[Wvn], np.dtype[np.float_]]:
+    def dataset_central_wavenumbers(self, dataset_id: int) -> np.ndarray[tuple[Wvn], np.dtype[np.float64]]:
         central_wavenumbers = np.load(self.datasets[dataset_id].wavenumbers_path)
         return central_wavenumbers
 
@@ -73,6 +73,6 @@ class DatabaseSchema(BaseModel):
         )
         return inversion_protocol
 
-    def inversion_protocol_lambdaas(self, inv_protocol_id: int) -> np.ndarray[tuple[int], np.dtype[np.float_]]:
+    def inversion_protocol_lambdaas(self, inv_protocol_id: int) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
         lambdaas = self.inversion_protocols[inv_protocol_id].lambdaas_schema.as_array()
         return lambdaas

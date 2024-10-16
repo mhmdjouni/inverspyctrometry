@@ -26,7 +26,7 @@ class DatasetSchema(BaseModel):
     opds_path: Optional[FilePath] = None
     opds_unit: Optional[str] = None
 
-    @field_validator(__field="*", mode="before")
+    @field_validator("*", mode="before")
     def resolve_filepaths(cls, filepath: FilePath) -> FilePath:
         """Takes a field and completes / resolves it based on what was registered in the OmegaConf resolver before"""
         filepath_resolved = resolve_path(path=filepath)

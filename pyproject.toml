@@ -1,16 +1,23 @@
 [tool.poetry]
-name = "inverspyctrometry"
+name = "InversPyctrometry"
 version = "0.1.0"
-description = "Reconstruction of Spectra from Interferograms in Fourier Transform Spectroscopy"
+description = "Multiple-beam Interference Spectroscopy: Instrument Analysis and Spectrum Reconstruction"
 authors = ["Mohamad Jouni <33843331+mhmdjouni@users.noreply.github.com>"]
 readme = "README.md"
 license = "MIT"
 repository = "https://github.com/mhmdjouni/inverspyctrometry"
 keywords = [
-    "Fourier Transform Spectroscopy",
-    "Inverse problems",
     "Interferometry",
-    "Spectrum reconstruction"
+    "Spectroscopy",
+    "Numerical analysis",
+    "Instrument analysis",
+    "Inverse problems",
+    "Variational reconstruction",
+    "Spectrum reconstruction",
+    "Multiple-beam interference",
+    "Two-beam interference",
+    "Fourier transform spectroscopy",
+    "Bayesian framework",
 ]
 
 [tool.poetry.dependencies]

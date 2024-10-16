@@ -13,7 +13,7 @@ class OPDSchema(BaseModel):
     step: float
     start: float
 
-    def as_array(self) -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
+    def as_array(self) -> np.ndarray[tuple[Opd], np.dtype[np.float64]]:
         return generate_sampled_opds(nb_opd=self.num, opd_step=self.step, opd_min=self.start)
 
     @property
