@@ -1,10 +1,8 @@
 # InversPyctrometry
 
----
 
 ## Multiple-beam Interference Spectroscopy: Instrument Analysis and Spectrum Reconstruction
 
----
 
 ## Description
 
