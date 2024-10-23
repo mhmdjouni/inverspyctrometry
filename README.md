@@ -1,17 +1,30 @@
-# InversPyctrometry: Reconstruction of Spectra from Interferograms in Multiple-beam Interference
+# InversPyctrometry
+
+---
+
+## Multiple-beam Interference Spectroscopy: Instrument Analysis and Spectrum Reconstruction
+
+---
 
 ## Description
 
-Companion code to the preprint:
-* Jouni, Mohamad, Daniele Picone, and Mauro Dalla Mura. "Reconstruction of Spectra from Interferograms in Multiple-beam Interference Spectroscopy." (2024).
-```
-@article{jouni2024reconstruction,
-  title={Reconstruction of Spectra from Interferograms in Multiple-beam Interference Spectroscopy},
-  author={Jouni, Mohamad and Picone, Daniele and Dalla Mura, Mauro},
-  year={2024}
-}
-```
+Companion code to the following preprint:
+* Mohamad Jouni, Daniele Picone, Mauro Dalla Mura. Multiple-beam Interference Spectroscopy: Instrument Analysis and Spectrum Reconstruction. 2024. [⟨hal-04666929v3⟩](https://hal.science/hal-04666929v3)
+    ```
+    @unpublished{jouni:hal-04666929,
+      TITLE = {{Multiple-beam Interference Spectroscopy: Instrument Analysis and Spectrum Reconstruction}},
+      AUTHOR = {Jouni, Mohamad and Picone, Daniele and Dalla Mura, Mauro},
+      URL = {https://hal.science/hal-04666929},
+      NOTE = {working paper or preprint},
+      YEAR = {2024},
+      MONTH = Oct,
+      KEYWORDS = {Interferometry ; Spectroscopy ; Numerical analysis ; Inverse problems ; Variational reconstruction},
+      PDF = {https://hal.science/hal-04666929v3/file/main_v3.pdf},
+      HAL_ID = {hal-04666929},
+      HAL_VERSION = {v3},
+    }
+    ```
 
-## In progress...
+## Documentation (coming soon)...
 
-Documentation is still in progress...
+_Pending..._
