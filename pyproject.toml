@@ -5,10 +5,40 @@ description = "Multiple-beam Interference Spectroscopy: Instrument Analysis and 
 authors = ["Mohamad Jouni <mhmd.jouni@hotmail.com>"]
 license = "MIT"
 readme = "README.md"
+#homepage = ""
+repository = "https://github.com/mhmdjouni/inverspyctrometry"
+#documentation = ""
+keywords = [
+    "interferometry",
+    "spectroscopy",
+    "spectrometry",
+    "numerical analysis",
+    "instrument analysis",
+    "inverse problems",
+    "variational reconstruction",
+    "spectrum reconstruction",
+    "multiple-beam interference",
+    "two-beam interference",
+    "Fourier-transform spectroscopy",
+    "Bayesian framework",
+    "Multiple-beam Interference Spectroscopy: Instrument Analysis and Spectrum Reconstruction",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License"
+]
+packages = [{ include = "inverspyctrometry" }]  # Specifies that the package code is in the `inverspyctrometry` directory
+#include = []
 
 [tool.poetry.dependencies]
 python = "^3.10, <3.13"
+numpy = "^2.1.2"
 
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.10.0"
 
 [build-system]
 requires = ["poetry-core"]
