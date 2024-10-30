@@ -1,44 +1,14 @@
 [tool.poetry]
-name = "InversPyctrometry"
+name = "inverspyctrometry"
 version = "0.1.0"
 description = "Multiple-beam Interference Spectroscopy: Instrument Analysis and Spectrum Reconstruction"
-authors = ["Mohamad Jouni <33843331+mhmdjouni@users.noreply.github.com>"]
-readme = "README.md"
+authors = ["Mohamad Jouni <mhmd.jouni@hotmail.com>"]
 license = "MIT"
-repository = "https://github.com/mhmdjouni/inverspyctrometry"
-keywords = [
-    "Interferometry",
-    "Spectroscopy",
-    "Numerical analysis",
-    "Instrument analysis",
-    "Inverse problems",
-    "Variational reconstruction",
-    "Spectrum reconstruction",
-    "Multiple-beam interference",
-    "Two-beam interference",
-    "Fourier transform spectroscopy",
-    "Bayesian framework",
-]
+readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
-numpy = "^1.26.3"
-matplotlib = "^3.8.2"
-scipy = "^1.11.4"
-scikit-learn = "^1.4.0"
-pydantic = "^2.5.3"
-omegaconf = "^2.3.0"
-pint = "^0.23"
-beautifulsoup4 = "^4.12.3"
-spectral = "^0.23.1"
-lxml = "^5.1.0"
-tqdm = "^4.66.1"
-pandas = "^2.2.0"
-jinja2 = "^3.1.3"
+python = "^3.10, <3.13"
 
-
-[tool.poetry.group.dev.dependencies]
-ipykernel = "^6.29.5"
 
 [build-system]
 requires = ["poetry-core"]
