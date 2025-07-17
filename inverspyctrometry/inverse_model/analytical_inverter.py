@@ -19,8 +19,8 @@ from inverspyctrometry.outputs.visualization import imshow_custom
 
 @dataclass(frozen=True)
 class AnalyticalInverter(ABC):
-    transmittance: np.ndarray[tuple[Wvn], np.dtype[np.float_]]
-    wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float_]]
+    transmittance: np.ndarray[tuple[Wvn], np.dtype[np.float32]]
+    wavenumbers: np.ndarray[tuple[Wvn], np.dtype[np.float32]]
 
     @abstractmethod
     def reconstruct_spectrum(
@@ -51,7 +51,7 @@ class HaarInverter(AnalyticalInverter):
     """
     This method is based on expanding the DFT of the interferogram and the spectrum by a Haar or box function.
     """
-    reflectance: np.ndarray[tuple[Wvn], np.dtype[np.float_]]
+    reflectance: np.ndarray[tuple[Wvn], np.dtype[np.float32]]
     order: int
     is_mean_center: bool = True
 

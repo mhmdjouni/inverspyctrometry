@@ -4,7 +4,7 @@
     "datasets": "${PROJECT_DIR:}/data/datasets",
     "notebooks": "${PROJECT_DIR:}/notebooks",
     "reports": "${PROJECT_DIR:}/reports",
-    "src": "${PROJECT_DIR:}/src"
+    "src": "${PROJECT_DIR:}/inverspyctrometry"
   },
   "database_paths": {
     "characterizations": "${PROJECT_DIR:}/data/database/characterizations.json",

@@ -41,6 +41,8 @@ def main():
 
                     load_dir = reconstruction_dir / inverter_subdir
                     spectra_rec_all = np.load(file=load_dir / "spectra_rec_all.npy")
+                    execution_times_all = np.load(file=load_dir / "execution_times_all.npy")
+                    cost_progress_all = np.load(file=load_dir / "cost_progress_all.npy")
                     spectra_rec_all_matched_stats, reference = match_stats(
                         array=spectra_rec_all,
                         reference=spectra_ref.data,
@@ -69,9 +71,11 @@ def main():
                     save_dir = metrics_dir / inverter_subdir
                     if not save_dir.exists():
                         save_dir.mkdir(parents=True, exist_ok=True)
-                    np.save(file=save_dir / "rmse_full", arr=rmse_full)
-                    np.save(file=save_dir / "rmse_diagonal", arr=rmse_diagonal)
-                    np.save(file=save_dir / "rmcw", arr=rmcw)
+                    np.save(file=save_dir / "rmse_full.npy", arr=rmse_full)
+                    np.save(file=save_dir / "rmse_diagonal.npy", arr=rmse_diagonal)
+                    np.save(file=save_dir / "rmcw.npy", arr=rmcw)
+                    np.save(file=save_dir / "execution_times_all.npy", arr=execution_times_all)
+                    np.save(file=save_dir / "cost_progress_all.npy", arr=cost_progress_all)
 
 
 if __name__ == "__main__":

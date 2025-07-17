@@ -10,7 +10,7 @@ from inverspyctrometry.common_utils.utils import match_stats
 from inverspyctrometry.demo.paper.monochromatic.utils import visualize_matching_central_wavenumbers
 from inverspyctrometry.direct_model.interferometer import simulate_interferogram
 from inverspyctrometry.interface.configuration import load_config
-from inverspyctrometry.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_dir_list
+from inverspyctrometry.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_dir_list, plot_custom
 
 
 def visualize_datasets(
@@ -21,7 +21,7 @@ def visualize_datasets(
 ):
     config = load_config()
     reports_dir = config.directory_paths.reports
-    paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
+    paper_dir = config.directory_paths.project.parents[2] / "papers" / "20249999_ieee_tim_mbi_arxiv_version"
 
     db = config.database()
     experiment_config = db.experiments[experiment_id]
@@ -62,7 +62,7 @@ def visualize_transfer_matrices(
 ):
     config = load_config()
     reports_dir = config.directory_paths.reports
-    paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
+    paper_dir = config.directory_paths.project.parents[2] / "papers" / "20249999_ieee_tim_mbi_arxiv_version"
 
     db = config.database()
     experiment_config = db.experiments[experiment_id]
@@ -131,7 +131,7 @@ def visualize_interferogram_matrices(
 ):
     config = load_config()
     reports_dir = config.directory_paths.reports
-    paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
+    paper_dir = config.directory_paths.project.parents[2] / "papers" / "20249999_ieee_tim_mbi_arxiv_version"
 
     db = config.database()
     experiment_config = db.experiments[experiment_id]
@@ -202,7 +202,7 @@ def visualize_spectrum_matrices(
 ):
     config = load_config()
     reports_dir = config.directory_paths.reports
-    paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
+    paper_dir = config.directory_paths.project.parents[2] / "papers" / "20249999_ieee_tim_mbi_arxiv_version"
 
     db = config.database()
     experiment_config = db.experiments[experiment_id]
@@ -270,7 +270,7 @@ def visualize_interferogram_comparison(
 ):
     config = load_config()
     reports_dir = config.directory_paths.reports
-    paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
+    paper_dir = config.directory_paths.project.parents[2] / "papers" / "20249999_ieee_tim_mbi_arxiv_version"
 
     db = config.database()
     experiment_config = db.experiments[experiment_id]
@@ -356,7 +356,7 @@ def visualize_spectrum_comparison(
 ):
     config = load_config()
     reports_dir = config.directory_paths.reports
-    paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
+    paper_dir = config.directory_paths.project.parents[2] / "papers" / "20249999_ieee_tim_mbi_arxiv_version"
 
     db = config.database()
     experiment_config = db.experiments[experiment_id]
@@ -434,7 +434,7 @@ def visualize_matching_intensity(
 ):
     config = load_config()
     reports_dir = config.directory_paths.reports
-    paper_dir = config.directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
+    paper_dir = config.directory_paths.project.parents[2] / "papers" / "20249999_ieee_tim_mbi_arxiv_version"
 
     db = config.database()
     experiment_config = db.experiments[experiment_id]
@@ -481,6 +481,64 @@ def visualize_matching_intensity(
                 )
 
 
+def visualize_cost_per_iterations(
+        experiment_id: int,
+        subplots_options: SubplotsOptions,
+        rc_params: RcParamsOptions,
+        plot_options: dict,
+):
+    config = load_config()
+    reports_dir = config.directory_paths.reports
+    paper_dir = config.directory_paths.project.parents[2] / "papers" / "20249999_ieee_tim_mbi_arxiv_version"
+
+    db = config.database()
+    experiment_config = db.experiments[experiment_id]
+    figures_dir_list = [
+        reports_dir / f"experiment_{experiment_id}" / "figures",
+        paper_dir / "figures" / f"{experiment_config.type}",
+    ]
+    metrics_dir = reports_dir / f"experiment_{experiment_id}" / "metrics"
+
+    for ds_id in experiment_config.dataset_ids:
+        dataset_subdir = f"invert_{db.datasets[ds_id].title}"
+
+        for char_id in experiment_config.interferometer_ids:
+            characterization_subdir = f"{dataset_subdir}/{db.characterizations[char_id].title}"
+            save_subdir = f"{characterization_subdir}/cost_progress"
+
+            for ip_id in experiment_config.inversion_protocol_ids:
+                inverter_subdir = f"{characterization_subdir}/{db.inversion_protocols[ip_id].title}"
+                rmse_diagonal = np.load(file=metrics_dir / inverter_subdir / "rmse_diagonal.npy")
+                cost_progress_all = np.load(file=metrics_dir / inverter_subdir / "cost_progress_all.npy")
+                best_idx = np.argmin(rmse_diagonal)
+                cost_progress_best = cost_progress_all[best_idx]
+
+                plt.rcParams['font.size'] = str(rc_params.fontsize)
+
+                fig, axes = plt.subplots(**asdict(subplots_options))
+                plot_custom(
+                    axs=axes[0, 0],
+                    x_array=np.arange(cost_progress_best.size),
+                    array=cost_progress_best,
+                    label=f"{db.inversion_protocols[ip_id].title}",
+                    color=f"black",
+                    linestyle="-",
+                    title="",
+                    xlabel="Number of iterations " + r"$N_{\text{iters}}$",
+                    ylabel="Cost Function",
+                    yscale="log",
+                )
+                filename = f"{db.inversion_protocols[ip_id].title}.pdf"
+                savefig_dir_list(
+                    fig=fig,
+                    filename=filename,
+                    directories_list=figures_dir_list,
+                    subdirectory=save_subdir,
+                    fmt="pdf",
+                    bbox_inches="tight",
+                )
+
+
 class VisualizationOptions(str, Enum):
     DATASETS = "datasets"
     TRANSFER_MATRICES = "transfer_matrices"
@@ -489,6 +547,7 @@ class VisualizationOptions(str, Enum):
     INTERFEROGRAM_COMPARISON = "interferogram_comparison"
     SPECTRUM_COMPARISON = "spectrum_comparison"
     MATCHING_CENTRAL_WAVENUMBERS_INTENSITY = "matching_central_wavenumbers_intensity"
+    COST_PER_ITERATIONS = "cost_per_iterations"
 
 
 def visualization_function_factory(option: VisualizationOptions) -> Callable:
@@ -512,6 +571,9 @@ def visualization_function_factory(option: VisualizationOptions) -> Callable:
 
     if option == VisualizationOptions.MATCHING_CENTRAL_WAVENUMBERS_INTENSITY:
         return visualize_matching_intensity
+
+    if option == VisualizationOptions.COST_PER_ITERATIONS:
+        return visualize_cost_per_iterations
 
 
 def visualization_inputs_factory(experiment_id: int, option: VisualizationOptions) -> dict:
@@ -606,6 +668,19 @@ def visualization_inputs_factory(experiment_id: int, option: VisualizationOption
                 "ylim": [-0.1, 1.1],
             },
         }
+    elif option == VisualizationOptions.COST_PER_ITERATIONS:
+        inputs_dict = {
+            "experiment_id": experiment_id,
+            "subplots_options": SubplotsOptions(),
+            "rc_params": RcParamsOptions(fontsize=17),
+            "plot_options": {
+                "linestyle": "-",
+                "ylim": None,
+                "xlabel": "Number of iterations " + r"$N_{\text{iters}}$",
+                "ylabel": "Cost Function",
+                "yscale": "log",
+            },
+        }
     else:
         raise ValueError(f"Option '{option}' is not supported.")
     return inputs_dict
@@ -627,6 +702,7 @@ def main():
         # VisualizationOptions.INTERFEROGRAM_COMPARISON,
         # VisualizationOptions.SPECTRUM_COMPARISON,
         VisualizationOptions.MATCHING_CENTRAL_WAVENUMBERS_INTENSITY,
+        VisualizationOptions.COST_PER_ITERATIONS,
     ]
 
     experiment_id_options = [1, 2]

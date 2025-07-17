@@ -28,6 +28,7 @@ class Spectrum:
             linestyle: str = "-",
             label: str = None,
             color: str = "C0",
+            alpha: float = 1.,
             linewidth: float = 1.5,
             marker: str = "",
             markevery: int = 1,
@@ -35,6 +36,7 @@ class Spectrum:
             ylabel: str = None,
             ylim: list = None,
             x_ticklabel_format: bool = None,
+            legend_fontsize: int | str = None,
     ):
         if title is None:
             title = "Spectral Radiance"
@@ -57,6 +59,8 @@ class Spectrum:
             ylabel=ylabel,
             ylim=ylim,
             x_ticklabel_format=x_ticklabel_format,
+            alpha=alpha,
+            legend_fontsize=legend_fontsize,
         )
 
     def visualize_matrix(

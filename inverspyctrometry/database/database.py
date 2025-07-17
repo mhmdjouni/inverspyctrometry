@@ -65,11 +65,13 @@ class DatabaseSchema(BaseModel):
             lambdaa: float,
             is_compute_and_save_cost: bool = False,
             experiment_id: int = -1,
+            **kwargs,
     ) -> InversionProtocol:
         inversion_protocol = self.inversion_protocols[inv_protocol_id].inversion_protocol(
             lambdaa=lambdaa,
             is_compute_and_save_cost=is_compute_and_save_cost,
             experiment_id=experiment_id,
+            **kwargs,
         )
         return inversion_protocol
 

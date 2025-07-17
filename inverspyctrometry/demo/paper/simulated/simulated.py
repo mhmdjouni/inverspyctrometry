@@ -9,13 +9,14 @@ from matplotlib import pyplot as plt
 from inverspyctrometry.common_utils.custom_vars import Opd
 from inverspyctrometry.common_utils.interferogram import Interferogram
 from inverspyctrometry.common_utils.light_wave import Spectrum
-from inverspyctrometry.common_utils.utils import calculate_rmse, numpy_to_latex
-from inverspyctrometry.demo.paper.simulated.utils import generate_synthetic_spectrum, generate_interferogram, oversample_spectrum, \
+from inverspyctrometry.common_utils.utils import calculate_rmse, numpy_to_latex, min_max_normalize
+from inverspyctrometry.demo.paper.simulated.utils import generate_synthetic_spectrum, generate_interferogram, \
+    oversample_spectrum, \
     invert_haar, \
     load_spectrum, invert_protocols, OPDummy, Protocol
 from inverspyctrometry.interface.configuration import load_config
 from inverspyctrometry.outputs.serialize import numpy_save_list, numpy_load_list
-from inverspyctrometry.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_dir_list
+from inverspyctrometry.outputs.visualization import RcParamsOptions, SubplotsOptions, savefig_dir_list, plot_custom
 
 
 def load_opd_info(dataset: str):
@@ -90,7 +91,7 @@ class Options:
 
 
 def load_variable_reflectivity() -> tuple[
-    str, np.ndarray[tuple[int], np.dtype[np.float_]], np.ndarray[tuple[int], np.dtype[np.float_]]
+    str, np.ndarray[tuple[int], np.dtype[np.float32]], np.ndarray[tuple[int], np.dtype[np.float32]]
 ]:
     characterization = load_config().database().characterization(characterization_id=0)
     ifm_idx = 30
@@ -102,7 +103,7 @@ def load_variable_reflectivity() -> tuple[
     return "fp_0_var_r", transmissivity_coeffs, reflectivity_coeffs
 
 
-def load_real_opds() -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
+def load_real_opds() -> np.ndarray[tuple[Opd], np.dtype[np.float32]]:
     opds = load_config().database().characterization(characterization_id=0).opds
 
     opds = np.sort(opds)
@@ -121,7 +122,7 @@ def compose_dir(
     if save_dir_init is None or save_dir_init == "reports":
         save_dir = load_config().directory_paths.reports
     elif save_dir_init == "paper":
-        save_dir = load_config().directory_paths.project.parents[1] / "latex" / "20249999_ieee_tsp_inversion_v4"
+        save_dir = load_config().directory_paths.project.parents[2] / "papers" / "20249999_ieee_tim_mbi_arxiv_version"
     else:
         save_dir = save_dir_init
 
@@ -159,6 +160,9 @@ def compose_subdir(
 def reconstruction_save_numpy(
         spectra_rec_best: Spectrum,
         argmin_rmse: np.ndarray,
+        execution_time_best: np.ndarray,
+        rmse_lambdaas_all: np.ndarray,
+        cost_progress_best: np.ndarray,
         directories: list[Path],
         subdirectory: str,
 ):
@@ -167,27 +171,35 @@ def reconstruction_save_numpy(
         subdirectory=subdirectory,
     )
     numpy_save_list(
-        filenames=["argmin_rmse.npy"],
-        arrays=[argmin_rmse],
+        filenames=["argmin_rmse.npy", "execution_time_best.npy", "rmse_lambdaas_all.npy", "cost_progress_best.npy"],
+        arrays=[argmin_rmse, execution_time_best, rmse_lambdaas_all, cost_progress_best],
         directories=directories,
         subdirectory=subdirectory,
     )
 
 
-def reconstruction_load_numpy(directory, subdirectory) -> tuple[Spectrum, np.ndarray]:
+def reconstruction_load_numpy(directory, subdirectory) -> tuple[
+    Spectrum, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     spectra_rec_best = Spectrum.load_numpy(directory=directory, subdirectory=subdirectory)
-    argmin_rmse, = numpy_load_list(
-        filenames=["argmin_rmse.npy"],
+    argmin_rmse, execution_time_best, rmse_lambdaas_all, cost_progress_best = numpy_load_list(
+        filenames=["argmin_rmse.npy", "execution_time_best.npy", "rmse_lambdaas_all.npy", "cost_progress_best.npy"],
         directory=directory,
         subdirectory=subdirectory,
     )
-    return spectra_rec_best, argmin_rmse
+    return spectra_rec_best, argmin_rmse, execution_time_best, rmse_lambdaas_all, cost_progress_best
 
 
-def metrics_save_numpy(lambdaa_min, rmse_min, directories, subdirectory):
+def metrics_save_numpy(
+        lambdaa_min,
+        rmse_min,
+        execution_time_min,
+        cost_progress_min,
+        directories,
+        subdirectory,
+):
     numpy_save_list(
-        filenames=["lambdaa_min.npy", "rmse_min.npy"],
-        arrays=[lambdaa_min, rmse_min],
+        filenames=["lambdaa_min.npy", "rmse_min.npy", "execution_time_min.npy", "cost_progress_min.npy"],
+        arrays=[lambdaa_min, rmse_min, execution_time_min, cost_progress_min],
         directories=directories,
         subdirectory=subdirectory,
     )
@@ -205,7 +217,7 @@ def main_opd_irregular_sampling():
 def main_experiments():
     # Options 0: Test with low, medium, high, and variable reflectivity
     # Options 1: Test with regular vs irregular sampling in the OPDs
-    # Options 2: Test with [20, 15, 10] dB of noise
+    # Options 2: Test with [20, 15] dB of noise
     options_list = [
         Options(
             experiment_name="simulated/reflectivity_levels",
@@ -219,9 +231,9 @@ def main_experiments():
             opds_sampling="regular",
             spc_types=["solar", "specim"],
             protocols=[
-                Protocol(id=0, label="IDCT", color="green"),
-                Protocol(id=19, label="HAAR", color="red"),
-                Protocol(id=1, label="PINV", color="black"),
+                Protocol(id=0, label="IDCT", color="green", alpha=1.),
+                Protocol(id=19, label="HAAR", color="red", alpha=1.),
+                Protocol(id=1, label="PINV", color="black", alpha=1.),
             ],
             visualization={}
         ),
@@ -234,9 +246,9 @@ def main_experiments():
             opds_sampling="irregular",
             spc_types=["solar", "specim"],
             protocols=[
-                Protocol(id=0, label="IDCT", color="green"),
-                Protocol(id=19, label="HAAR", color="red"),
-                Protocol(id=1, label="PINV", color="black"),
+                Protocol(id=0, label="IDCT", color="green", alpha=1.),
+                Protocol(id=19, label="HAAR", color="red", alpha=1.),
+                Protocol(id=1, label="PINV", color="black", alpha=1.),
             ],
             visualization={}
         ),
@@ -252,40 +264,42 @@ def main_experiments():
             opds_sampling="regular",
             spc_types=["solar", "specim"],
             protocols=[
-                Protocol(id=0, label="IDCT", color="green"),
-                Protocol(id=19, label="HAAR", color="red"),
-                Protocol(id=2, label="TSVD", color="purple"),
-                Protocol(id=3, label="RR", color="orange"),
-                Protocol(id=4, label="LV-L1", color="black"),
+                Protocol(id=0, label="IDCT", color="green", alpha=1.),
+                Protocol(id=19, label="HAAR", color="red", alpha=1.),
+                Protocol(id=2, label="TSVD", color="purple", alpha=1.),
+                Protocol(id=3, label="RR", color="orange", alpha=1.),
+                Protocol(id=21, label="LV-L1-DWT", color="yellow", alpha=0.7),
+                Protocol(id=4, label="LV-L1-DCT", color="black", alpha=1.),
+                # Protocol(id=20, label="LV-L1-DCT-10000", color="black", alpha=1.),
             ],
             visualization={}
         ),
     ]
 
-    options = options_list[0]
+    options = options_list[2]
 
     for noise in options.noise:
         for device_name, transmissivity_coeffs, reflectivity_coeffs in options.fp_tr:
             for spc_type in options.spc_types:
-                experiment_run(
-                    name=options.experiment_name,
-                    device_name=device_name,
-                    transmissivity=transmissivity_coeffs,
-                    reflectivity=reflectivity_coeffs,
-                    noise=noise,
-                    opds_sampling=options.opds_sampling,
-                    spc_type=spc_type,
-                    protocols=options.protocols,
-                )
-
-                # visualize_reconstruction(
-                #     experiment_name=options.experiment_name,
-                #     dataset_name=spc_type,
+                # experiment_run(
+                #     name=options.experiment_name,
                 #     device_name=device_name,
-                #     noise_level=noise,
+                #     transmissivity=transmissivity_coeffs,
+                #     reflectivity=reflectivity_coeffs,
+                #     noise=noise,
+                #     opds_sampling=options.opds_sampling,
+                #     spc_type=spc_type,
                 #     protocols=options.protocols,
-                #     options=options.visualization,
                 # )
+
+                visualize_reconstruction(
+                    experiment_name=options.experiment_name,
+                    dataset_name=spc_type,
+                    device_name=device_name,
+                    noise_level=noise,
+                    protocols=options.protocols,
+                    options=options.visualization,
+                )
 
                 pass
 
@@ -314,11 +328,13 @@ def print_metrics_full_table(options: Options):
 
 
 def metrics_full_table(options: Options):
+    cols = ["Lambda", "RMSE", "Time"]
     nb_dss = len(options.spc_types)
     nb_ifms = len(options.fp_tr)
     nb_nls = len(options.noise)
     nb_ips = len(options.protocols)
-    full_table = np.zeros(shape=(nb_dss * nb_ips, nb_ifms * nb_nls * 2))
+    nb_cols = len(cols)
+    full_table = np.zeros(shape=(nb_dss * nb_ips, nb_ifms * nb_nls * nb_cols))
 
     index = []
     protocol_label_mapper = {
@@ -327,8 +343,12 @@ def metrics_full_table(options: Options):
         "pinv": "\\glsfmtshort{pinv}",
         "tsvd": "\\glsfmtshort{tsvd} \\cite{GoluHO99:jmaa}",
         "rr": "\\glsfmtshort{rr} \\cite{Hans90:jssc}",
-        "lv": "\\glsfmtshort{lv}",
         "lv-l1": "\\glsfmtshort{lv}",
+        "lv-l1-dct": "Ours",
+        "lv-l1-dct-500": "Ours 500",
+        "lv-l1-dct-10000": "Ours 10000",
+        "lv-l1-dwt": "\\glsfmtshort{lv}-DWT",
+        "lv-l1-dwt-10000": "\\glsfmtshort{lv}-DWT 10000",
     }
     for _ in options.spc_types:
         for protocol in options.protocols:
@@ -338,8 +358,8 @@ def metrics_full_table(options: Options):
     header = []
     for _ in options.fp_tr:
         for _ in options.noise:
-            header.append("lambda")
-            header.append("rmse")
+            for col in cols:
+                header.append(col)
 
     for i_ds, dataset_name in enumerate(options.spc_types):
         for i_ifm, ifm_params in enumerate(options.fp_tr):
@@ -355,16 +375,17 @@ def metrics_full_table(options: Options):
                         protocol_name=protocol.label.lower(),
                     )
 
-                    lambdaa_min, rmse_min = numpy_load_list(
-                        filenames=["lambdaa_min.npy", "rmse_min.npy"],
+                    lambdaa_opt, rmse_min, time_best = numpy_load_list(
+                        filenames=["lambdaa_min.npy", "rmse_min.npy", "execution_time_min.npy"],
                         directory=metrics_dir,
                         subdirectory=inverter_subdir,
                     )
-                    if lambdaa_min == 0:
-                        lambdaa_min = np.nan
+                    if lambdaa_opt == 0:
+                        lambdaa_opt = np.nan
 
-                    full_table[i_ip + nb_ips * i_ds, 2 * i_nl + 2 * nb_nls * i_ifm] = lambdaa_min
-                    full_table[i_ip + nb_ips * i_ds, 2 * i_nl + 2 * nb_nls * i_ifm + 1] = rmse_min
+                    full_table[i_ip + nb_ips * i_ds, 3 * i_nl + 3 * nb_nls * i_ifm] = lambdaa_opt
+                    full_table[i_ip + nb_ips * i_ds, 3 * i_nl + 3 * nb_nls * i_ifm + 1] = rmse_min
+                    full_table[i_ip + nb_ips * i_ds, 3 * i_nl + 3 * nb_nls * i_ifm + 2] = time_best
 
     return full_table, header, index
 
@@ -474,16 +495,31 @@ def experiment_run(
         np.random.seed(0)
         interferogram_sim = interferogram_sim.add_noise(snr_db=snr_db)
     wavenumbers = spectrum_ref.wavenumbers
-    spectrum_haar = invert_haar(wavenumbers, fp_obj, haar_order, interferogram_sim)
-    spectrum_protocols, argmin_rmses = invert_protocols(protocols, wavenumbers, fp_obj, interferogram_sim,
-                                                        spectrum_ref=spectrum_ref)
+    spectrum_haar, execution_time_haar = invert_haar(wavenumbers, fp_obj, haar_order, interferogram_sim)
+    spectrum_protocols, argmin_rmses, execution_time_protocols, rmse_lambdaas_protocols, cost_progress_protocols = invert_protocols(
+        protocols,
+        wavenumbers,
+        fp_obj,
+        interferogram_sim,
+        spectrum_ref=spectrum_ref,
+    )
     spectrum_protocols.insert(1, spectrum_haar)
     argmin_rmses.insert(1, 0)
+    execution_time_protocols.insert(1, execution_time_haar)
+    rmse_lambdaas_protocols.insert(1, np.array([0.]))
+    cost_progress_protocols.insert(1, np.array([0.]))
 
     directories = [
         compose_dir(report_type="reconstruction", experiment_name=name)
     ]
-    for spectrum_protocol, protocol, argmin_rmse in zip(spectrum_protocols, protocols, argmin_rmses):
+    for spectrum_protocol, protocol, argmin_rmse, execution_time_protocol, rmse_lambdaas_protocol, cost_progress_protocol in zip(
+            spectrum_protocols,
+            protocols,
+            argmin_rmses,
+            execution_time_protocols,
+            rmse_lambdaas_protocols,
+            cost_progress_protocols,
+    ):
         subdirectory = compose_subdir(
             dataset_name=options.spc_type,
             device_name=device_name,
@@ -493,6 +529,9 @@ def experiment_run(
         reconstruction_save_numpy(
             spectra_rec_best=spectrum_protocol,
             argmin_rmse=argmin_rmse,
+            execution_time_best=execution_time_protocol,
+            rmse_lambdaas_all=rmse_lambdaas_protocol,
+            cost_progress_best=cost_progress_protocol,
             directories=directories,
             subdirectory=subdirectory,
         )
@@ -511,7 +550,7 @@ def experiment_run(
             noise_level=snr_db,
             protocol_name=protocol.label.lower(),
         )
-        spectra_rec_best, argmin_rmse = reconstruction_load_numpy(
+        spectra_rec_best, argmin_rmse, execution_time_best, rmse_lambdaas_all, cost_progress_best = reconstruction_load_numpy(
             directory=directory,
             subdirectory=subdirectory,
         )
@@ -525,7 +564,12 @@ def experiment_run(
             is_match_stats=True,
             is_rescale_reference=True,
         )
-        print(f"\t{protocol.label + ':':6} RMSE = {rmse_min:.4f}, Lambda: {lambdaa_min:.4f}")
+        print(
+            f"\t{protocol.label + ':':6} "
+            f"Lambda: {lambdaa_min:.3f}, "
+            f"RMSE = {rmse_min:.3f}, "
+            f"Time = {execution_time_best:.4f}"
+        )
 
         subdirectory = compose_subdir(
             dataset_name=options.spc_type,
@@ -536,6 +580,8 @@ def experiment_run(
         metrics_save_numpy(
             lambdaa_min=lambdaa_min,
             rmse_min=rmse_min,
+            execution_time_min=execution_time_best,
+            cost_progress_min=cost_progress_best,
             directories=directories,
             subdirectory=subdirectory,
         )
@@ -554,6 +600,7 @@ def visualize_reconstruction(
     print("\n\nVISUALIZATION")
     acq_idx = 0
     rc_params = RcParamsOptions(fontsize=17)
+    legend_fontsize = 14
     plt.rcParams['font.size'] = str(rc_params.fontsize)
     subplots_options = SubplotsOptions()
     fig_rec, axs_rec = plt.subplots(**asdict(subplots_options))
@@ -575,6 +622,7 @@ def visualize_reconstruction(
         color="C0",
         ylim=spc_ylim,
         linewidth=3,
+        legend_fontsize=legend_fontsize,
     )
     for protocol in protocols:
         directory = compose_dir(report_type="reconstruction", experiment_name=experiment_name)
@@ -594,10 +642,97 @@ def visualize_reconstruction(
             acq_ind=acq_idx,
             label=protocol.label,
             color=protocol.color,
+            alpha=protocol.alpha,
             linestyle="--",
             ylim=spc_ylim,
             title="",
             ylabel="Normalized Intensity",
+            legend_fontsize=legend_fontsize,
+        )
+
+    rc_params = RcParamsOptions(fontsize=17)
+    plt.rcParams['font.size'] = str(rc_params.fontsize)
+    subplots_options = SubplotsOptions()
+    fig_rmse_lambdaa, axs_rmse_lambdaa = plt.subplots(**asdict(subplots_options))
+    spc_ylim = [-0.01, 0.51]
+    protocols_filtered = [p for p in protocols if p.label in {"TSVD", "RR"} or "LV-L1" in p.label]
+    for protocol in protocols_filtered:
+        directory = compose_dir(report_type="reconstruction", experiment_name=experiment_name)
+        subdirectory = compose_subdir(
+            dataset_name=dataset_name,
+            device_name=device_name,
+            noise_level=noise_level,
+            protocol_name=protocol.label.lower(),
+        )
+        _, _, _, rmse_lambdaas_all, cost_progress_best = reconstruction_load_numpy(
+            directory=directory,
+            subdirectory=subdirectory,
+        )
+        lambdaas = load_config().database().inversion_protocol_lambdaas(inv_protocol_id=protocol.id)
+        lambdaas = min_max_normalize(lambdaas, new_min=1e0, new_max=1e1, axis=-1)
+        plot_custom(
+            axs=axs_rmse_lambdaa[0, 0],
+            x_array=lambdaas,
+            array=rmse_lambdaas_all,
+            label=protocol.label,
+            color=protocol.color,
+            linestyle="-",
+            ylim=spc_ylim,
+            title="",
+            xlabel="Normalized " + r"$\lambda_{\text{opt}}$",
+            ylabel="RMSE",
+            xscale="log",
+            legend_fontsize=legend_fontsize,
+        )
+
+    rc_params = RcParamsOptions(fontsize=17)
+    plt.rcParams['font.size'] = str(rc_params.fontsize)
+    subplots_options = SubplotsOptions()
+    spc_ylim = None
+    protocols_filtered = [p for p in protocols if "LV-L1" in p.label]
+    for protocol in protocols_filtered:
+        fig_cost_iter, axs_cost_iter = plt.subplots(**asdict(subplots_options))
+        directory = compose_dir(report_type="reconstruction", experiment_name=experiment_name)
+        subdirectory = compose_subdir(
+            dataset_name=dataset_name,
+            device_name=device_name,
+            noise_level=noise_level,
+            protocol_name=protocol.label.lower(),
+        )
+        _, _, _, _, cost_progress_best = reconstruction_load_numpy(
+            directory=directory,
+            subdirectory=subdirectory,
+        )
+        plot_custom(
+            axs=axs_cost_iter[0, 0],
+            x_array=np.arange(cost_progress_best.size),
+            array=cost_progress_best,
+            label=protocol.label,
+            color="black",
+            linestyle="-",
+            ylim=spc_ylim,
+            title="",
+            xlabel="Number of iterations " + r"$N_{\text{iters}}$",
+            ylabel="Cost Function",
+            yscale="log",
+            legend_fontsize=legend_fontsize,
+        )
+        savefig_dir_list(
+            fig=fig_cost_iter,
+            filename=f"{protocol.label.lower()}.pdf",
+            directories_list=[
+                compose_dir(report_type="figures", experiment_name=experiment_name, save_dir_init="reports"),
+                compose_dir(report_type="paper_figures", experiment_name=experiment_name, save_dir_init="paper"),
+            ],
+            subdirectory=compose_subdir(
+                dataset_name=dataset_name,
+                device_name=device_name,
+                noise_level=noise_level,
+                protocol_name=None,
+                subdir_post="cost",
+            ),
+            fmt="pdf",
+            bbox_inches="tight",
         )
 
     # plt.show()
@@ -615,6 +750,24 @@ def visualize_reconstruction(
             noise_level=noise_level,
             protocol_name=None,
             subdir_post="spectrum_comparison",
+        ),
+        fmt="pdf",
+        bbox_inches="tight",
+    )
+
+    savefig_dir_list(
+        fig=fig_rmse_lambdaa,
+        filename=f"rmse_lambdaa_comparison.pdf",
+        directories_list=[
+            compose_dir(report_type="figures", experiment_name=experiment_name, save_dir_init="reports"),
+            compose_dir(report_type="paper_figures", experiment_name=experiment_name, save_dir_init="paper"),
+        ],
+        subdirectory=compose_subdir(
+            dataset_name=dataset_name,
+            device_name=device_name,
+            noise_level=noise_level,
+            protocol_name=None,
+            subdir_post="rmse",
         ),
         fmt="pdf",
         bbox_inches="tight",

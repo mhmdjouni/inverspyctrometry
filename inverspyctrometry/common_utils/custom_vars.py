@@ -59,6 +59,7 @@ class LinearOperatorMethod(str, Enum):
     NOT_APPLICABLE = "N/A"
     IDENTITY = "identity"
     DCT = "dct"  # Discrete Cosine Transform
+    DWT = "dwt"  # Discrete Wavelet Transform
     TV = "tv"  # Total Variation
 
 

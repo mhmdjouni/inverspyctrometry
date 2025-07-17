@@ -13,9 +13,9 @@ from inverspyctrometry.common_utils.custom_vars import Opd, Wvn, Acq, Deg
 
 
 def add_noise(
-        array: np.ndarray[tuple[Opd | Wvn, Acq], np.dtype[np.float_]],
+        array: np.ndarray[tuple[Opd | Wvn, Acq], np.dtype[np.float32]],
         snr_db: float,
-) -> np.ndarray[tuple[Opd | Wvn, Acq], np.dtype[np.float_]]:
+) -> np.ndarray[tuple[Opd | Wvn, Acq], np.dtype[np.float32]]:
     snr_rms = 10 ** (snr_db / 20)
     noise_normal = np.random.randn(*array.shape)
     signal_std = array.std(axis=-2, keepdims=True)
@@ -25,10 +25,10 @@ def add_noise(
 
 
 def center(
-        array: np.ndarray[..., np.dtype[np.float_]],
+        array: np.ndarray[..., np.dtype[np.float32]],
         new_mean: float = 0.,
         axis: int = -2,
-) -> np.ndarray[..., np.dtype[np.float_]]:
+) -> np.ndarray[..., np.dtype[np.float32]]:
     """Subtract the mean of an array, e.g., array_centered = array - mean"""
     array_mean = array.mean(axis=axis, keepdims=True)
     array_centered = array - array_mean
@@ -38,10 +38,10 @@ def center(
 
 
 def rescale(
-        array: np.ndarray[..., np.dtype[np.float_]],
+        array: np.ndarray[..., np.dtype[np.float32]],
         new_max: float = 1.,
         axis: int = -2,
-) -> np.ndarray[..., np.dtype[np.float_]]:
+) -> np.ndarray[..., np.dtype[np.float32]]:
     """Rescale an array to a new maximum, e.g., array_normed = array / max"""
     array_max = array.max(axis=axis, keepdims=True)
     array_normalized = array / array_max
@@ -51,11 +51,11 @@ def rescale(
 
 
 def min_max_normalize(
-        array: np.ndarray[..., np.dtype[np.float_]],
+        array: np.ndarray[..., np.dtype[np.float32]],
         new_min: float = 0.,
         new_max: float = 1.,
         axis: int = -2,
-) -> np.ndarray[..., np.dtype[np.float_]]:
+) -> np.ndarray[..., np.dtype[np.float32]]:
     """Normalize an array to be in the range [0, 1], e.g., array_normed = (array - min) / (max - min)"""
     array_min = array.min(axis=axis, keepdims=True)
     array_normalized = (array - array_min) / (array.max(axis=axis, keepdims=True) - array_min)
@@ -65,11 +65,11 @@ def min_max_normalize(
 
 
 def standardize(
-        array: np.ndarray[..., np.dtype[np.float_]],
+        array: np.ndarray[..., np.dtype[np.float32]],
         new_mean: float = 0.,
         new_std: float = 1.,
         axis: int = -2,
-) -> np.ndarray[..., np.dtype[np.float_]]:
+) -> np.ndarray[..., np.dtype[np.float32]]:
     """Standardize an array, e.g., array_std = (array - mean) / std."""
     array_mean = array.mean(axis=axis, keepdims=True)
     array_std = array.std(axis=axis, keepdims=True)
@@ -80,11 +80,11 @@ def standardize(
 
 
 def match_stats(
-        array: np.ndarray[..., np.dtype[np.float_]],
-        reference: np.ndarray[..., np.dtype[np.float_]],
+        array: np.ndarray[..., np.dtype[np.float32]],
+        reference: np.ndarray[..., np.dtype[np.float32]],
         axis: int = -2,
         is_rescale_reference: bool = False,
-) -> tuple[np.ndarray[..., np.dtype[np.float_]], np.ndarray[..., np.dtype[np.float_]]]:
+) -> tuple[np.ndarray[..., np.dtype[np.float32]], np.ndarray[..., np.dtype[np.float32]]]:
     """
     Used mostly for plot purposes, especially when comparing arrays.
     1- Rescale the reference if needed, to a maximum of 1
@@ -99,12 +99,12 @@ def match_stats(
 
 
 def calculate_rmse(
-        array: np.ndarray[..., np.dtype[np.float_]],
-        reference: np.ndarray[..., np.dtype[np.float_]],
+        array: np.ndarray[..., np.dtype[np.float32]],
+        reference: np.ndarray[..., np.dtype[np.float32]],
         is_match_stats: bool = False,
         is_rescale_reference: bool = False,
         is_match_axis: int = -2,
-) -> np.ndarray[..., np.dtype[np.float_]]:
+) -> np.ndarray[..., np.dtype[np.float32]]:
     """
     Calculate Normalized Root Mean Squared Error.
     """
@@ -123,17 +123,17 @@ def calculate_rmse(
     return rmse
 
 
-def generate_sampled_opds(nb_opd: int, opd_step: float, opd_min: float = 0) -> np.ndarray[tuple[Opd], np.dtype[np.float_]]:
+def generate_sampled_opds(nb_opd: int, opd_step: float, opd_min: float = 0) -> np.ndarray[tuple[Opd], np.dtype[np.float32]]:
     opds = opd_step * np.arange(nb_opd) + opd_min
     return opds
 
 
 def generate_wavenumbers_from_opds(
         wavenumbers_num: int,
-        del_opd: float,
+        del_opd: np.float32,
         wavenumbers_start: float = None,
         wavenumbers_stop: float = None,
-) -> np.ndarray[tuple[Wvn], np.dtype[np.float_]]:
+) -> np.ndarray[tuple[Wvn], np.dtype[np.float32]]:
     del_wn = 1 / (2 * wavenumbers_num * del_opd)  # del_wn tends to zero as nb_wn tends to infinity (implies continuous)
     wavenumbers = del_wn * (np.arange(wavenumbers_num) + 1/2)
     if wavenumbers_start is not None:
@@ -169,9 +169,9 @@ def convert_hertz_to_meter(values: float | np.ndarray, to_: str = "m"):
 
 
 def polyval_rows(
-        coefficients: np.ndarray[tuple[Opd, Deg], np.dtype[np.float_]],
-        interval: np.ndarray[tuple[Wvn], np.dtype[np.float_]],
-) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float_]]:
+        coefficients: np.ndarray[tuple[Opd, Deg], np.dtype[np.float32]],
+        interval: np.ndarray[tuple[Wvn], np.dtype[np.float32]],
+) -> np.ndarray[tuple[Opd, Wvn], np.dtype[np.float32]]:
     powers = np.arange(coefficients.shape[1])[:, None]
     interval_powered = np.power(interval, powers)
     polynomials = coefficients @ interval_powered

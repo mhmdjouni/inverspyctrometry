@@ -1,9 +1,11 @@
+import time
 from dataclasses import replace, dataclass
 
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import interp1d
 
+from inverspyctrometry.common_utils.custom_vars import LinearOperatorMethod
 from inverspyctrometry.common_utils.function_generator import GaussianGenerator
 from inverspyctrometry.common_utils.interferogram import Interferogram
 from inverspyctrometry.common_utils.light_wave import Spectrum
@@ -11,6 +13,7 @@ from inverspyctrometry.common_utils.utils import calculate_rmse, polyval_rows, m
 from inverspyctrometry.direct_model.interferometer import FabryPerotInterferometer
 from inverspyctrometry.interface.configuration import load_config
 from inverspyctrometry.inverse_model.analytical_inverter import calculate_airy_fourier_coeffs, HaarInverter
+from inverspyctrometry.inverse_model.operators import wavelet_transform
 
 
 def compute_wavenumbers(opd, wn, wn_num_factor):
@@ -139,8 +142,11 @@ def invert_haar(wavenumbers, fp, haar_order, interferogram: Interferogram):
         order=haar_order,
         is_mean_center=True,
     )
+    start_time = time.time()
     spectrum = haar.reconstruct_spectrum(interferogram=interferogram)
-    return spectrum
+    end_time = time.time()
+    execution_time = end_time - start_time
+    return spectrum, execution_time
 
 
 def load_spectrum(option: str):
@@ -148,21 +154,21 @@ def load_spectrum(option: str):
     db = config.database()
     if option == "solar":
         spectrum = db.dataset_spectrum(ds_id=0)
-        # acq_id = 0
+        acq_id = 0
     elif option in ["specim", "cc_green"]:
         spectrum = db.dataset_spectrum(ds_id=1)
-        # acq_id = 13
+        acq_id = 13
     elif option == "mc451":
         central_wavenumbers = db.dataset_central_wavenumbers(dataset_id=3)
         spectrum = Spectrum(data=np.eye(central_wavenumbers.size), wavenumbers=central_wavenumbers)
-        # acq_id = 200
+        acq_id = 200
     elif option == "mc651":
         central_wavenumbers = db.dataset_central_wavenumbers(dataset_id=4)
         spectrum = Spectrum(data=np.eye(central_wavenumbers.size), wavenumbers=central_wavenumbers)
-        # acq_id = 300
+        acq_id = 300
     else:
         raise ValueError(f"Option {option} is not supported.")
-    # spectrum = replace(spectrum, data=spectrum.data[:, acq_id:acq_id + 1])
+    spectrum = replace(spectrum, data=spectrum.data[:, acq_id:acq_id + 1])
     return spectrum
 
 
@@ -176,23 +182,52 @@ def invert_protocols(protocols: list, wavenumbers, fp, interferogram: Interferog
     )
     transmittance_response = device.transmittance_response(wavenumbers=wavenumbers)
     transmittance_response = transmittance_response.rescale(new_max=1., axis=None)
-    fig, axs = plt.subplots()
-    transmittance_response.visualize(fig, axs)
-    plt.show()
+    # fig, axs = plt.subplots()
+    # transmittance_response.visualize(fig, axs)
+    # plt.show()
 
     db = load_config().database()
     spectrum_protocols = []
     argmin_rmses = []
+    execution_time_protocols = []
+    rmse_lambdaas_protocols = []
+    cost_progress_protocols = []
     for protocol in protocols:
         if protocol.label != "HAAR":
             lambdaas = db.inversion_protocol_lambdaas(inv_protocol_id=protocol.id)
             spectrum_rec_all = np.zeros(shape=(lambdaas.size, *spectrum_ref.data.shape))
+            execution_times_all = np.zeros(shape=lambdaas.size)
+            cost_progress_all = np.zeros(shape=(lambdaas.size, db.inversion_protocols[protocol.id].nb_iters))
+
+            kwargs = {}
+            if db.inversion_protocols[protocol.id].linear_operator == LinearOperatorMethod.DWT:
+                wavelet = "db8"
+                level = 3
+                coeff_slices = wavelet_transform(x=spectrum_ref.data, wavelet=wavelet, level=level)[1]
+                kwargs = {
+                    "wavelet": wavelet,
+                    "level": level,
+                    "coeff_slices": coeff_slices,
+                }
+
             for i_lmd, lambdaa in enumerate(lambdaas):
-                inverter = db.inversion_protocol(inv_protocol_id=protocol.id, lambdaa=lambdaa)
-                spectra_rec = inverter.reconstruct_spectrum(
+                inverter = db.inversion_protocol(
+                    inv_protocol_id=protocol.id,
+                    lambdaa=lambdaa,
+                    is_compute_and_save_cost=False,
+                    **kwargs,
+                )
+
+                start_time = time.time()
+                spectra_rec, cost_progress = inverter.reconstruct_spectrum(
                     interferogram=interferogram, transmittance_response=transmittance_response
                 )
+                end_time = time.time()
+                execution_time = end_time - start_time
+
                 spectrum_rec_all[i_lmd] = spectra_rec.data
+                execution_times_all[i_lmd] = execution_time
+                cost_progress_all[i_lmd] = cost_progress
 
             rmse_lambdaas = calculate_rmse(
                 array=spectrum_rec_all,
@@ -204,11 +239,16 @@ def invert_protocols(protocols: list, wavenumbers, fp, interferogram: Interferog
             argmin_rmse = np.argmin(rmse_lambdaas)
             print(f"{protocol.label}: lmd = {lambdaas[argmin_rmse]:.4f} at idx = {argmin_rmse:.0f}")
             spectrum_rec_best = replace(spectrum_ref, data=spectrum_rec_all[argmin_rmse])
+            execution_time_best = execution_times_all[argmin_rmse]
+            cost_progress_best = cost_progress_all[argmin_rmse]
 
-            spectrum_protocols.append(spectrum_rec_best)
             argmin_rmses.append(argmin_rmse)
+            spectrum_protocols.append(spectrum_rec_best)
+            execution_time_protocols.append(execution_time_best)
+            rmse_lambdaas_protocols.append(rmse_lambdaas)
+            cost_progress_protocols.append(cost_progress_best)
 
-    return spectrum_protocols, argmin_rmses
+    return spectrum_protocols, argmin_rmses, execution_time_protocols, rmse_lambdaas_protocols, cost_progress_protocols
 
 
 @dataclass(frozen=True)
@@ -216,3 +256,4 @@ class Protocol:
     id: int
     label: str
     color: str
+    alpha: float

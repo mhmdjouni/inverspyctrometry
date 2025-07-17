@@ -46,20 +46,20 @@ class InversionProtocolSchema(BaseModel):
     def prox_functional(self) -> CTVOperator:
         return CTVOperator(norm=NormOperator.from_norm(norm=self.norm_operator))
 
-    @property
-    def domain_transform(self) -> LinearOperator:
-        return LinearOperator.from_method(method=self.linear_operator)
+    def domain_transform(self, **kwargs) -> LinearOperator:
+        return LinearOperator.from_method(method=self.linear_operator, **kwargs)
 
     def parameters(
             self,
             lambdaa: float,
             is_compute_and_save_cost: bool = False,
             experiment_id: int = -1,
+            **kwargs,
     ) -> dict:
         parameters = {
             self.lambdaas_schema.key.value: lambdaa,
             "prox_functional": self.prox_functional,
-            "domain_transform": self.domain_transform,
+            "domain_transform": self.domain_transform(**kwargs),
             "nb_iters": self.nb_iters,
             "is_compute_and_save_cost": is_compute_and_save_cost,
             "experiment_id": experiment_id,
@@ -71,6 +71,7 @@ class InversionProtocolSchema(BaseModel):
             lambdaa: float,
             is_compute_and_save_cost: bool = False,
             experiment_id: int = -1,
+            **kwargs,
     ) -> InversionProtocol:
         inversion_protocol = inversion_protocol_factory(
             option=self.type,
@@ -78,6 +79,7 @@ class InversionProtocolSchema(BaseModel):
                 lambdaa=lambdaa,
                 is_compute_and_save_cost=is_compute_and_save_cost,
                 experiment_id=experiment_id,
+                **kwargs,
             )
         )
         return inversion_protocol

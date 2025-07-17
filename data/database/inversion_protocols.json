@@ -248,9 +248,9 @@
       "type": "loris_verhoeven",
       "lambdaas_schema": {
         "key": "regularization_parameter",
-        "start": -2,
-        "stop": 0,
-        "num": 31,
+        "start": -1.26760624,
+        "stop": -1.267606241,
+        "num": 1,
         "space": "logspace"
       },
       "norm_operator": [
@@ -368,9 +368,9 @@
       "type": "loris_verhoeven",
       "lambdaas_schema": {
         "key": "regularization_parameter",
-        "start": -1,
-        "stop": 0,
-        "num": 16,
+        "start": -0.467245621,
+        "stop": -0.4672456211,
+        "num": 1,
         "space": "logspace"
       },
       "norm_operator": [
@@ -399,6 +399,46 @@
       ],
       "linear_operator": "N/A",
       "nb_iters": 0
+    },
+    {
+      "id": 20,
+      "title": "lv_l1",
+      "experiment_id": 0,
+      "experiment_description": "invert_simulated",
+      "type": "loris_verhoeven",
+      "lambdaas_schema": {
+        "key": "regularization_parameter",
+        "start": -2,
+        "stop": 1,
+        "num": 50,
+        "space": "logspace"
+      },
+      "norm_operator": [
+        "l1o",
+        []
+      ],
+      "linear_operator": "dct",
+      "nb_iters": 10000
+    },
+    {
+      "id": 21,
+      "title": "lv_l1_dwt",
+      "experiment_id": 0,
+      "experiment_description": "invert_simulated",
+      "type": "loris_verhoeven",
+      "lambdaas_schema": {
+        "key": "regularization_parameter",
+        "start": -1.5,
+        "stop": 0.5,
+        "num": 50,
+        "space": "logspace"
+      },
+      "norm_operator": [
+        "l1o",
+        []
+      ],
+      "linear_operator": "dwt",
+      "nb_iters": 500
     }
   ]
 }

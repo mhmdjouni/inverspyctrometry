@@ -1,20 +1,15 @@
-from dataclasses import replace, dataclass
+from dataclasses import dataclass
 from types import SimpleNamespace
 
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy.interpolate import interp1d
 
 from inverspyctrometry.common_utils.interferogram import Interferogram
-from inverspyctrometry.common_utils.light_wave import Spectrum
-from inverspyctrometry.common_utils.utils import calculate_rmse, match_stats
-from inverspyctrometry.demo.paper.simulated.simulated import compose_dir, compose_subdir, reconstruction_save_numpy, \
-    reconstruction_load_numpy, metrics_save_numpy
-from inverspyctrometry.demo.paper.simulated.utils import generate_synthetic_spectrum, generate_interferogram, compute_wavenumbers, \
-    oversample_wavenumbers, oversample_spectrum, invert_haar, load_spectrum, invert_protocols, Protocol
+from inverspyctrometry.common_utils.utils import calculate_rmse
 from inverspyctrometry.demo.paper.monochromatic.utils import calculate_rmcw
-from inverspyctrometry.direct_model.characterization import Characterization
-from inverspyctrometry.direct_model.interferometer import FabryPerotInterferometer
+from inverspyctrometry.demo.paper.simulated.simulated import compose_dir, compose_subdir, reconstruction_save_numpy, \
+    reconstruction_load_numpy
+from inverspyctrometry.demo.paper.simulated.utils import invert_haar, load_spectrum, invert_protocols, Protocol
 from inverspyctrometry.interface.configuration import load_config
 from inverspyctrometry.outputs.serialize import numpy_save_list
 
@@ -76,11 +71,12 @@ def invert_haar_real(wavenumbers_central, characterization_id, haar_order, inter
         transmittance=transmittance,
         reflectance=reflectance,
     )
-    spectrum = invert_haar(wavenumbers_central, fp_obj, haar_order, interferogram_sim)
-    return spectrum
+    spectrum, execution_time = invert_haar(wavenumbers_central, fp_obj, haar_order, interferogram_sim)
+    return spectrum, execution_time
 
 
-def invert_protocols_real(protocols, wavenumbers, characterization_id, interferogram, spectrum_ref, extrap: Extrapolation):
+def invert_protocols_real(protocols, wavenumbers, characterization_id, interferogram, spectrum_ref,
+                          extrap: Extrapolation):
     db = load_config().database()
     characterization = db.characterization(characterization_id=characterization_id)
     # characterization = characterization.sort_opds()
@@ -92,8 +88,14 @@ def invert_protocols_real(protocols, wavenumbers, characterization_id, interfero
         reflectance=characterization.reflectance_coefficients,
         order=characterization.order,
     )
-    spectrum_protocols, argmin_rmses = invert_protocols(protocols, wavenumbers, fp_obj, interferogram, spectrum_ref=spectrum_ref)
-    return spectrum_protocols, argmin_rmses
+    spectrum_protocols, argmin_rmses, execution_time_protocols, rmse_lambdaas_protocols, cost_progress_protocols = invert_protocols(
+        protocols,
+        wavenumbers,
+        fp_obj,
+        interferogram,
+        spectrum_ref=spectrum_ref,
+    )
+    return spectrum_protocols, argmin_rmses, execution_time_protocols, rmse_lambdaas_protocols, cost_progress_protocols
 
 
 @dataclass
@@ -124,10 +126,20 @@ def main():
         )
 
 
-def metrics_real_save_numpy(lambdaa_min, rmse_full, rmse_diagonal, rmcw, directories, subdirectory):
+def metrics_real_save_numpy(
+        lambdaa_min,
+        rmse_full,
+        rmse_diagonal,
+        rmcw,
+        execution_time_min,
+        cost_progress_min,
+        directories,
+        subdirectory,
+):
     numpy_save_list(
-        filenames=["lambdaa_min.npy", "rmse_full.npy", "rmse_diagonal.npy", "rmcw.npy"],
-        arrays=[lambdaa_min, rmse_full, rmse_diagonal, rmcw],
+        filenames=["lambdaa_min.npy", "rmse_full.npy", "rmse_diagonal.npy", "rmcw.npy", "execution_time_min.npy",
+                   "cost_progress_min.npy"],
+        arrays=[lambdaa_min, rmse_full, rmse_diagonal, rmcw, execution_time_min, cost_progress_min],
         directories=directories,
         subdirectory=subdirectory,
     )
@@ -191,6 +203,7 @@ def experiment_run(
 
     # INVERSION
 
+    print("\n\nINVERSION")
     directory = compose_dir(report_type="extrapolation", experiment_name=experiment_name)
     subdirectory = compose_subdir(
         dataset_name=ifm_type,
@@ -203,17 +216,33 @@ def experiment_run(
         subdirectory=subdirectory,
     )
 
-    print("\n\nINVERSION")
     wavenumbers = spectrum_ref.wavenumbers
-    spectrum_haar = invert_haar_real(wavenumbers, char_id, haar_order, interferogram_extrap)
-    spectrum_protocols, argmin_rmses = invert_protocols_real(protocols, wavenumbers, char_id, interferogram_extrap, spectrum_ref, extrap)
+    spectrum_haar, execution_time_haar = invert_haar_real(wavenumbers, char_id, haar_order, interferogram_extrap)
+    spectrum_protocols, argmin_rmses, execution_time_protocols, rmse_lambdaas_protocols, cost_progress_protocols = invert_protocols_real(
+        protocols,
+        wavenumbers,
+        char_id,
+        interferogram_extrap,
+        spectrum_ref,
+        extrap,
+    )
     spectrum_protocols.insert(1, spectrum_haar)
     argmin_rmses.insert(1, 0)
+    execution_time_protocols.insert(1, execution_time_haar)
+    rmse_lambdaas_protocols.insert(1, np.array([0.]))
+    cost_progress_protocols.insert(1, np.array([0.]))
 
     directories = [
         compose_dir(report_type="reconstruction", experiment_name=experiment_name)
     ]
-    for spectrum_protocol, protocol, argmin_rmse in zip(spectrum_protocols, protocols, argmin_rmses):
+    for spectrum_protocol, protocol, argmin_rmse, execution_time_protocol, rmse_lambdaas_protocol, cost_progress_protocol in zip(
+            spectrum_protocols,
+            protocols,
+            argmin_rmses,
+            execution_time_protocols,
+            rmse_lambdaas_protocols,
+            cost_progress_protocols,
+    ):
         subdirectory = compose_subdir(
             dataset_name=ifm_type,
             device_name=device_name,
@@ -223,6 +252,9 @@ def experiment_run(
         reconstruction_save_numpy(
             spectra_rec_best=spectrum_protocol,
             argmin_rmse=argmin_rmse,
+            execution_time_best=execution_time_protocol,
+            rmse_lambdaas_all=rmse_lambdaas_protocol,
+            cost_progress_best=cost_progress_protocol,
             directories=directories,
             subdirectory=subdirectory,
         )
@@ -248,7 +280,7 @@ def experiment_run(
             noise_level=None,
             protocol_name=protocol.label.lower(),
         )
-        spectra_rec_best, argmin_rmse = reconstruction_load_numpy(
+        spectra_rec_best, argmin_rmse, execution_time_best, rmse_lambdaas_all, cost_progress_best = reconstruction_load_numpy(
             directory=directory,
             subdirectory=subdirectory,
         )
@@ -284,6 +316,8 @@ def experiment_run(
             rmse_full=rmse_full,
             rmse_diagonal=rmse_diagonal,
             rmcw=rmcw,
+            execution_time_min=execution_time_best,
+            cost_progress_min=cost_progress_best,
             directories=directories,
             subdirectory=subdirectory,
         )

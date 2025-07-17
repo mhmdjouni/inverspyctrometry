@@ -1,12 +1,15 @@
+import time
 from dataclasses import dataclass
 from pprint import pprint
 
 import matplotlib.pyplot as plt
 import numpy as np
 
+from inverspyctrometry.common_utils.custom_vars import LinearOperatorMethod
 from inverspyctrometry.common_utils.interferogram import Interferogram
 from inverspyctrometry.direct_model.characterization import Characterization
 from inverspyctrometry.interface.configuration import load_config
+from inverspyctrometry.inverse_model.operators import wavelet_transform
 
 
 # TODO: Consider cropping the wavenumbers of mc651 starting from 1.1
@@ -203,25 +206,45 @@ def run_one_experiment(
                     print(f"\t\tInversion Protocol: {db.inversion_protocols[ip_id].title.upper()}")
                     inverter_dir = characterization_dir / f"{db.inversion_protocols[ip_id].title}"
 
-                    spectra_rec_all = np.zeros(
-                        shape=(lambdaas.size, wavenumbers_ifgm.size, interferograms_ref.data.shape[-1]))
+                    spectra_rec_all = np.zeros(shape=(lambdaas.size, wavenumbers_ifgm.size, interferograms_ref.data.shape[-1]))
+                    execution_times_all = np.zeros(shape=lambdaas.size)
+                    cost_progress_all = np.zeros(shape=(lambdaas.size, db.inversion_protocols[ip_id].nb_iters))
+
+                    kwargs = {}
+                    if db.inversion_protocols[ip_id].linear_operator == LinearOperatorMethod.DWT:
+                        coeff_slices = wavelet_transform(x=wavenumbers_ifgm[..., None], wavelet="db8", level=3)[1]
+                        kwargs = {
+                            "wavelet": "db8",
+                            "level": 3,
+                            "coeff_slices": coeff_slices,
+                        }
 
                     for il, lambdaa in enumerate(lambdaas):
                         inverter = db.inversion_protocol(
                             inv_protocol_id=ip_id,
                             lambdaa=lambdaa,
-                            is_compute_and_save_cost=False,
+                            is_compute_and_save_cost=True,
                             experiment_id=-1,
+                            **kwargs
                         )
-                        spectra_rec = inverter.reconstruct_spectrum(
+
+                        start_time = time.time()
+                        spectra_rec, cost_progress = inverter.reconstruct_spectrum(
                             interferogram=interferograms_ref, transmittance_response=transfer_matrix
                         )
+                        end_time = time.time()
+                        execution_time = end_time - start_time
+
                         spectra_rec_all[il] = spectra_rec.data
+                        execution_times_all[il] = execution_time
+                        cost_progress_all[il] = cost_progress
 
                     # Save all spectral reconstructions wrt lambda, per inv_protocol per dataset
                     if not inverter_dir.exists():
                         inverter_dir.mkdir(parents=True, exist_ok=True)
-                    np.save(file=inverter_dir / "spectra_rec_all", arr=spectra_rec_all)
+                    np.save(file=inverter_dir / "spectra_rec_all.npy", arr=spectra_rec_all)
+                    np.save(file=inverter_dir / "execution_times_all.npy", arr=execution_times_all)
+                    np.save(file=inverter_dir / "cost_progress_all.npy", arr=cost_progress_all)
 
             # Save the wavenumbers for the sake of independent plots
             if not dataset_dir.exists():

@@ -67,10 +67,11 @@ class LorisVerhoevenIteration:
         dual = dual + self.rho * (dual_half - dual)
 
         if self.is_compute_cost:
-            fidelity_term = np.linalg.norm(x=data_fidelity.flatten(), ord=2)
-            scalar_functional = self.prox_functional.direct(x=self.domain_transform.direct(prim.flatten()), lambdaa=1.)
-            cost = 0.5 * fidelity_term + self.regularization_parameter * scalar_functional
+            fidelity_term = np.dot(data_fidelity.flatten().T, data_fidelity.flatten())
+            scalar_functionals = self.prox_functional.direct(x=self.domain_transform.direct(prim), lambdaa=1.)
+            scalar_functional_total = np.sum(scalar_functionals)
+            cost = 0.5 * fidelity_term + self.regularization_parameter * scalar_functional_total
         else:
-            cost = 0
+            cost = np.nan
 
         return prim, dual, cost

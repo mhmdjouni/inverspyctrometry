@@ -45,6 +45,10 @@ def plot_custom(
         ylabel: str = None,
         ylim: list = None,
         x_ticklabel_format: bool = None,
+        xscale: str = None,  # 'linear', 'log'
+        yscale: str = None,
+        alpha: float = 1.,
+        legend_fontsize: int | str = None,
 ):
     axs.plot(
         x_array,
@@ -55,6 +59,7 @@ def plot_custom(
         label=label,
         color=color,
         linewidth=linewidth,
+        alpha=alpha,
     )
 
     if xlim is not None:
@@ -65,19 +70,24 @@ def plot_custom(
     if x_ticklabel_format is not None:
         axs.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
 
+    if xscale is not None:
+        axs.set_xscale(xscale)
+    if yscale is not None:
+        axs.set_yscale(yscale)
+
     axs.set_title(title)
     axs.set_ylabel(ylabel)
     axs.set_xlabel(xlabel)
-    axs.legend()
+    axs.legend(fontsize=legend_fontsize if legend_fontsize is not None else plt.rcParams["legend.fontsize"])
     axs.grid(visible=True)
 
 
 def imshow_custom(
         fig: Figure,
         axs,
-        image: np.ndarray[tuple[int, int], np.dtype[np.float_]],
-        x_variable: np.ndarray[tuple[int], np.dtype[np.float_]],
-        y_variable: np.ndarray[tuple[int], np.dtype[np.float_]],
+        image: np.ndarray[tuple[int, int], np.dtype[np.float32]],
+        x_variable: np.ndarray[tuple[int], np.dtype[np.float32]],
+        y_variable: np.ndarray[tuple[int], np.dtype[np.float32]],
         title: str = None,
         aspect: str | float = 1.,
         vmin: float = None,

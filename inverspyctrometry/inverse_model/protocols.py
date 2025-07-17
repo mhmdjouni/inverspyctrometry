@@ -77,7 +77,7 @@ class IDCT(InversionProtocol):
     ) -> Spectrum:
         if self.is_mean_center:
             interferogram = interferogram.center(new_mean=0, axis=-2)
-        spectrum = fft.idct(interferogram.data, axis=-2, norm="ortho")
+        spectrum: np.ndarray = fft.idct(interferogram.data, axis=-2, norm="ortho")
         wavenumbers = generate_wavenumbers_from_opds(
             wavenumbers_num=spectrum.shape[-2],
             del_opd=np.mean(np.diff(interferogram.opds))
@@ -88,7 +88,7 @@ class IDCT(InversionProtocol):
             kind="linear",
             fill_value="extrapolate",
         )
-        return spectrum_obj
+        return spectrum_obj, np.array([0.])
 
 
 @dataclass(frozen=True)
@@ -101,10 +101,7 @@ class PseudoInverse(InversionProtocol):
     ) -> Spectrum:
         tr_pinv = np.linalg.pinv(transmittance_response.data)
         spectrum = tr_pinv @ interferogram.data
-        return Spectrum(
-            data=spectrum,
-            wavenumbers=transmittance_response.wavenumbers,
-        )
+        return Spectrum(data=spectrum, wavenumbers=transmittance_response.wavenumbers), np.array([0.])
 
 
 @dataclass(frozen=True)
@@ -123,7 +120,7 @@ class TSVD(InversionProtocol):
         nb_sv = int(sv.size * self.penalization_ratio)
         sv_penalized = 1 / sv[:nb_sv]
         spectrum = (rsv[:nb_sv].T * sv_penalized) @ lsv[:, :nb_sv].T @ interferogram.data
-        return Spectrum(data=spectrum, wavenumbers=transmittance_response.wavenumbers)
+        return Spectrum(data=spectrum, wavenumbers=transmittance_response.wavenumbers), np.array([0.])
 
 
 @dataclass(frozen=True)
@@ -138,7 +135,7 @@ class RidgeRegression(InversionProtocol):
         lsv, sv, rsv = np.linalg.svd(a=transmittance_response.data, full_matrices=False, compute_uv=True)
         sv_penalized = sv / (sv ** 2 + self.penalization ** 2)
         spectrum = (rsv.T * sv_penalized) @ lsv.T @ interferogram.data
-        return Spectrum(data=spectrum, wavenumbers=transmittance_response.wavenumbers)
+        return Spectrum(data=spectrum, wavenumbers=transmittance_response.wavenumbers), np.array([0.])
 
 
 @dataclass(frozen=True)
@@ -187,15 +184,7 @@ class LorisVerhoeven(InversionProtocol):
         for q in tqdm(range(self.nb_iters)):
             prim, dual, cost_progress[q] = lv_iter.update(prim=prim, dual=dual)
 
-        if self.is_compute_and_save_cost:
-            project_dir = Path(__file__).resolve().parents[2]
-            folder_subdir = f"reports/experiment_{self.experiment_id}/loris_verhoeven_cost/lambdaa_{self.regularization_parameter:07.4f}"
-            folder_dir = project_dir / folder_subdir
-            if not folder_dir.exists():
-                folder_dir.mkdir(parents=True, exist_ok=True)
-            np.save(file=folder_dir / "cost_progress", arr=cost_progress)
-
-        return Spectrum(data=prim, wavenumbers=transmittance_response.wavenumbers)
+        return Spectrum(data=prim, wavenumbers=transmittance_response.wavenumbers), cost_progress
 
 
 @dataclass(frozen=True)

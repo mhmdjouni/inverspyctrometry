@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Callable, Optional
 
 import numpy as np
+import pywt
 from scipy import fft
 
 from inverspyctrometry.common_utils.custom_vars import LinearOperatorMethod, NormOperatorType
@@ -40,6 +41,25 @@ def tv_adjoint(u: np.ndarray) -> np.ndarray:
     return x
 
 
+def wavelet_transform(x, wavelet, level):
+    """
+    Apply DWT along each column of the input 2D array (spectra),
+    and concatenate the coefficients of each column into a 1D array.
+    """
+    coeffs = pywt.wavedecn(x, wavelet=wavelet, level=level, mode='symmetric', axes=(-2,))
+    u, coeff_slices = pywt.coeffs_to_array(coeffs=coeffs, padding=0, axes=(-2,))
+    return u, coeff_slices
+
+
+def inverse_wavelet_transform(u, wavelet, coeff_slices):
+    """
+    Reconstruct the signal from wavelet coefficients.
+    """
+    coeffs_rec = pywt.array_to_coeffs(arr=u, coeff_slices=coeff_slices, output_format="wavedecn")
+    x = pywt.waverecn(coeffs_rec, wavelet=wavelet, axes=(-2,))
+    return x
+
+
 # TODO: Find a better way than using Callables.. LinearOperator(ABC) => MatrixOperator & FunctionOperator
 @dataclass(frozen=True)
 class LinearOperator:
@@ -58,7 +78,7 @@ class LinearOperator:
         )
 
     @classmethod
-    def from_method(cls, method: LinearOperatorMethod) -> LinearOperator:
+    def from_method(cls, method: LinearOperatorMethod, **kwargs) -> LinearOperator:
         if method == LinearOperatorMethod.NOT_APPLICABLE:
             return cls(
                 direct=lambda x: np.array(None),
@@ -66,6 +86,7 @@ class LinearOperator:
                 norm=0.,
                 inverse=lambda u: np.array(None),
             )
+
         elif method == LinearOperatorMethod.IDENTITY:
             return cls(
                 direct=lambda x: x,
@@ -80,6 +101,17 @@ class LinearOperator:
                 adjoint=lambda u: fft.idct(u, norm="ortho", axis=-2),
                 norm=1.,
                 inverse=lambda u: fft.idct(u, norm="ortho", axis=-2),
+            )
+
+        elif method == LinearOperatorMethod.DWT:
+            wavelet = kwargs["wavelet"]
+            level = kwargs["level"]
+            coeff_slices = kwargs["coeff_slices"]
+            return cls(
+                direct=lambda x: wavelet_transform(x, wavelet=wavelet, level=level)[0],
+                adjoint=lambda u: inverse_wavelet_transform(u, wavelet=wavelet, coeff_slices=coeff_slices),
+                norm=1.,
+                inverse=lambda u: inverse_wavelet_transform(u, wavelet=wavelet, coeff_slices=coeff_slices),
             )
 
         elif method == LinearOperatorMethod.TV:
